@@ -1,3 +1,4 @@
+import { rankedEndpoint, standalonePlatform, type ClientPlatform } from '../../src/client-platform.ts';
 import { winStreak, winStreakCSS, streakLength } from '../../src/win-streak.ts';
 import { installErrorDismissal, retryDismissedErrors } from '../../src/dismissible-errors.ts';
 import { playerName } from '../../src/cosmetics.ts';
@@ -29,6 +30,7 @@ export function installRankedPanel(
   report: (event: string, detail?: any) => void,
   live = false,
   inHub = false,
+  platform: ClientPlatform = standalonePlatform(location.origin),
 ) {
   const tokenKey = 'polycup.prototype.account';
   const loading = new RankedLoading();
@@ -297,7 +299,7 @@ export function installRankedPanel(
     if (path === 'queue' && ['join', 'accept'].includes(body.action)) await requireNativeInstance();
     if (live && owner !== proto.ui.account?.user?.id) throw Error('Account changed. Please try again.');
     if (live) token = (await proto.ui.account?.accessToken()) || '';
-    const response = await fetch('/ranked/' + path, {
+    const response = await fetch(rankedEndpoint(platform, path), {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token },
       body: JSON.stringify({
@@ -316,7 +318,7 @@ export function installRankedPanel(
   }
   proto.rankedRequest = request;
   const build = (window as any).polycupBuild;
-  const updates = build
+  const updates = build && platform.distribution === 'standalone'
     ? installClientUpdates(
         panel,
         build,
@@ -967,7 +969,7 @@ export function installRankedPanel(
       }
     }
     if (!token && !live) {
-      const identity = await (await fetch('/ranked/register', { method: 'POST' })).json();
+      const identity = await (await fetch(rankedEndpoint(platform, 'register'), { method: 'POST' })).json();
       token = identity.token;
       player = identity.player;
       localStorage.setItem(tokenKey, token);

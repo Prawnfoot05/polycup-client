@@ -1,3 +1,4 @@
+import { clientAsset } from './client-assets.ts';
 import catalog from './track-banner-catalog.json';
 import css from './track-banner.css';
 
@@ -6,7 +7,7 @@ type TrackBanner = { track: string; file: string };
 const key = (name: string) => name.normalize('NFKC').trim().toLocaleLowerCase('en-US');
 export function trackBannerURL(track?: string) {
   const art = (catalog as TrackBanner[]).find((item) => key(item.track) === key(track ?? ''));
-  return art ? new URL(`track-banners/${art.file}`, import.meta.url || document.baseURI).href : '';
+  return art ? clientAsset(`track-banners/${art.file}`, import.meta.url || document.baseURI) : '';
 }
 
 /** Decorative artwork never gates connection, settlement or the visible heading. */

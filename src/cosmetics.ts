@@ -1,3 +1,4 @@
+import { clientAsset } from './client-assets.ts';
 import { rewardRarity, type RewardRarity } from './reward-rarity.ts';
 import source from './cosmetic-catalog.json';
 import { element as h } from './dom.ts';
@@ -80,7 +81,7 @@ export function cosmetic(
 }
 export function cosmeticURL(item?: CosmeticItem) {
   return item?.art
-    ? new URL('cosmetics/' + item.art, import.meta.url || document.baseURI).href
+    ? clientAsset('cosmetics/' + item.art, import.meta.url || document.baseURI)
     : '';
 }
 export function cosmeticBadge(id: string, variant?: string | null) {

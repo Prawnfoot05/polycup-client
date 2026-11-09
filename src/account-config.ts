@@ -14,3 +14,11 @@ export function configureStandaloneAccount(value: typeof accountConfig) {
     throw new Error('Invalid standalone account environment');
   Object.assign(accountConfig, value);
 }
+
+/** PML has a different origin; its callback is still bound to our fixed service. */
+export function configurePmlAccount(value: typeof accountConfig, origin: string) {
+ if (!['https://polycup.online','https://pilot.polycup.online'].includes(origin) ||
+     !/^https:\/\/[a-z]{20}\.supabase\.co$/.test(value.url) || !value.publishableKey ||
+     value.callback !== origin+'/auth/') throw Error('Invalid PML account environment');
+ Object.assign(accountConfig,value);
+}

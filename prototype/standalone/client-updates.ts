@@ -109,7 +109,7 @@ export function installClientUpdates(
   const layout = new ResizeObserver(position);
   layout.observe(root);
   layout.observe(banner);
-  const visibility = new MutationObserver(render);
+  const visibility = new MutationObserver(() => render());
   visibility.observe(root, { attributes: true, attributeFilter: ['hidden'] });
   const dialog = root.closest('dialog');
   if (dialog) visibility.observe(dialog, { attributes: true, attributeFilter: ['open', 'hidden'] });

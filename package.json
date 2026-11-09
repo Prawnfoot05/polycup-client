@@ -5,7 +5,8 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "prepare:game": "node scripts/prepare-local-game.mjs",
-    "build": "node prototype/standalone/build.mjs --pml --hub"
+    "build": "node prototype/standalone/build.mjs --pml --hub",
+    "build:pml": "node scripts/build-pml.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0"

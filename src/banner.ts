@@ -1,3 +1,4 @@
+import { clientAsset } from './client-assets.ts';
 import catalog from './banner-catalog.json';
 export interface BannerUnlock {
   id: string;
@@ -20,8 +21,7 @@ export function bannerURL(id?: string | null) {
   const banner = catalog.find((b) => b.id === id);
   const folder = banner?.requirement === 'open' ? 'tracks' : banner?.requirement;
   return banner
-    ? new URL(`cosmetics/banners/${folder}/${banner.id}.png`, import.meta.url || document.baseURI)
-        .href
+    ? clientAsset(`cosmetics/banners/${folder}/${banner.id}.png`, import.meta.url || document.baseURI)
     : '';
 }
 export function paintBanner(node: HTMLElement, id?: string | null) {

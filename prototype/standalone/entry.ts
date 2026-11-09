@@ -1,5 +1,10 @@
+import { pmlPlatform, standalonePlatform } from '../../src/client-platform.ts';
+import { configureClientAssets } from '../../src/client-assets.ts';
+import { configurePmlAccount } from '../../src/account-config.ts';
 import { protectTransientDisconnect } from './rtc-recovery.ts';
+// @ts-ignore JavaScript diagnostics have runtime validation.
 import { observeFetch, errorLocation, peerSnapshot } from './client-diagnostics.mjs';
+// @ts-ignore JavaScript timing helpers.
 import { timePeerOperations, timeSignalSocket, watchStartupStalls } from './startup-timing.mjs';
 import { Controller } from '../../src/controller.ts';
 import { nativeRoute, casualSocket } from './native-routing.ts';
@@ -20,13 +25,20 @@ import { rankedRoomIsActive } from './room-watch.ts';
 const w = window as any;
 w.polycupBoot && (w.polycupBoot.entered = true);
 w.polycupBoot?.stage('configuration');
-const shellMode = await startupRequest<any>('/mode', { json: true, timeoutMs: 8000 });
+const externalPml = w.polycupPml;
+const platform = externalPml ? pmlPlatform(externalPml.environment) : standalonePlatform(location.origin);
+const serviceOrigin = platform.serviceOrigin;
+const serviceURL = (path: string) => externalPml ? new URL(path, serviceOrigin).href : path;
+const shellMode = await startupRequest<any>(serviceURL('/mode'), { json: true, timeoutMs: 8000 });
 if (!shellMode || typeof shellMode.ranked !== 'boolean') throw Error('Invalid startup configuration');
 const useHub =
-  w.polycupClientShell === 'hub' &&
+  (externalPml || w.polycupClientShell === 'hub') &&
   shellMode.ranked &&
   !new URL(location.href).searchParams.has('host');
-if (useHub && shellMode.account) configureStandaloneAccount(shellMode.account);
+if (useHub && shellMode.account) {
+ if(externalPml){configurePmlAccount(shellMode.account,serviceOrigin);configureClientAssets(serviceOrigin);}
+ else configureStandaloneAccount(shellMode.account);
+}
 if (useHub && shellMode.environment === 'pilot') {
   const label = document.createElement('div');
   label.className = 'polycup-environment-label';
@@ -73,7 +85,7 @@ const diagnosticFetch = w.fetch.bind(w);
 let diagnosticContext = (): Record<string, unknown> => ({});
 const report = (event: string, detail: any = {}) => {
   if (!roomId) return;
-  void diagnosticFetch('/diagnostics', {
+  void diagnosticFetch(serviceURL('/diagnostics'), {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -112,14 +124,18 @@ const NativePeer = w.RTCPeerConnection;
 const NativeSocket = w.WebSocket;
 const nativeFetch = w.fetch.bind(w),
   nativeOpen = w.XMLHttpRequest.prototype.open;
-const observedFetch = observeFetch(nativeFetch, report, {origin:location.origin, room:()=>roomId});
-const routeNative = (url: string) =>
-  nativeRoute(
-    new URL(url, document.baseURI).href,
-    location.origin,
-    shellMode.nativeOrigin,
-    !!w.polycupCasual && !w.polycupCasualNetwork,
-  );
+const observedFetch = observeFetch(nativeFetch, report, {origin:serviceOrigin, room:()=>roomId});
+const routeNative = (raw: string) => {
+ const url=new URL(raw,document.baseURI);
+ if(externalPml){
+  const owns=!!w.polycupPrototype?.controller?.room || !!w.polycupPrototype?.rankedMatch;
+  if(owns && url.origin==='https://vps.kodub.com' && (/^\/v6\/multiplayer\//.test(url.pathname)||url.pathname==='/v6/iceServers')){
+   const target=new URL(serviceOrigin);url.host=target.host;url.protocol=target.protocol;
+  }
+  return url.href;
+ }
+ return nativeRoute(url.href,serviceOrigin,shellMode.nativeOrigin,!!w.polycupCasual&&!w.polycupCasualNetwork);
+};
 w.fetch = (input: any, init: any) => {
   const original = input instanceof Request ? input.url : String(input);
   const next = routeNative(original);
@@ -139,11 +155,11 @@ w.XMLHttpRequest.prototype.open = function (...args: any[]) {
 w.WebSocket = new Proxy(NativeSocket, {
   construct(Type, args) {
     const url = new URL(
-      casualSocket(String(args[0]), location.origin, shellMode.nativeOrigin, !!w.polycupCasual && !w.polycupCasualNetwork),
+      externalPml ? (()=>{const u=new URL(String(args[0]));if((!!w.polycupPrototype?.controller?.room||!!w.polycupPrototype?.rankedMatch)&&u.host==='vps.kodub.com'&&/^\/v6\/multiplayer\/(host|join)$/.test(u.pathname)){const target=new URL(serviceOrigin);u.host=target.host;u.protocol='wss:';}return u.href;})() : casualSocket(String(args[0]), serviceOrigin, shellMode.nativeOrigin, !!w.polycupCasual && !w.polycupCasualNetwork),
     );
     args[0] = url.href;
     if (
-      url.host === location.host &&
+      url.host === new URL(serviceOrigin).host &&
       /\/multiplayer\/(host|join)$/.test(url.pathname) &&
       w.polycupNetwork?.token
     ) {
@@ -166,6 +182,7 @@ w.RTCPeerConnection = new Proxy(NativePeer, {
             iceTransportPolicy: w.polycupNetwork.iceTransportPolicy,
           }
         : config;
+    if(externalPml && !w.polycupCasual && !w.polycupPrototype?.rankedMatch) return new Type(...args);
     args[0] = configure(args[0]);
     const pc = new Type(...args);
     pc.polycupDiagnosticId = crypto.randomUUID();
@@ -184,7 +201,7 @@ w.RTCPeerConnection = new Proxy(NativePeer, {
       const state = pc.connectionState;
       if (!['connected','disconnected','failed','closed'].includes(state) || sampledStates.has(state)) return;
       sampledStates.add(state);
-      void peerSnapshot(pc).then(detail => report('peer_snapshot', {span:pc.polycupDiagnosticId,...detail})).catch(()=>{});
+      void peerSnapshot(pc).then((detail: any) => report('peer_snapshot', {span:pc.polycupDiagnosticId,...detail})).catch(()=>{});
     });
     if (w.polycupNetwork && (!w.polycupCasual || w.polycupCasualNetwork))
       protectTransientDisconnect(pc, phase => report('stage', { phase }));
@@ -227,7 +244,7 @@ const runtime: any = {
   registerGlobalMixin(m: any) {
     globals.push(m);
   },
-  getFromPolyTrack(source: string) {
+  getFromPolyTrack(_source: string) {
     throw Error('Game adapter not initialized');
   },
   registerClassMixin(scope: string, method: string, m: any) {
@@ -284,6 +301,7 @@ const runtime: any = {
     const practiceTrack=runtime.getFromPolyTrack('(game)=>Sa.get(game)?.name??""');
     w.polycupPrototype.practiceTrack=()=>practiceTrack(runtime.menuGame());
     c.init(runtime);
+    if(externalPml?.physics) c.setPhysicsSource(()=>externalPml.physics.report);
     const pendingStartup: { phase: string; durationMs: number; peers: number }[] = [];
     c.setStartupObserver((phase, detail) => {
       if (phase === 'handoff_start') pendingStartup.length = 0;
@@ -304,7 +322,7 @@ const runtime: any = {
         const room=c.room;
         if(!room || room.ranked || !room.snapshot?.data.launch) return;
         const auth=await room.connectionSession();
-        const response=await observedFetch('/casual/admission',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+auth.token},body:JSON.stringify({room:auth.room,instance:auth.instance,launch:auth.launch}),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(10000)]):AbortSignal.timeout(10000)});
+        const response=await observedFetch(serviceURL('/casual/admission'),{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+auth.token},body:JSON.stringify({room:auth.room,instance:auth.instance,launch:auth.launch}),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(10000)]):AbortSignal.timeout(10000)});
         const value=await response.json();
         if(!response.ok) throw Error(value.error || 'Could not prepare the Cup connection.');
         if(c.room!==room || room.snapshot?.data.launch?.id!==auth.launch) throw Error('The Cup connection changed.');
@@ -654,7 +672,7 @@ const runtime: any = {
       proto.secured = mode.secured;
       proto.modeReady = true;
       if (mode.ranked && !new URL(location.href).searchParams.has('host'))
-        installRankedPanel(proto, panel, report, mode.live, useHub);
+        installRankedPanel(proto, panel, report, mode.live, useHub, platform);
     });
     const style = document.createElement('style');
     style.textContent =
@@ -737,8 +755,8 @@ w.polycupRuntime = runtime;
 installNativeInstanceRecovery(runtime, 0, report);
 registerCarVisibility(runtime, 0);
 registerLobbyNavigation(runtime, 0);
-registerCupMenu(runtime, 0, true);
-registerStandaloneBranding(runtime, 0);
+registerCupMenu(runtime, 0, !externalPml);
+if(!externalPml) registerStandaloneBranding(runtime, 0);
 runtime.registerGlobalMixin({
   type: 0,
   token: '"Are you sure you want to quit?",\n                        )),',
@@ -748,6 +766,9 @@ globals.push({
   token: 'ee = 0;',
   func: `window.polycupRuntime.menuDebug=()=>({loaded:t.hasLoaded(),transition:o.isTransitioning,type:$?.constructor?.name,native:!!Za.get($)?.multiplayerConnection});window.polycupRuntime.menuGame=()=> $;`,
 });
+if(externalPml){
+ runtime.attachPml(externalPml.loader,externalPml.insert);
+} else {
 const usesPml = w.polycupClientRuntime === 'pml';
 w.polycupBoot?.stage('game');
 let game = await startupRequest<string>(usesPml ? './pml-game-source.js' : './game-source.js');
@@ -787,3 +808,5 @@ script.onerror = () => w.polycupBoot?.fail('game-module');
 w.polycupBoot?.stage('assets');
 document.head.append(script);
 // Native game networking is restricted to this local service in the prototype.
+
+}

@@ -99,9 +99,10 @@ export function installNativeInstanceRecovery(
   if (!window.BroadcastChannel) return;
   const guard = nativeInstanceRecovery({
     channel: new BroadcastChannel('polytrack-single-instance'),
-    lock: (action) => navigator.locks
-      ? navigator.locks.request('polycup-native-instance-recovery', { ifAvailable: true }, (lease) => lease ? action() : undefined)
-      : Promise.resolve(undefined),
+    lock: async <T>(action: () => Promise<T>): Promise<T | undefined> => {
+      if (!navigator.locks) return undefined;
+      return await navigator.locks.request('polycup-native-instance-recovery', { ifAvailable: true }, async lease => lease ? await action() : undefined) as T | undefined;
+    },
     report: (phase) => report('stage', { phase }),
   });
   (window as any).polycupNativeInstance = guard;

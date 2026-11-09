@@ -166,7 +166,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
     });
     window.addEventListener('${PRACTICE_EVENT}', event => {
       const d=event.detail;if(!d)return;
-      const menu=document.querySelector('.polycup-exclusive-menu');
+      const menu=document.querySelector('.main-buttons-container:has([data-polycup-action="practice"])');
       const solo=$ instanceof Is && !Za.get($)?.multiplayerConnection && !ss.get($);
       if(menu?.checkVisibility() && !o.isTransitioning && performance.now()-Number(document.body.dataset.polycupPracticeOpenedAt??0)>1500) delete document.body.dataset.polycupPractice;
       d.active=!!document.body.dataset.polycupPractice && !Za.get($)?.multiplayerConnection;
@@ -281,6 +281,14 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
       finally { clearTimeout(timer); cleanupSession(); polycupRaceRequest=null; }
     });
   `,
+  });
+  if (!exclusive) pml.registerGlobalMixin({
+    type: insert,
+    token: '(0, R.gn)(this, Gh, "f").push(E),',
+    func: `(() => {
+      E.dataset.polycupAction='practice';
+      E.addEventListener('click',()=>{document.body.dataset.polycupPractice='1';document.body.dataset.polycupPracticeOpenedAt=String(performance.now());});
+    })(),`,
   });
   if (exclusive)
     pml.registerGlobalMixin({

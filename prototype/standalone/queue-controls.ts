@@ -82,7 +82,7 @@ export class QueueControls {
     // Its `up` class is authoritative even while the toolbar itself fades out.
     const toolbar=practicing?document.querySelector<HTMLElement>('.game-ui:not(.hidden) .game-toolbar-ui,.preview-toolbar-ui'):null;
     const anchor=toolbar?.getBoundingClientRect();
-    if(!anchor?.width){
+    if(!toolbar || !anchor?.width){
       this.#clearTouchSpace();if(this.#layout==='menu')return;this.#layout='menu';this.root.removeAttribute('data-hud');this.root.removeAttribute('style');return;
     }
     const nativeStyle=getComputedStyle(toolbar);
