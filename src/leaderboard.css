@@ -1,0 +1,138 @@
+.cup-leaderboard{width:min(880px,calc(100vw - 40px));height:min(700px,calc(100dvh - 64px));box-sizing:border-box;padding:0;border:0;background:var(--pc-panel);color:var(--pc-text);font:400 19px/1.4 ForcedSquare,Arial,sans-serif}
+.cup-leaderboard[open]{display:flex;flex-direction:column}.cup-leaderboard::backdrop{background:#080e22b8}
+.cup-leaderboard header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 20px;background:var(--pc-header)}
+.cup-leaderboard h2{margin:0;font:italic 400 var(--pc-section)/1.2 ForcedSquare,Arial,sans-serif}
+.cup-leaderboard button{font:400 18px/1.2 ForcedSquare,Arial,sans-serif;cursor:pointer}.cup-leaderboard button:disabled{opacity:.4;cursor:default}
+/* Keep the 1px border's layout space, but paint its actual slanted perimeter.
+   A rectangular border clipped with --cut loses both diagonal sides. */
+.cup-leaderboard select{margin-left:auto;max-width:190px;min-width:0;padding:8px;color:inherit;background-color:#17254c;border:1px solid transparent;font:400 17px ForcedSquare,Arial,sans-serif;transition-property:color,background-color}
+.cup-leaderboard select:not(:focus-visible){
+ background-image:linear-gradient(#52658c,#52658c),linear-gradient(#52658c,#52658c),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 100' preserveAspectRatio='none'%3E%3Cpath d='M8.5 0 .5 100' fill='none' stroke='%2352658c' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 100' preserveAspectRatio='none'%3E%3Cpath d='M11.5 0 3.5 100' fill='none' stroke='%2352658c' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+ background-position:top,bottom,left,right;background-size:100% 1px,100% 1px,12px 100%,12px 100%;background-repeat:no-repeat;background-origin:border-box;background-clip:border-box}
+.cup-leaderboard select[hidden]{display:none}
+.leaderboard-tabs{display:flex;gap:16px;background:var(--pc-canvas);padding:0 16px;border-bottom:1px solid var(--pc-line)}
+.leaderboard-tabs button{min-width:100px;padding:12px;border:0;border-bottom:2px solid transparent;background:none;clip-path:none;--focus-cut:0px;color:var(--pc-muted);margin:0}
+.leaderboard-tabs button[aria-selected=true]{color:var(--gold);border-color:var(--gold)}
+.leaderboard-body{flex:1;min-height:0;overflow:auto;padding:0 16px;scrollbar-gutter:stable}
+.leaderboard-body table{width:100%;min-width:700px;border-collapse:collapse;table-layout:fixed;color:inherit;font-variant-numeric:tabular-nums}
+.leaderboard-body th{font-weight:400;color:var(--pc-muted);background:var(--pc-panel);position:sticky;top:0;z-index:1}
+.leaderboard-body :is(td,th){padding:10px 8px;border-bottom:1px solid var(--pc-line);text-align:center}
+.leaderboard-body td{padding-block:6px}
+.leaderboard-body th:first-child{width:6%}.leaderboard-body th:nth-child(2){width:27%}.leaderboard-body th:nth-child(3){width:19%}.leaderboard-body th:nth-child(4){width:10%}.leaderboard-body th:nth-child(5){width:13%}.leaderboard-body th:nth-child(6){width:11%}.leaderboard-body th:nth-child(7){width:14%}
+.leaderboard-body :is(td,th):nth-child(2){text-align:left}
+.leaderboard-body .is-self{background:var(--pc-raised)}
+.leaderboard-body td button,.leaderboard-body .leaderboard-sort{padding:0;margin:0;border:0;border-radius:0;background:none;clip-path:none;--focus-cut:0px;color:inherit;max-width:100%}
+.leaderboard-body td button{overflow-wrap:anywhere;text-align:left}
+.leaderboard-body .leaderboard-sort{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;font-size:17px;font-style:normal;white-space:nowrap}
+.leaderboard-sort-icon{position:relative;display:inline-block;flex:none;width:12px;height:18px;color:var(--pc-muted)}
+.leaderboard-sort-icon::before,.leaderboard-sort-icon::after{content:'';position:absolute;left:0;width:12px;height:7px;background:currentColor;opacity:.5}
+.leaderboard-sort-icon::before{top:1px;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.leaderboard-sort-icon::after{bottom:1px;clip-path:polygon(0 0,100% 0,50% 100%)}
+.leaderboard-sort-icon[data-direction=asc]::before,.leaderboard-sort-icon[data-direction=desc]::after{color:var(--gold);opacity:1}
+.leaderboard-sort-icon[data-direction=asc]::after,.leaderboard-sort-icon[data-direction=desc]::before{opacity:.2}
+.leaderboard-body th[aria-sort] .leaderboard-sort{color:var(--gold)}
+.leaderboard-body th:nth-child(2) .leaderboard-sort{justify-content:flex-start}
+.leaderboard-body button:hover{color:var(--gold)}
+.cup-leaderboard .leaderboard-sort:focus-visible{background-image:none!important;outline:2px solid var(--gold)!important;outline-offset:2px;box-shadow:none!important;text-decoration:none}
+.leaderboard-sort::after{display:none}
+.leaderboard-scroll-hint{display:none}
+.leaderboard-body .player-with-portrait{display:flex;justify-content:flex-start;text-align:left;width:100%;gap:10px}
+.leaderboard-body .player-portrait{flex-shrink:0}.leaderboard-body .player-with-portrait>span:last-child{font-style:normal}
+.leaderboard-body .ranked-rating-badge{width:112px;height:34px;margin-inline:auto}.leaderboard-body .ranked-rating-value{font-size:30px}.leaderboard-body .ranked-rating-badge.is-grandmaster .ranked-rating-value{font-size:18px}.leaderboard-body .ranked-rating-value small{font-size:14px}
+.cup-leaderboard footer{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-top:1px solid var(--pc-line)}
+.leaderboard-empty{text-align:center;margin:64px 0;color:var(--pc-muted)}
+@media(max-width:620px){.cup-leaderboard{width:calc(100vw - 16px)}.leaderboard-body{padding:0 12px}.leaderboard-body :is(td,th){padding-inline:6px}.leaderboard-scroll-hint{display:block;flex:none;margin:0;padding:6px 12px;color:var(--pc-muted);font-size:15px}}
+
+
+.leaderboard-feedback{display:flex;flex:none;align-items:center;justify-content:space-between;gap:12px;padding:8px 20px;border-top:1px solid var(--pc-line);color:var(--pc-muted);font-size:16px}
+.leaderboard-feedback[hidden]{display:none}
+.cup-leaderboard .leaderboard-feedback button{flex:none;width:auto;margin:0;padding:8px 14px}
+
+/* Phones: place, player and rank fit the first screen; only the remaining stats need a swipe. */
+@media(max-width:620px){
+ .leaderboard-body table{width:640px;min-width:640px}
+ .leaderboard-body th:first-child{width:36px}.leaderboard-body th:nth-child(2){width:156px}.leaderboard-body th:nth-child(3){width:108px}
+ .leaderboard-body :is(th,td):nth-child(n+4){width:auto}
+ .leaderboard-body .ranked-rating-badge{width:100px;height:30px}.leaderboard-body .ranked-rating-value{font-size:27px}
+}
+
+/* Players and track records share one compact toolbar. */
+.cup-leaderboard .leaderboard-toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 18px;border-bottom:1px solid var(--pc-line)}
+.cup-leaderboard :is(.leaderboard-types,.leaderboard-tabs){display:flex;gap:2px;flex:none;margin:0;padding:0;border:0}
+.cup-leaderboard .leaderboard-types button{padding:8px 14px;background:transparent;border:0;color:var(--pc-muted)}
+.cup-leaderboard .leaderboard-types [aria-pressed=true]{color:var(--gold);background:var(--pc-panel);box-shadow:inset 0 -3px var(--gold)}
+.cup-leaderboard .leaderboard-tabs button{padding:8px 12px}
+.cup-leaderboard [hidden]{display:none!important}
+.track-records{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden}
+.track-record-controls{display:flex;align-items:center;gap:12px;flex:none;padding:14px 20px;border-bottom:1px solid var(--pc-line)}
+.track-record-caption{color:var(--pc-muted);font-size:17px}
+.cup-leaderboard .track-record-controls input{margin-left:auto;min-width:0;width:220px;max-width:55%;padding:8px 12px;font:inherit;color:var(--pc-text);background:#13214a;border:0;border-bottom:1px solid var(--pc-line)}
+.cup-leaderboard .track-record-controls select{margin:0;width:300px;max-width:60%;flex:1}
+.cup-leaderboard .track-records button{width:auto;margin:0;padding:8px 12px;color:inherit;background:#13214a;border:0}
+.track-record-body{flex:1;min-height:0;overflow:auto;padding:0 20px}
+.track-record-body table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:18px}
+.track-record-body th{color:var(--pc-muted);font-weight:400;font-size:16px;padding:12px 8px;text-align:center}
+.track-record-body td{padding:8px;border-bottom:1px solid var(--pc-line);text-align:center}
+.track-record-body th:nth-child(2){text-align:left}
+.track-directory-table :is(th,td):first-child{width:50%;text-align:left}
+.track-directory-table :is(th,td):nth-child(2){width:12%;text-align:center}
+.track-directory-table :is(th,td):nth-child(3){width:26%}
+.track-directory-table :is(th,td):last-child{width:12%}
+.track-board-table :is(th,td):first-child{width:8%}
+.track-board-table :is(th,td):nth-child(2){width:44%}
+.track-board-table :is(th,td):nth-child(3){width:28%}
+.track-board-table :is(th,td):last-child{width:20%}
+.cup-leaderboard .track-records :is(.track-record-link,.track-player-link){display:flex;align-items:center;gap:12px;width:100%;padding:2px 0;background:transparent;text-align:left}
+.track-record-link>span:last-child{display:flex;flex-direction:column;min-width:0;gap:3px}
+.track-record-link strong{font-weight:400}.track-record-link small{font-size:14px;color:var(--pc-muted)}
+.track-record-link strong,.track-player-link>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track-player-link .player-portrait{flex:none;width:30px;height:30px}
+.track-record-art{display:flex;align-items:center;justify-content:center;flex:none;width:62px;height:42px;background:#15224a}
+.track-record-art img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated}
+.track-record-body tr:is(.is-self,.is-focus){background:#30416a}
+.track-record-body tr.is-focus{box-shadow:inset 3px 0 var(--gold)}
+.track-record-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;border-top:1px solid var(--pc-line);padding:10px 20px}
+.track-record-footer:empty{display:none}.track-record-page{display:flex;align-items:center;flex-direction:column;gap:4px;color:var(--pc-muted);font-size:16px}
+.track-record-feedback{padding:8px 20px;color:var(--pc-muted);display:flex;gap:12px;align-items:center;font-size:16px}
+.track-record-empty{text-align:center;color:var(--pc-muted);margin:40px 0}
+@media(max-width:620px){
+ .cup-leaderboard .leaderboard-toolbar{gap:4px 8px;padding:6px 10px}.cup-leaderboard .leaderboard-types button,.cup-leaderboard .leaderboard-tabs button{padding:8px;font-size:16px}
+ .cup-leaderboard .leaderboard-toolbar select{font-size:15px;max-width:150px}
+ .track-record-controls{padding:10px;gap:8px}.track-record-caption{font-size:15px}.track-record-body{padding:0 8px}
+ .track-record-body table{font-size:16px}.track-record-body th{font-size:14px;padding:10px 3px}.track-record-body td{padding:8px 3px}
+ .track-record-art{width:36px;height:32px}.cup-leaderboard .track-records :is(.track-record-link,.track-player-link){gap:7px;font-size:16px}
+ .track-record-link small{display:none}.track-player-link .player-portrait{width:24px;height:24px}
+ .track-directory-table :is(th,td):first-child{width:48%}.track-directory-table :is(th,td):nth-child(3){width:29%}
+ .track-record-footer{padding:8px}.track-record-page{font-size:14px}.cup-leaderboard .track-record-footer button{font-size:16px;padding:8px}
+}
+
+.track-record-body table{color:var(--pc-text)}
+
+/* Short landscape screens reserve real room for records instead of toolbar chrome. */
+@media(max-height:500px){
+ .cup-hub .cup-leaderboard .leaderboard-toolbar{min-height:36px;padding:0 10px;gap:4px 12px}
+ .cup-hub .cup-leaderboard .leaderboard-toolbar select{min-height:32px;height:32px;padding:4px 8px}
+ .cup-leaderboard .leaderboard-types button,.cup-leaderboard .leaderboard-tabs button{min-height:34px;padding:6px 10px;font-size:16px}
+ .cup-leaderboard .track-record-controls{padding:4px 12px;gap:8px}
+ .cup-leaderboard .track-record-controls select,.cup-leaderboard .track-record-controls input{min-height:32px;height:32px;box-sizing:border-box;padding:4px 8px;font-size:16px}
+ .cup-leaderboard .track-record-controls>button{min-height:32px;padding:5px 10px;font-size:16px}
+ .track-record-controls .track-record-art{height:28px;width:42px}
+ .track-record-body th{padding:5px 6px;font-size:15px}.track-record-body td{padding:5px 6px}
+ .track-record-footer{padding:4px 12px}.cup-leaderboard .track-record-footer button{min-height:32px;padding:5px 10px;font-size:16px}
+ .track-record-page{font-size:14px}.track-record-caption{font-size:16px}
+}
+
+/* Track search belongs to the scope/season toolbar, without a separate heading row. */
+.track-directory-search{margin-left:auto;min-width:0;flex:0 1 220px}
+.cup-leaderboard .track-directory-search input{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:8px 12px;color:var(--pc-text);background:#13214a;border:0;border-bottom:1px solid var(--pc-line);font:400 18px ForcedSquare,Arial,sans-serif}
+.cup-leaderboard .leaderboard-toolbar:has(.track-directory-search:not([hidden])) select{margin-left:0}
+@media(max-width:620px){.track-directory-search{order:3;flex:1 0 100%;margin-left:0}.cup-leaderboard .track-directory-search input{font-size:16px;min-height:36px}}
+@media(max-height:500px){.cup-leaderboard .track-directory-search input{min-height:32px;height:32px;padding:4px 10px;font-size:16px}}
+
+/* Season and search are the same field treatment; only the native select arrow differs. */
+.cup-leaderboard .leaderboard-toolbar :is(select,.track-directory-search input){box-sizing:border-box;min-height:36px;height:36px;padding:8px 12px;border:0;border-bottom:1px solid var(--pc-line);background-color:#13214a;color:#a6b9d3;font:400 18px/1 ForcedSquare,Arial,sans-serif;clip-path:var(--cut)}
+.cup-leaderboard .leaderboard-toolbar select:not(:focus-visible){background-image:none}
+@media(max-width:620px){.cup-leaderboard .leaderboard-toolbar :is(select,.track-directory-search input){font-size:16px}}
+@media(max-height:500px){.cup-hub .cup-leaderboard .leaderboard-toolbar :is(select,.track-directory-search input){min-height:32px;height:32px;padding:4px 10px;font-size:16px}}
+
+.cup-leaderboard .leaderboard-tabs[hidden]{display:none}

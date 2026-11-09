@@ -1,0 +1,102 @@
+.ranked-queue-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;font:400 18px ForcedSquare,Arial,sans-serif}
+.ranked-queue-count{color:var(--pc-muted)}.ranked-queue-message{color:#ffb0b0;font:400 17px ForcedSquare,Arial,sans-serif;overflow-wrap:anywhere}
+.ranked-match-deadline{display:block;margin-top:6px;color:var(--pc-gold);font-size:17px}
+.ranked-match-dialog{border:0;padding:0;background:var(--pc-panel);color:var(--pc-text);width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 32px);font:400 18px ForcedSquare,Arial,sans-serif;box-sizing:border-box}
+.ranked-match-dialog::backdrop{background:#080e22b0}.ranked-match-dialog header{background:var(--pc-header);padding:18px 22px}.ranked-match-dialog h2{font:italic 400 30px ForcedSquare,Arial,sans-serif;margin:0}
+.ranked-match-body{padding:18px 22px}.ranked-match-rules{margin:0 0 6px;color:#b9cbe4}.ranked-match-roster{margin-top:20px}.ranked-match-racer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:15px;padding:14px 0;border-bottom:1px solid #3b496b}.ranked-match-racer>span:first-child{overflow-wrap:anywhere}.ranked-match-racer>span:last-child{color:var(--pc-muted)}.ranked-match-racer .is-ready{color:#7be4b9!important}.ranked-match-stage{font:400 17px ForcedSquare,Arial,sans-serif;color:var(--pc-muted);margin:18px 0 0}
+.ranked-match-dialog footer{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:14px 22px;border-top:1px solid #3b496b}.ranked-match-dialog footer>span{margin-right:auto}.ranked-match-dialog button{font:400 18px ForcedSquare,Arial,sans-serif;padding:8px 14px;border:0;background:var(--pc-header);color:#fff;cursor:pointer}.ranked-match-dialog button.primary{background:var(--pc-gold);color:#152044}.ranked-match-dialog button:disabled{opacity:.5;cursor:default}.ranked-match-dialog button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+.ranked-queue-bar{flex:none;justify-content:space-between;border-top:1px solid #40517a;padding:16px 0;gap:16px;min-height:76px}
+.ranked-queue-identity{display:flex;align-items:center;gap:16px;min-width:0}
+.ranked-queue-identity h2{font:400 18px ForcedSquare,Arial,sans-serif;margin:0;width:96px;flex:none}
+.ranked-queue-controls{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-left:auto}
+.ranked-queue-controls .ranked-queue-message{flex-basis:100%;text-align:right}
+.ranked-rating-badge{position:relative;width:140px;height:42px;overflow:hidden;flex:none}
+.ranked-rating-badge>img{position:absolute;width:120.47%;height:100%;max-width:none;inset:0 auto 0 0}
+.ranked-rating-value{position:absolute;left:24%;right:5%;top:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#11140f;font:italic 400 38px ForcedSquare,Arial,sans-serif;line-height:.8}
+.ranked-rating-badge.is-grandmaster .ranked-rating-value{font-size:21px;gap:0}
+.ranked-rating-value small{font:italic 400 18px/.8 ForcedSquare,Arial,sans-serif}
+.ranked-rating-badge.is-unranked{width:auto;min-width:110px;display:flex;align-items:center;color:var(--pc-muted);font-size:18px}
+.ranked-match-dialog header{text-align:center}.ranked-match-ready{display:flex;gap:12px;justify-content:center;padding:6px 0}
+.ranked-match-ready>span{display:grid;place-items:center;width:34px;height:34px;background:var(--pc-header);color:#91a7c7;border:1px solid #52678c;font-family:Arial,sans-serif}
+.ranked-match-ready>span.is-ready{background:#254d4c;color:#7be4b9;border-color:#7be4b9}
+.ranked-match-progress{text-align:center;color:var(--pc-muted);font-size:18px;margin:12px 0 0}
+.ranked-match-dialog footer{justify-content:center}.ranked-match-dialog footer button{min-width:120px}
+@media(max-width:850px){.ranked-queue-bar{gap:10px}.ranked-queue-identity{gap:10px}.ranked-queue-identity h2{width:74px;font-size:17px}.ranked-queue-controls{gap:8px}.ranked-queue-count{font-size:16px}}
+@media(max-width:620px){.ranked-queue-identity{flex:1 1 100%;justify-content:space-between}.ranked-queue-controls{flex:1;justify-content:space-between}.ranked-queue-bar{gap:8px}}
+
+.ranked-player-stats { display:flex; flex-direction:column; gap:5px; color:var(--pc-muted); font:400 16px/1.15 ForcedSquare,Arial,sans-serif; white-space:nowrap; }
+@media(max-width:620px){.ranked-queue-identity { flex-wrap:wrap; }.ranked-player-stats{margin-left:auto}}
+
+@media(min-width:621px) and (max-width:1000px) {
+ .ranked-queue-bar,.ranked-queue-identity { gap:10px; }
+ .ranked-queue-identity h2 { width:74px; font-size:17px; }
+ .ranked-rating-badge { width:120px; height:36px; }
+ .ranked-rating-value { font-size:33px; }
+ .ranked-rating-badge.is-grandmaster .ranked-rating-value { font-size:20px; }
+ .ranked-rating-value small { font-size:15px; }
+ .ranked-player-stats { font-size:15px; }
+ .ranked-queue-controls { gap:8px; }
+ .ranked-queue-count { font-size:16px; }
+}
+
+.ranked-rating-badge.is-provisional .ranked-rating-value{color:#c2cad9}
+
+.hub-activities .ranked-leaderboard{margin-inline:auto;width:142px;font-size:18px;background:#27345a}
+@media(max-width:1000px){.hub-activities .ranked-leaderboard{width:124px;font-size:17px}}
+.ranked-match-ready .status-icon{display:block;width:22px;height:22px}
+
+/* Use available panel width, including the game's UI scaling. */
+.hub-main { container-type:inline-size; }
+@container (min-width:600px) and (max-width:900px) {
+ .hub-activities { padding-inline:12px; }
+ .hub-host { grid-template-columns:74px minmax(0,1fr) 124px; gap:10px; }
+ .hub-activity-title,.ranked-queue-identity h2 { width:74px; font-size:17px; }
+ .hub-activities button { width:124px; font-size:18px; }
+ .hub-activities .ranked-leaderboard { width:116px; font-size:17px; }
+ .ranked-queue-bar,.ranked-queue-identity { gap:10px; }
+ .ranked-queue-controls { gap:8px; }
+ .ranked-queue-identity .ranked-rating-badge { width:112px; height:34px; }
+ .ranked-queue-identity .ranked-rating-value { font-size:30px; }
+ .ranked-queue-identity .is-grandmaster .ranked-rating-value { font-size:18px; }
+ .ranked-queue-identity .ranked-rating-value small { font-size:14px; }
+ .ranked-player-stats { font-size:15px; }
+ .ranked-queue-count { font-size:15px; }
+}
+
+.ranked-queue-controls .ranked-queue-help { color:var(--pc-muted); }
+.ranked-reconnect-dialog .ranked-match-body p { line-height:1.4; }
+.ranked-reconnect-note { color:var(--pc-muted); font-size:17px; }
+.ranked-reconnect-time { color:#ffd26b; font-size:24px; font-variant-numeric:tabular-nums; }
+
+.ranked-search-status{display:flex;flex-direction:column;gap:5px;align-items:flex-end;max-width:260px;text-align:right}
+.ranked-search-title{font:400 18px/1.2 ForcedSquare,Arial,sans-serif;color:#fff;white-space:nowrap}
+.ranked-search-detail{font:400 15px/1.3 ForcedSquare,Arial,sans-serif;color:var(--pc-muted);text-wrap:balance}
+.ranked-queue-background{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:100102;background:#293563;border-bottom:2px solid var(--pc-gold);color:#fff;font:400 18px ForcedSquare,Arial,sans-serif;padding:10px 16px}
+@media(max-width:620px){.ranked-search-status{max-width:220px}.ranked-search-title{font-size:17px}.ranked-search-detail{font-size:15px}}
+@media(pointer:coarse), (max-height:500px) {
+ .ranked-match-dialog button { min-height:44px; }
+ .ranked-match-dialog { overflow:auto; }
+ .ranked-match-dialog header,.ranked-match-body,.ranked-match-dialog footer { padding:12px 16px; }
+}
+@media(max-width:620px) {
+ .hub-activities .ranked-queue-identity { display:grid; grid-template-columns:minmax(0,1fr) 100px 82px; gap:8px; width:100%; }
+ .hub-activities .ranked-queue-identity h2 { width:auto; font-size:17px; }
+ .hub-activities .ranked-queue-identity .ranked-rating-badge { width:100px; min-width:0; height:30px; }
+ .hub-activities .ranked-queue-identity .ranked-rating-value { font-size:27px; }
+ .hub-activities .ranked-queue-identity .is-grandmaster .ranked-rating-value { font-size:16px; }
+ .hub-activities .ranked-queue-identity .ranked-rating-value small { font-size:12px; }
+ .hub-activities .ranked-player-stats { font-size:15px; margin:0; }
+ .hub-activities .ranked-queue-controls { flex-wrap:wrap; min-width:0; }
+ .hub-activities .ranked-queue-count { font-size:15px; }
+ .hub-activities .ranked-leaderboard { margin:0; }
+}
+.ranked-rating-value > span { white-space:nowrap;font-style:inherit; }
+
+/* Rating text scales down with its badge, so five digits never touch the badge edge. */
+.ranked-rating-badge{container-type:inline-size}
+.ranked-rating-value>span{font-size:min(1em,31cqi)}
+/* Five-digit ratings get a tighter cap from the inner value width (left inset 24%, right 5%). */
+.ranked-rating-value>span.is-long{font-size:min(1em,26cqi)}
+/* Text-only unranked labels size to their content, so they are not size containers. */
+.ranked-rating-badge.is-unranked{container-type:normal}

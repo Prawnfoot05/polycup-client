@@ -1,0 +1,76 @@
+/* Casual setup follows the hub's indigo planes, forward cuts and quiet dividers. */
+.preset-tabbed .preset-heading{display:block;margin:0 0 20px}
+.preset-tabbed .preset-heading h2{font-size:26px;margin:0 0 14px}
+.preset-tabbed .preset-chooser{display:flex;gap:8px;align-items:center}
+.preset-tabbed .preset-chooser>.preset-label{color:var(--pc-muted);font-size:18px;margin-right:4px}
+.preset-tabbed .preset-name-control{flex:1 1 180px;min-height:44px}
+.preset-tabbed .preset-chooser .preset-icon{flex:none;width:44px;height:44px;padding:10px;margin:0}
+.preset-tabbed .preset-chooser .preset-icon svg{width:22px;height:22px}
+.preset-tabbed .preset-actions-menu summary{font-style:italic;padding:10px 14px}
+.preset-tabbed .preset-actions-menu[open]{flex:0 0 auto}
+.preset-tabbed .preset-tool-actions{position:absolute;right:0;top:calc(100% + 6px);z-index:5;width:230px;box-shadow:0 8px 24px #0b102955}
+.preset-tabbed .preset-tool-actions .preset-icon{width:100%;height:auto;justify-content:flex-start;padding:10px;gap:10px;font-style:normal}
+.preset-tabbed .preset-chooser .preset-name-control select{font-size:20px}
+.preset-tabbed .preset-current{margin:0 0 14px;color:var(--pc-muted);font-size:18px}
+.preset-tabbed .preset-details{margin:0}
+.preset-tabbed .preset-tools{justify-content:flex-end;margin-top:16px}
+.rule-tabs{min-width:0}
+.rule-tabs-nav{box-sizing:border-box}
+.rule-tabs-nav{display:flex;gap:4px;border-bottom:1px solid var(--pc-line);padding:0 0 0 2px}
+.panel .rule-tabs-nav>button{flex:1 1 0;min-width:0;min-height:46px;margin:0;padding:10px 12px;font:400 20px/1.2 ForcedSquare,Arial,sans-serif;font-style:italic;background:transparent;color:var(--pc-muted);clip-path:var(--cut);border:0}
+.panel .rule-tabs-nav>button[aria-selected='true']{background:var(--pc-canvas);color:var(--pc-gold);box-shadow:inset 0 3px var(--pc-gold)}
+.panel .rule-tabs-nav>button:hover{background:var(--pc-raised);color:var(--pc-text)}
+.panel .rule-tabs-nav>button[aria-selected='true']:hover{color:var(--pc-gold)}
+.panel .rule-tabs-nav>button:focus-visible{outline:0;background:var(--pc-raised);box-shadow:inset 0 -3px var(--pc-gold);text-decoration:underline;text-underline-offset:4px}
+.rule-tabs-nav>button[data-invalid]{color:var(--pc-danger)}
+.panel .rule-tabs-nav>button::after{display:none}
+.rule-tabs-nav>button[data-invalid]::before{content:'• ';font-style:normal}
+.rule-tab-panels{padding:6px 20px 20px;background:var(--pc-canvas)}
+.rule-tab-panel[hidden]{display:none!important}
+.rule-tab-panel>h3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.preset-tabbed .preset-overview{display:block;margin:0}
+.preset-tabbed .preset-editable .rule-edit{min-height:56px;margin:0;padding:10px 0;gap:18px;border-bottom:1px solid var(--pc-line);font-size:20px;line-height:1.3}
+.preset-tabbed .rule-edit>strong{font-weight:400}
+.preset-tabbed .rule-edit>input[type='number']{width:90px;flex:0 0 90px;min-height:40px;font-size:20px;padding:8px 12px}
+.preset-tabbed .rule-edit>input[type='checkbox']{width:28px;height:28px;min-height:28px;flex:0 0 28px}
+.preset-tabbed .rule-edit>select{width:200px;flex:0 1 200px;min-height:44px;padding:8px 26px 8px 12px;font-size:20px}
+.preset-tabbed .rule-edit:last-of-type{border-bottom:0}
+.preset-tabbed .preset-editable .rule-help{margin:12px 0 0;padding:0;font-size:17px;color:var(--pc-muted)}
+.preset-tabbed .rule-points-editor{margin-top:20px!important;padding-top:16px!important;border-top:1px solid var(--pc-line)}
+.preset-tabbed .rule-points-editor legend{font-size:18px;margin:0 0 12px}
+.preset-tabbed .rule-points-editor input{min-height:40px;font-size:20px}
+.preset-tabbed .rule-tab-panel dl{margin:0}
+.preset-tabbed .rule-tab-panel dl>.rule-pair{display:flex;justify-content:space-between;align-items:baseline;gap:20px;min-height:46px;margin:0;padding:12px 0;border-bottom:1px solid var(--pc-line);font-size:19px;line-height:1.3}
+.preset-tabbed .rule-tab-panel dt{color:var(--pc-muted);font-weight:400}
+.preset-tabbed .rule-tab-panel dd{margin:0;text-align:right;color:var(--pc-text)}
+.preset-tabbed .rule-tab-panel .rule-points{margin-top:20px}
+.preset-tabbed .rule-points td{background:var(--pc-raised)}
+@media(max-width:950px){.cup-lobby:has(.preset-tabbed)>.lobby-action{order:-1}}
+@media(max-height:500px) and (min-width:601px){
+ .panel.lobby-panel:has(.preset-tabbed)>header{flex-wrap:nowrap;padding:8px 14px;gap:10px}
+ .panel.lobby-panel:has(.preset-tabbed)>header .header-title{flex:1 1 140px;min-width:120px}
+ .panel.lobby-panel:has(.preset-tabbed)>header h1{font-size:24px}
+ .panel.lobby-panel:has(.preset-tabbed)>header p{max-width:180px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .panel.lobby-panel:has(.preset-tabbed)>header .room-code{flex:none;margin:0}
+ .panel.lobby-panel:has(.preset-tabbed)>header .room-code>small{display:none}
+ .panel.lobby-panel:has(.preset-tabbed)>header button{padding:8px 12px;font-size:17px}
+ .preset-tabbed .preset-heading>h2{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .preset-tabbed .preset-heading{margin-bottom:10px}
+ .preset-tabbed .preset-current{margin:0 0 8px}
+ .panel .rule-tabs-nav>button{min-height:44px;padding-block:8px}
+}
+@container(max-width:440px){
+ .preset-tabbed .preset-chooser>.preset-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .preset-tabbed .preset-chooser .preset-name-control{flex-basis:120px}
+ .preset-tabbed .preset-actions-menu summary{font-size:16px;padding-inline:10px}
+ .rule-tab-panels{padding:4px 12px 16px}
+ .panel .rule-tabs-nav>button{font-size:18px;padding-inline:4px}
+ .preset-tabbed .preset-editable .rule-edit{font-size:18px;gap:12px}
+ .preset-tabbed .rule-edit>select{width:150px;flex-basis:150px;font-size:18px}
+ .preset-tabbed .rule-tab-panel dl>.rule-pair{font-size:18px;gap:12px}
+ .preset-tabbed .rule-points-editor{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:12px}
+}
+
+@container(max-width:300px){
+ .panel .rule-tabs-nav>button{font-size:17px;padding-inline:4px}
+}

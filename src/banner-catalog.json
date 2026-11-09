@@ -1,0 +1,114 @@
+[
+  {
+    "id": "arx-lucide",
+    "name": "Arx Lucida",
+    "requirement": "open",
+    "target": 0,
+    "rarity": "common"
+  },
+  {
+    "id": "lost-at-sea",
+    "name": "Lost at sea",
+    "requirement": "open",
+    "target": 0,
+    "rarity": "common"
+  },
+  {
+    "id": "oob",
+    "name": "Out of Bounds",
+    "requirement": "open",
+    "target": 0,
+    "rarity": "common"
+  },
+  {
+    "id": "sandbar",
+    "name": "Sandbar",
+    "requirement": "open",
+    "target": 0,
+    "rarity": "common"
+  },
+  {
+    "id": "summer4",
+    "name": "Summer 4",
+    "requirement": "open",
+    "target": 0,
+    "rarity": "common"
+  },
+  {
+    "id": "zealot",
+    "name": "Zealot",
+    "requirement": "open",
+    "target": 0,
+    "rarity": "common"
+  },
+  {
+    "id": "fs-1",
+    "name": "Fullspeed 1",
+    "requirement": "fullspeed",
+    "target": 5,
+    "rarity": "common"
+  },
+  {
+    "id": "fs-2",
+    "name": "Fullspeed 2",
+    "requirement": "fullspeed",
+    "target": 15,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "fs-3",
+    "name": "Fullspeed 3",
+    "requirement": "fullspeed",
+    "target": 40,
+    "rarity": "rare"
+  },
+  {
+    "id": "fs-4",
+    "name": "Fullspeed 4",
+    "requirement": "fullspeed",
+    "target": 100,
+    "rarity": "epic"
+  },
+  {
+    "id": "fs-5",
+    "name": "Fullspeed 5",
+    "requirement": "fullspeed",
+    "target": 250,
+    "rarity": "legendary"
+  },
+  {
+    "id": "tech-1",
+    "name": "Tech 1",
+    "requirement": "tech",
+    "target": 5,
+    "rarity": "common"
+  },
+  {
+    "id": "tech-2",
+    "name": "Tech 2",
+    "requirement": "tech",
+    "target": 15,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "tech-3",
+    "name": "Tech 3",
+    "requirement": "tech",
+    "target": 40,
+    "rarity": "rare"
+  },
+  {
+    "id": "tech-4",
+    "name": "Tech 4",
+    "requirement": "tech",
+    "target": 100,
+    "rarity": "epic"
+  },
+  {
+    "id": "tech-5",
+    "name": "Tech 5",
+    "requirement": "tech",
+    "target": 250,
+    "rarity": "legendary"
+  }
+]

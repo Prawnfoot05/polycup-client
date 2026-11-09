@@ -1,0 +1,87 @@
+/* PolyTrack's indigo planes and angular controls, extended for competition.
+   Display type leans forward; reading text stays upright and regular.
+   Gold marks an action, selection or result. It is not a generic panel border. */
+:host, .polycup-surface, #prototype-match, .camera-studio {
+  --pc-canvas:#192042;
+  --pc-panel:#212b58;
+  --pc-raised:#28346a;
+  --pc-header:#28346a;
+  --pc-action:#112052;
+  --pc-action-hover:#334b77;
+  --pc-action-active:#151f41;
+  --pc-text:#ffffff;
+  --pc-muted:#bdc8e2;
+  --pc-line:#3d4978;
+  --pc-section-line:#485d7f;
+  --pc-control-edge:#8191bb;
+  --pc-gold:#ffd76b;
+  --pc-positive:#85e0bc;
+  --pc-danger:#ff9ca7;
+  --pc-caption:16px;
+  --pc-small:18px;
+  --pc-body:20px;
+  --pc-section:26px;
+  --pc-title:32px;
+  --pc-display:44px;
+  --pc-cut:8px;
+  --cut:polygon(var(--pc-cut) 0,100% 0,calc(100% - var(--pc-cut)) 100%,0 100%);
+  --pc-space-1:4px;
+  --pc-space-2:8px;
+  --pc-space-3:12px;
+  --pc-space-4:16px;
+  --pc-space-6:24px;
+  --pc-space-8:32px;
+  --deep:var(--pc-canvas);
+  --blue:var(--pc-header);
+  --ice:var(--pc-text);
+  --muted:var(--pc-muted);
+  --gold:var(--pc-gold);
+  --red:var(--pc-danger);
+}
+:host { color:var(--pc-text); }
+.polycup-surface {
+  color:var(--pc-text);
+  background:var(--pc-panel);
+  font:400 var(--pc-body)/1.4 ForcedSquare,Arial,sans-serif;
+  font-synthesis:style;
+}
+.polycup-surface :is(h1,h2,h3,p) { overflow-wrap:anywhere; }
+.polycup-surface :is(button,input,select,textarea) { font-synthesis:style;-webkit-tap-highlight-color:transparent; }
+.polycup-surface :is(h1,h2,h3,h4) { font-synthesis:style; }
+.polycup-surface button { min-height:44px; }
+.polycup-surface button:disabled { cursor:default; }
+.polycup-surface button.danger { color:var(--pc-danger); }
+/* Reserve a fixed, safe inset for every PolyCup select arrow, including clipped fields. */
+.polycup-surface select {
+  --pc-select-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m2 2 4 4 4-4' fill='none' stroke='%23c7d2ed' stroke-width='2' stroke-linecap='square'/%3E%3C/svg%3E");
+  appearance:none;
+  padding-inline-end:38px!important;
+  background-image:var(--pc-select-chevron)!important;
+  background-position:right 14px center!important;
+  background-size:12px 8px!important;
+  background-repeat:no-repeat!important;
+}
+.polycup-surface select:focus-visible {
+  background-image:var(--pc-select-chevron),var(--focus-ring)!important;
+  background-position:right 14px center,top,bottom,left,right,left,right!important;
+  background-size:12px 8px,100% 2px,100% 2px,calc(var(--focus-cut,8px) * 1.5) 100%,calc(var(--focus-cut,8px) * 1.5) 100%,max(0px,calc(2px - var(--focus-cut,8px))) 100%,max(0px,calc(2px - var(--focus-cut,8px))) 100%!important;
+}
+.polycup-surface :is(input,textarea)::placeholder { color:#a6b9d3;opacity:1; }
+.polycup-surface :is(th,dt,time,.social-note,.finish-mode) { color:var(--pc-muted); }
+/* Modal focus remains visible when a component lives in its own shadow root. */
+.polycup-surface button:focus-visible {
+  outline:2px solid var(--pc-gold);
+  outline-offset:2px;
+}
+@media(pointer:coarse) {
+  .polycup-surface button { min-width:44px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .polycup-surface *, .polycup-surface *::before, .polycup-surface *::after {
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+
+.pc-sr-only { position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important; }

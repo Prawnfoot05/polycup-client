@@ -1,0 +1,71 @@
+/* Keep the source message intact: hiding a notice never clears a failed action. */
+.pc-error-notice {
+  position: relative;
+  box-sizing: border-box;
+  min-block-size: 32px;
+  padding-inline-end: 48px !important;
+}
+span.pc-error-notice {
+  display: inline-block;
+}
+.pc-error-notice[data-error-dismissed] {
+  display: none !important;
+}
+.shared-chat-status[role='alert'],
+.chat-status[role='alert'] {
+  color: var(--pc-danger, var(--red, #ff9b9b));
+}
+.pc-error-notice > .pc-error-dismiss {
+  position: absolute !important;
+  inset-inline-end: 8px !important;
+  top: 50% !important;
+  bottom: auto !important;
+  display: grid !important;
+  place-items: center !important;
+  transform: translateY(-50%) !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  flex: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  opacity: 0.85;
+  clip-path: none !important;
+  cursor: pointer !important;
+  touch-action: manipulation;
+}
+.pc-error-notice > .pc-error-dismiss:hover {
+  opacity: 1;
+  background: #ffffff12 !important;
+}
+.pc-error-notice > .pc-error-dismiss:focus-visible {
+  opacity: 1;
+  outline: 2px solid currentColor !important;
+  outline-offset: -4px !important;
+}
+.pc-error-dismiss svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+@media (pointer: coarse) {
+  .pc-error-notice {
+    min-block-size: 44px;
+    padding-inline-end: 56px !important;
+  }
+  .pc-error-notice > .pc-error-dismiss {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    inset-inline-end: 4px !important;
+  }
+}

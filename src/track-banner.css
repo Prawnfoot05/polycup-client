@@ -1,0 +1,4 @@
+.has-track-banner{position:relative;isolation:isolate;overflow:hidden}
+.track-header-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-2;pointer-events:none}
+.track-header-art[hidden]{display:none}
+.has-track-banner:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#111932e8 0%,#111932b8 48%,#11193250 100%),linear-gradient(0deg,#11193280,transparent 65%)}

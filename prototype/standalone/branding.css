@@ -1,0 +1,111 @@
+.menu-ui > .logo[data-polycup-brand],
+.menu-ui:has(> .polycup-exclusive-menu:not(.hidden)) > .logo[data-polycup-brand] {
+  width:min(1000px,90%);
+  height:220px;
+  margin:32px auto 0;
+  object-fit:contain;
+  /* Optical centering of the slanted wordmark; leave its layout box centered. */
+  translate:1.5% 0;
+  filter:drop-shadow(0 5px 5px #080e2299);
+}
+.menu-ui > .warning-message.polycup-original-credit,
+.menu-ui > .warning-message.modded.polycup-original-credit {
+  position:static;
+  align-self:center;
+  flex:none;
+  max-width:800px;
+  width:calc(100% - 48px);
+  min-width:0;
+  box-sizing:border-box;
+  overflow-wrap:anywhere;
+  margin:12px auto 0;
+  padding:0;
+  text-align:center;
+  color:#aebddd;
+  font:400 16px/1.4 ForcedSquare,Arial,sans-serif;
+}
+.polycup-original-credit p { margin:0;font:inherit; }
+.polycup-original-credit p:first-child a { margin-inline-start:.3em; }
+.polycup-original-credit p + p { font-size:inherit;color:#b8c9df;margin-top:2px; }
+.polycup-original-credit p a { color:#d5def7; text-decoration:underline;text-underline-offset:3px;pointer-events:auto; }
+.polycup-original-credit p a:hover { color:#ffe39b; }
+.polycup-original-credit p a:focus-visible { outline:2px solid #ffda70;outline-offset:4px; }
+
+/* Standalone landing actions: one rhythm, one slant, one primary colour. */
+.menu-ui:has(>.polycup-exclusive-menu:not(.hidden)){overflow-y:auto;scroll-padding-bottom:64px}
+body .menu-ui>.main-buttons-container.polycup-exclusive-menu{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ box-sizing:border-box;gap:10px;padding:24px;min-height:0;margin:0;flex:0 0 auto;
+}
+body .menu-ui>.main-buttons-container.polycup-exclusive-menu.hidden{display:none!important}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action{
+ position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;
+ width:min(400px,100%);height:52px;min-height:52px;min-width:0;flex:none;margin:0;padding:8px 24px;
+ border:0;border-radius:0;clip-path:none;transform:none;background:none;box-shadow:none;
+ color:#eff2ff;font:italic 400 28px/1.2 ForcedSquare,Arial,sans-serif;cursor:pointer;
+}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action>p{margin:0;padding:0;color:inherit;font:inherit;position:relative;z-index:1}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action::before{
+ content:'';position:absolute;inset:0;width:auto;height:auto;margin:0;z-index:-1;transform:skewX(-12deg);background:var(--button-color,#112052);border:0;box-shadow:none;outline:0;
+}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action::after{display:none}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action:hover::before,
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action:focus-visible::before{background:var(--button-hover-color,#334b77)}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action:focus-visible{outline:2px solid #eff2ff;outline-offset:5px}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-button{color:#17213b}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-button::before{background:#ffd76b}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-button:hover::before,
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-button:focus-visible::before{background:#ffe59b}
+body .menu-ui>.polycup-exclusive-menu>.polycup-menu-button::after{
+ display:block;content:'';position:absolute;inset:0;width:auto;height:auto;margin:0;z-index:0;pointer-events:none;transform:skewX(-12deg);border:0;box-shadow:none;outline:0;
+ background:linear-gradient(110deg,transparent 42%,#fff9 50%,transparent 58%);background-size:300% 100%;
+ animation:polycup-play-glint 5.4s ease-in-out infinite;
+}
+@keyframes polycup-play-glint{0%,12%{background-position:100% 0}34%,100%{background-position:0 0}}
+.menu-ui .polycup-community{
+ display:inline-flex;align-items:center;justify-content:center;gap:10px;flex:none;
+ box-sizing:border-box;min-height:44px;height:44px;padding:8px 18px;margin:8px 0 0;
+ border:0;border-radius:0;clip-path:polygon(9.35px 0,100% 0,calc(100% - 9.35px) 100%,0 100%);
+ background:var(--button-color,#112052);color:var(--text-color,#fff);
+ font:italic 400 18px/1.3 ForcedSquare,Arial,sans-serif;text-decoration:none;pointer-events:auto;
+}
+.menu-ui .polycup-community img{width:22px;height:18px;object-fit:contain;flex:none}
+.menu-ui .polycup-community:hover{background:var(--button-hover-color,#334b77)}
+.menu-ui .polycup-community:focus-visible{background:var(--button-hover-color,#334b77);text-decoration:underline;text-underline-offset:3px;outline:none}
+.menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.info{position:static;height:auto;flex:none;margin:0 0 64px}
+.polycup-environment-label{
+ position:fixed;z-index:9999;top:0;left:50%;transform:translateX(-50%);
+ padding:5px 14px;background:#ffd66b;color:#17203d;font:normal 14px/1.3 sans-serif;
+ pointer-events:none;border-radius:0 0 4px 4px;
+}
+@media(prefers-reduced-motion:reduce){body .menu-ui>.polycup-exclusive-menu>.polycup-menu-button::after{display:none}}
+@media(min-width:621px) and (min-height:501px) and (max-height:800px){
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.logo[data-polycup-brand]{height:160px;margin-top:24px}
+ body .menu-ui>.main-buttons-container.polycup-exclusive-menu{padding-block:16px}
+}
+/* Only the standalone landing surface opts out of native canvas scaling. */
+@media(max-width:620px),(max-height:500px){
+ body>div:has(>.menu-ui:not(.hidden)>.polycup-exclusive-menu:not(.hidden)){width:100%!important;height:100%!important;transform:none!important}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden)){width:100%;height:100dvh;box-sizing:border-box;padding-top:22px;overflow:auto}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.logo[data-polycup-brand]{width:min(540px,90%);height:104px;margin:12px auto 0;flex:none}
+ body .menu-ui>.warning-message.modded.polycup-original-credit{position:static;order:0;width:calc(100% - 32px);font-size:14px;line-height:1.4;padding:0;max-width:600px;margin:10px auto 0;flex:none}
+ .polycup-original-credit p:first-child a,.polycup-original-credit p+p{font-size:14px}
+ body .menu-ui>.main-buttons-container.polycup-exclusive-menu{gap:10px;padding:22px 28px;flex:1 0 auto}
+ body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action{height:48px;min-height:48px;width:min(360px,100%);font-size:25px}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.info{padding:0 10px;font-size:11px;line-height:1.3;margin:0;box-sizing:border-box}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.info *{font-size:inherit;line-height:inherit}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.info p{margin:2px 0}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.info>div{margin:3px 0;height:auto}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.info img{max-height:26px;width:auto}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.button-bar{position:sticky;order:2;align-self:stretch;flex:none;left:auto;right:auto;bottom:0;width:auto;box-sizing:border-box;z-index:2;min-height:44px;font-size:13px;gap:4px}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.button-bar button{min-height:44px;padding:8px;font-size:13px}
+}
+@media(max-height:500px) and (min-width:621px){
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden)){padding-top:2px}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.logo[data-polycup-brand]{height:48px;width:300px;margin:4px auto 0}
+ body .menu-ui>.warning-message.modded.polycup-original-credit{font-size:14px}
+ body .menu-ui>.main-buttons-container.polycup-exclusive-menu{gap:6px;padding:14px 28px}
+ body .menu-ui>.polycup-exclusive-menu>.polycup-menu-action{height:44px;min-height:44px;font-size:23px}
+ body .menu-ui .polycup-community{margin-top:6px;min-height:36px;height:36px;font-size:16px;clip-path:polygon(7.65px 0,100% 0,calc(100% - 7.65px) 100%,0 100%)}
+ body .menu-ui:has(>.polycup-exclusive-menu:not(.hidden))>.info{font-size:10px;margin:0}
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="33 38 177 153" class="boot-monogram" aria-hidden="true">
+ <defs>
+  <linearGradient id="boot-face" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#edf1ff"/><stop offset=".48" stop-color="#b5c4ff"/><stop offset=".5" stop-color="#95a8ee"/><stop offset="1" stop-color="#6b81d0"/></linearGradient>
+  <linearGradient id="boot-gold" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#fff3b4"/><stop offset=".4" stop-color="#ffda70"/><stop offset="1" stop-color="#b2782b"/></linearGradient>
+  <linearGradient id="boot-shine"><stop stop-color="white" stop-opacity="0"/><stop offset=".5" stop-color="white" stop-opacity=".65"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient>
+  <!-- The first letter's exact outlined geometry from polycup-wordmark.svg. -->
+  <path id="boot-letter" d="M 181.25 126.19 L 79.81 126.19 L 69.88 177.00 L 45.00 177.00 L 69.68 50.68 L 196.01 50.68 L 181.25 126.19 Z M 165.22 76.43 L 89.53 76.43 L 84.67 101.31 L 160.36 101.31 L 165.22 76.43 Z"/>
+  <clipPath id="boot-letter-clip"><use href="#boot-letter" clip-rule="evenodd"/></clipPath>
+ </defs>
+ <g fill-rule="evenodd" stroke-linejoin="round">
+  <use href="#boot-letter" fill="#17224c" stroke="#17224c" stroke-width="12"/>
+  <use href="#boot-letter" fill="url(#boot-face)" stroke="url(#boot-gold)" stroke-width="5" paint-order="stroke fill"/>
+ </g>
+ <g clip-path="url(#boot-letter-clip)"><rect class="boot-glint" x="-100" y="25" width="64" height="180" fill="url(#boot-shine)"/></g>
+</svg>

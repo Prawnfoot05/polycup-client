@@ -1,0 +1,16 @@
+{
+  "name": "polycup-client",
+  "version": "0.6.1",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "prepare:game": "node scripts/prepare-local-game.mjs",
+    "build": "node prototype/standalone/build.mjs --pml --hub"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

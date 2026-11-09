@@ -1,0 +1,90 @@
+.reward-editor{padding:16px;margin:0 0 20px;background:var(--pc-canvas)}
+.reward-editor nav{display:flex;gap:12px;border-bottom:1px solid var(--pc-line)}
+.reward-editor nav button{background:none;clip-path:none;color:var(--pc-muted);padding:10px 16px;--focus-cut:0px;border-bottom:2px solid transparent;margin:0}
+.reward-editor nav button[aria-selected=true]{color:var(--pc-gold);border-bottom-color:var(--pc-gold)}
+.reward-selection{display:flex;align-items:center;gap:8px;min-height:44px;color:var(--pc-muted);font-size:16px;margin:12px 0}
+.reward-selection>span:first-child{margin-right:auto}
+.reward-selection[hidden]{display:none}
+.reward-selection>.player-achievement{display:inline-grid;place-items:center;flex:none;width:30px;height:30px}
+.reward-selection>.player-achievement img{display:block;width:100%;height:100%;object-fit:contain}
+.reward-options.reward-banner-panel{display:block;max-height:none;overflow:visible;padding:0;margin-top:16px}
+.reward-editor nav{overflow-x:auto;scrollbar-width:thin}
+.reward-editor nav button{flex:none;white-space:nowrap}
+.reward-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-height:350px;overflow:auto;padding:3px;margin-top:16px}
+.player-profile .reward-option{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-height:84px;padding:14px 10px;margin:0;background:var(--pc-panel);color:var(--pc-text);clip-path:none;--focus-cut:0px;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.player-profile .reward-option[aria-pressed=true]{outline:2px solid var(--profile-accent);outline-offset:-2px;background:var(--pc-raised)}
+.player-profile .reward-option.is-locked{color:var(--pc-muted)}
+.reward-option.is-locked .reward-art{opacity:.4}
+.reward-option strong{font:400 18px/1.3 ForcedSquare,Arial,sans-serif}
+.reward-option small{font:400 15px/1.4 ForcedSquare,Arial,sans-serif;color:var(--pc-muted)}
+.reward-art{display:grid;place-items:center;position:relative;width:64px;height:64px;flex:none}
+.reward-art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.reward-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:18px}
+.reward-actions button{width:auto;margin:0}
+@media(max-width:620px){.reward-editor{padding:12px}.reward-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:320px}.reward-editor nav{gap:4px}.reward-editor nav button{padding:10px 8px;font-size:17px}}
+
+@media(max-width:620px){.reward-editor nav{padding-right:36px}.reward-editor nav button{padding-inline:6px;min-width:0}}
+
+.reward-editor > .social-error:empty{display:none}
+
+.reward-editor > .social-error:empty{display:none}
+
+:is(.reward-option,.banner-option) .reward-rarity-label{display:block;font-size:15px;line-height:1.25;color:var(--reward-rarity);font-style:normal;font-weight:400}
+
+.reward-options.reward-family-overview{grid-template-columns:repeat(3,minmax(0,1fr));max-height:420px}
+.player-profile .reward-family-overview>.reward-option{justify-content:flex-start}
+.reward-family-tooltip{position:fixed;inset:auto;margin:0;box-sizing:border-box;width:min(360px,calc(100vw - 24px));overflow:visible;padding:12px;border:1px solid var(--pc-line);background:var(--pc-canvas);color:var(--pc-text);box-shadow:0 12px 30px #0006;font:400 16px/1.4 ForcedSquare,Arial,sans-serif}
+.reward-family-tooltip:before{content:'';position:absolute;width:9px;height:9px;left:calc(var(--tier-tail-x,50%) - 5px);bottom:-6px;transform:rotate(45deg);background:var(--pc-canvas);border-right:1px solid var(--pc-line);border-bottom:1px solid var(--pc-line);pointer-events:none}
+.reward-family-tooltip[data-placement=below]:before{bottom:auto;top:-6px;transform:rotate(225deg)}
+.reward-family-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.reward-family-heading strong{font-size:18px;font-weight:400}
+.reward-family-goal{font-size:15px;color:var(--pc-muted);white-space:nowrap}
+.reward-family-medals{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.player-profile .reward-family-medal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:72px;width:100%;margin:0;padding:4px;background:transparent;clip-path:none;--focus-cut:0px;color:var(--pc-text);border:0;outline-offset:-2px}
+.player-profile .reward-family-medal[aria-pressed=true]{outline:2px solid var(--profile-accent);background:var(--pc-raised)}
+.player-profile .reward-family-medal:hover,.player-profile .reward-family-medal:focus-visible{background:var(--pc-panel)}
+.reward-family-medal>img{display:block;width:44px;height:44px;max-width:100%;object-fit:contain;flex:none}
+.reward-family-medal.is-locked>img{opacity:.35;filter:grayscale(.8)}
+.reward-family-medal>span{font:400 15px/1.3 ForcedSquare,Arial,sans-serif;color:var(--reward-rarity)}
+@media(max-width:760px){.reward-options.reward-family-overview{grid-template-columns:repeat(2,minmax(0,1fr));max-height:350px}}
+
+/* Locked rewards read as goals: dimmed artwork and name, a lock, and a thin progress bar. */
+.player-profile .reward-option{position:relative}
+.player-profile .reward-option.is-locked{background:var(--pc-canvas);box-shadow:inset 0 0 0 1px var(--pc-line)}
+.reward-option.is-locked :is(.reward-art,strong,.reward-rarity-label){opacity:.5}
+.reward-lock{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:20px;height:20px;color:var(--pc-muted)}
+.reward-lock svg{width:16px;height:16px}
+.player-profile .reward-option.is-title{padding-top:30px}
+.reward-goal{display:flex;align-items:center;gap:8px;width:min(100%,180px);font:400 15px/1.2 ForcedSquare,Arial,sans-serif;color:var(--pc-text);font-variant-numeric:tabular-nums}
+.reward-goal progress{appearance:none;flex:1;min-width:0;height:5px;border:0;background:var(--pc-raised)}
+.reward-goal progress::-webkit-progress-bar{background:var(--pc-raised)}
+.reward-goal progress::-webkit-progress-value{background:var(--pc-muted)}
+.reward-goal progress::-moz-progress-bar{background:var(--pc-muted)}
+.reward-family-medal.is-locked{position:relative}
+.reward-condition{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;margin-top:3px;white-space:normal;overflow-wrap:anywhere}
+.reward-condition-label{display:block;color:var(--pc-muted);font:400 16px/1.25 ForcedSquare,Arial,sans-serif}
+.reward-condition .reward-condition-note{font-size:15px;line-height:1.3;margin:0}
+.reward-condition-state{font-size:16px;color:var(--pc-muted)}
+
+/* Selection is always white: profile accents and the gold Legendary rarity must never read as "selected". */
+.player-profile .reward-option[aria-pressed=true],.player-profile .reward-family-medal[aria-pressed=true]{outline-color:var(--pc-text)}
+
+/* Dense catalogue: one identity header and a bottom-aligned goal, without empty preview space. */
+.player-profile .reward-options:not(.reward-banner-panel){grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:minmax(112px,auto);max-height:420px;align-content:start;scrollbar-gutter:stable}
+.player-profile .reward-option{display:grid;grid-template-columns:40px minmax(0,1fr);grid-template-rows:26px 18px auto;align-items:center;align-content:start;gap:4px 8px;height:auto;min-height:112px;min-width:0;padding:8px;text-align:left}
+.player-profile .reward-option>.reward-art{grid-column:1;grid-row:1/3;width:40px;height:40px;justify-self:center}
+.player-profile .reward-option>strong{grid-column:2;grid-row:1;min-width:0;max-width:100%;font-size:17px;line-height:1.15}
+.player-profile .reward-option>.reward-rarity-label{grid-column:2;grid-row:2}
+.player-profile .reward-option>.reward-condition{grid-column:1/-1;grid-row:3;align-self:end;align-items:stretch;min-width:0;margin:0;gap:3px}
+.player-profile .reward-option .reward-goal{width:100%}
+.player-profile .reward-option .reward-condition-label{font-size:15px;line-height:1.15}
+.player-profile .reward-option .reward-condition-note{font-size:14px;line-height:1.15}
+.player-profile .reward-option.is-title{padding-top:8px}
+.player-profile .reward-option.is-title>strong,.player-profile .reward-option.is-title>.reward-rarity-label{grid-column:1/-1}
+.player-profile .reward-option.reward-none{display:flex;align-items:center;justify-content:center}
+@media(min-width:761px) and (max-width:1000px){.player-profile .reward-options:not(.reward-banner-panel){grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){
+ .player-profile .reward-options:not(.reward-banner-panel){grid-template-columns:repeat(2,minmax(0,1fr));max-height:360px}
+ .player-profile .reward-option{grid-template-rows:40px 18px auto}
+}
+@media(max-height:500px){.player-profile .reward-options:not(.reward-banner-panel){max-height:none;overflow:visible}}

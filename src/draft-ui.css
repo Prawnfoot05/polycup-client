@@ -1,0 +1,98 @@
+/* One clear draft action, with the same indigo planes and dividers as setup. */
+.draft-intro{background:var(--pc-panel);padding:16px 18px;margin:0 0 16px;border-left:3px solid var(--pc-line)}
+.draft-intro.is-your-turn{border-left-color:var(--pc-gold)}
+.draft-steps{display:flex;gap:10px;align-items:center;padding:0;margin:0 0 16px;list-style:none;color:var(--pc-muted);font-size:17px}
+.draft-steps li{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.draft-steps li+li::before{content:'';width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:5px solid var(--pc-line)}
+.draft-steps [aria-current='step']{color:var(--pc-gold)}
+.draft-steps .is-done{color:var(--pc-text)}
+.draft-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.draft-heading h2{margin:0;font-size:28px;line-height:1.15;min-width:0}
+.draft-heading .draft-count{flex:none;font-size:18px;color:var(--pc-muted);white-space:nowrap}
+.draft-intro.is-your-turn h2{color:var(--pc-gold)}
+.draft-review{padding:0 0 16px}
+.draft-review h3{font-size:19px;font-style:italic;color:var(--pc-muted);margin:0 0 12px}
+.draft-review-tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.draft-review-tracks:has(>.draft-review-track:only-child){grid-template-columns:1fr}
+.draft-review-track{display:flex;align-items:center;gap:12px;min-width:0;background:var(--pc-panel);padding:14px}
+.draft-review-track img{flex:none;width:64px;height:56px;object-fit:contain}
+.draft-review-track strong{min-width:0;font-weight:400;font-size:22px;overflow-wrap:anywhere}
+.draft-review .draft-empty-note{color:var(--pc-muted);font-size:20px;margin:0}
+.cup-lobby.drafting .lobby-racer.current-turn{background:var(--pc-raised);box-shadow:inset 3px 0 var(--pc-gold)}
+.cup-lobby.drafting .lobby-racer.draft-ready{background:var(--pc-panel);box-shadow:inset 3px 0 var(--pc-positive)}
+.cup-lobby.drafting .current-turn .racer-ready-status{color:var(--pc-gold)}
+.cup-lobby.drafting .racer-ready-status{font-size:17px;display:inline-flex;align-items:center;gap:5px}
+.cup-lobby.drafting .racer-ready-status .status-icon{width:16px;height:16px;flex:none}
+.lobby-action .track-tabs{border-bottom:1px solid var(--pc-line);gap:4px;padding:0;margin:0 0 12px}
+.lobby-action .track-tabs button{margin:0;min-height:44px;font-style:italic;background:transparent;color:var(--pc-muted)}
+.lobby-action .track-tabs button.selected{background:var(--pc-panel);color:var(--pc-gold);border:0;box-shadow:inset 0 3px var(--pc-gold)}
+.lobby-action .track-tabs button::after{display:none}
+.lobby-action .track-tabs button:focus-visible{background:var(--pc-raised);text-decoration:underline;text-underline-offset:4px}
+.lobby-action .track-search{font-size:19px;margin:0 0 14px;min-height:44px}
+.lobby-action .track-card{background:var(--pc-panel)}
+.lobby-action .track-card:not(.added):not(.banned):disabled{opacity:.7}
+.lobby-action .track-card strong{font-size:20px;font-weight:400}
+.lobby-action .track-card small{font-size:17px}
+.lobby-action .track-card img{object-fit:contain;flex:none}
+.lobby-action .track-code{padding:12px 0 0;margin-top:16px;border-top:1px solid var(--pc-line)}
+.lobby-action .track-code>summary{min-height:44px;display:flex;align-items:center;gap:8px;list-style:none;font-style:italic;color:var(--pc-muted)}
+.lobby-action .track-code>summary::before{content:'';border:5px solid transparent;border-left-color:currentColor}
+.lobby-action .track-code[open]>summary::before{transform:rotate(90deg);transform-origin:25% 50%}
+.lobby-action .track-code label{margin:8px 0 12px;font-size:18px;color:var(--pc-muted)}
+.lobby-action .track-code textarea{margin-top:8px;width:100%;min-height:80px;font-size:18px;clip-path:none;--focus-cut:0px}
+.rules-dialog.preset-tabbed{width:min(720px,calc(100vw - 24px))}
+.rules-dialog.preset-tabbed .rules-dialog-heading{padding:16px 20px}
+.rules-dialog.preset-tabbed .rules-dialog-heading>button{display:grid;place-items:center;padding:10px;min-width:44px;height:44px}
+.rules-dialog.preset-tabbed .rules-dialog-heading>button .status-icon{width:20px;height:20px}
+.rules-dialog.preset-tabbed .rules-dialog-body{padding:16px 20px 20px}
+.rules-dialog.preset-tabbed .rule-tab-panels{padding-inline:12px}
+.rules-dialog.preset-tabbed .rule-tabs-nav>button{flex:1;min-width:0;min-height:44px;margin:0;padding:10px 8px;font-size:19px;font-style:italic;background:transparent;color:var(--pc-muted)}
+.rules-dialog.preset-tabbed .rule-tabs-nav>button[aria-selected=true]{color:var(--pc-gold);background:var(--pc-panel);box-shadow:inset 0 3px var(--pc-gold)}
+.rules-dialog.preset-tabbed .rule-tabs-nav>button::after{display:none}
+@media(max-width:600px){
+ .draft-intro{padding:12px;margin-bottom:12px}
+ .draft-steps{font-size:16px;gap:8px;margin-bottom:10px}
+ .draft-steps li{gap:8px}
+ .draft-heading h2{font-size:24px}
+ .draft-heading .draft-count{font-size:16px}
+ .draft-review-tracks{grid-template-columns:1fr}
+ .cup-lobby.drafting .lobby-racer{grid-template-columns:30px minmax(0,1fr);padding-inline:6px}
+ .cup-lobby.drafting .lobby-meta{grid-column:2;grid-row:2;justify-content:flex-start}
+ .cup-lobby.drafting .lobby-choices{grid-row:3}
+ .cup-lobby.drafting .lobby-racer>.racer-name{flex-wrap:wrap;gap:6px}
+}
+@media(max-height:500px) and (min-width:601px){
+ .cup-lobby.drafting .draft-intro{display:flex;align-items:center;gap:20px;padding:10px 12px;margin-bottom:10px}
+ .draft-steps{margin:0;font-size:16px}
+ .draft-heading{flex:1}
+ .draft-heading h2{font-size:24px}
+}
+/* Keep identity and the copyable code together; actions get one deliberate row. */
+@media(max-width:600px){
+ .panel.lobby-panel>header.casual-lobby-header{position:relative;padding:10px 12px;gap:8px;align-items:flex-start}
+ .panel.lobby-panel>header.casual-lobby-header .header-title{flex:1 1 100%;min-width:0;padding-right:138px;min-height:44px}
+ .panel.lobby-panel>header.casual-lobby-header h1{font-size:24px;line-height:1;margin:0 0 4px}
+ .panel.lobby-panel>header.casual-lobby-header p{font-size:16px;line-height:1.25;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .panel.lobby-panel>header.casual-lobby-header .room-code{position:absolute;top:10px;right:12px;margin:0}
+ .panel.lobby-panel>header.casual-lobby-header .room-code>small{display:none}
+ .panel.lobby-panel>header.casual-lobby-header .header-actions{width:100%;flex:1 1 100%;flex-wrap:nowrap;gap:6px}
+ .panel.lobby-panel>header.casual-lobby-header .header-actions>button{flex:1;min-width:0;margin:0;min-height:44px;padding:8px;font-size:16px;white-space:nowrap}
+ .panel.lobby-panel>header.casual-lobby-header .room-code>button{min-height:44px;font-size:17px;padding:8px 12px}
+}
+@media(max-height:500px) and (min-width:601px) and (max-width:950px){
+ .panel.lobby-panel>header.casual-lobby-header{flex-wrap:nowrap;padding:6px 12px;gap:12px}
+ .panel.lobby-panel>header.casual-lobby-header .header-title{flex:1;min-width:90px}
+ .panel.lobby-panel>header.casual-lobby-header h1{font-size:23px;margin:0 0 4px}
+ .panel.lobby-panel>header.casual-lobby-header p{font-size:15px;line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+ .panel.lobby-panel>header.casual-lobby-header .header-actions{width:auto;flex:0 1 auto;flex-wrap:nowrap;gap:6px}
+ .panel.lobby-panel>header.casual-lobby-header .room-code{flex:none;margin:0}
+ .panel.lobby-panel>header.casual-lobby-header .room-code>small{display:none}
+ .panel.lobby-panel>header.casual-lobby-header .header-actions button{min-height:44px;padding:8px 12px;font-size:16px;white-space:nowrap}
+}
+
+@media(max-width:600px){
+ .panel.lobby-panel>header.casual-lobby-header .header-actions>.header-leave{white-space:normal;line-height:18px;padding-block:4px}
+}
+@media(max-width:360px){
+ .cup-lobby.drafting .lobby-action .track-grid{grid-template-columns:1fr}
+}

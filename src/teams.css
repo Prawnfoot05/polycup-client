@@ -1,0 +1,212 @@
+[data-team='blue'] {
+  --team-color: #8ed2ff;
+  --team-card: #264878;
+}
+[data-team='red'] {
+  --team-color: #ffa5ad;
+  --team-card: #6f3040;
+}
+.racer-name[data-team] > .racer-label {
+  color: var(--team-color);
+}
+.team-chip {
+  font:
+    400 16px/1.2 ForcedSquare,
+    Arial,
+    sans-serif;
+  color: var(--team-color);
+  white-space: nowrap;
+}
+.team-chip::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  background: var(--team-color);
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.team-scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.team-score {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  background: var(--pc-panel);
+  padding: 10px 12px;
+  border-left: 3px solid var(--team-color);
+}
+.team-score .team-chip {
+  flex: 1;
+}
+.team-score .team-total {
+  font:
+    400 22px/1 ForcedSquare,
+    Arial,
+    sans-serif;
+}
+.team-score small {
+  font:
+    400 16px/1.2 ForcedSquare,
+    Arial,
+    sans-serif;
+  color: var(--pc-muted);
+}
+.team-score.is-winner small {
+  color: var(--pc-gold);
+}
+.scoreboard.teams .ranking-heading {
+  font-size: 20px;
+}
+.scoreboard.teams .score-identity .team-chip {
+  margin-left: 4px;
+}
+.hud .team-scores {
+  gap: 4px;
+  margin: 0 0 5px;
+}
+.hud .team-score {
+  padding: 6px 10px;
+  gap: 6px;
+}
+.hud .team-score .team-total {
+  font-size: 21px;
+}
+.hud .team-score .team-chip,
+.hud .team-score small {
+  font-size: 16px;
+}
+.finish-row[data-team] {
+  box-shadow: inset 3px 0 var(--team-color);
+}
+.finish-player > .team-chip {
+  margin-top: 4px;
+}
+.finish-board > .team-scores {
+  padding: 12px 0 4px;
+}
+@media (max-width: 600px) {
+  .team-score {
+    padding: 10px;
+    gap: 6px;
+  }
+  .team-score .team-total {
+    font-size: 19px;
+  }
+  .hud .team-score .team-total {
+    font-size: 17px;
+  }
+  .hud .team-score .team-chip,
+  .hud .team-score small {
+    font-size: 14px;
+  }
+}
+
+.team-scoring-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  color: var(--pc-text);
+}
+.team-scoring-guide strong {
+  font-size: 22px;
+  font-weight: 400;
+}
+.team-scoring-guide small {
+  font-size: 17px;
+  color: var(--pc-muted);
+}
+
+.team-round-outcome {
+  grid-column: 1/-1;
+  font:
+    400 17px/1.2 ForcedSquare,
+    Arial,
+    sans-serif;
+  color: var(--pc-muted);
+}
+.team-round-outcome.is-overtime {
+  color: var(--pc-gold);
+}
+.hud .team-score {
+  clip-path: var(--cut);
+  border-left: 0;
+  box-shadow: inset 0 -2px var(--team-color);
+}
+.hud .team-round-outcome {
+  padding: 0 10px;
+  font-size: 16px;
+}
+
+.lobby-team {
+  margin: 0 0 18px;
+}
+.lobby-team > .team-heading {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.lobby-team > .team-heading h2 {
+  font-size: 24px;
+  color: var(--team-color);
+}
+.team-heading > button {
+  min-height: 44px;
+  font-size: 17px;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+.team-shuffle {
+  min-height: 44px;
+  font-size: 17px;
+  margin: 0 0 16px;
+}
+.cup-lobby .lobby-team .lobby-racer[data-team] {
+  background: var(--team-card);
+  box-shadow: none;
+  border: 0;
+  margin: 5px 0;
+}
+.cup-lobby .lobby-team .lobby-racer > .racer-name {
+  --button-bg: transparent;
+  background: transparent;
+}
+.cup-lobby.drafting .lobby-team .lobby-racer.current-turn {
+  box-shadow: inset 0 0 0 2px var(--pc-gold);
+}
+.score-row[data-team],
+.finish-row[data-team],
+.final-row[data-team] {
+  background: var(--team-card);
+}
+.final-row[data-team] {
+  color: var(--pc-text);
+}
+@media (max-width: 950px) {
+  /* Team choice is the first setup task for guests on small screens. */
+  .cup-lobby:not(.drafting):has(.lobby-team) > .lobby-action {
+    order: 0;
+  }
+}
+@media (max-width: 600px) {
+  .cup-lobby .lobby-team .lobby-racer > .lobby-meta {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+  .cup-lobby .lobby-team .lobby-choices {
+    grid-row: 3;
+  }
+  .team-heading > button {
+    font-size: 16px;
+    padding-inline: 12px;
+  }
+  .lobby-team > .team-heading h2 {
+    font-size: 22px;
+  }
+}

@@ -1,0 +1,211 @@
+.account-body { font:18px/1.5 ForcedSquare,Arial,sans-serif; flex:1; min-height:0; }
+.account-body * { font-style:normal; }
+.account-body p { margin:0 0 16px; }
+.account-body button { font:italic 20px/1.2 ForcedSquare,Arial,sans-serif; margin:8px 8px 0 0; }
+.account-body label,.account-body input,.account-body textarea { display:block; width:100%; }
+.account-body input,.account-body textarea { font:16px/1.5 ForcedSquare,Arial,sans-serif; padding:10px; margin-top:8px; }
+.account-body textarea { resize:vertical; }
+.account-body form { margin:20px 0 12px; }
+.account-body summary { color:var(--gold); cursor:pointer; }
+.account-body details p { margin-top:12px; }
+.account-note { color:var(--muted); }
+.account-error { color:var(--red); }
+.account-saved { color:#78e1b6; }
+.header-account { font-size:18px; }
+.friends-content h3 { font:italic 22px/1.2 ForcedSquare,Arial,sans-serif; margin:22px 0 12px; }
+.friend-row-heading { display:flex; align-items:center; gap:12px; }
+.friend-avatar { width:42px; height:42px; flex:none; position:relative; display:grid; place-items:center; overflow:hidden; border-radius:50%; background:#28346a; }
+.friend-avatar img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.friend-status.is-online { color:#78e1b6; }
+.friend-status::before { content:''; display:inline-block; width:6px; height:6px; background:currentColor; border-radius:50%; margin-right:6px; vertical-align:middle; }
+.friend-actions { display:flex; flex-wrap:wrap; justify-content:flex-start; align-items:center; gap:8px; margin:6px 0 0 46px; }
+.account-body .friend-actions button { margin:0; min-height:34px; padding:6px 10px; font-size:18px; }
+.friend-profile { margin:14px 0 0 54px; padding-left:14px; border-left:2px solid var(--gold); }
+.account-body .friend-profile p { margin-bottom:6px; }
+.friend-profile input { font-size:16px; }
+.account-body .friend-search { margin-top:0; }
+.account-dialog { position:fixed; inset:0; margin:auto; width:min(480px,calc(100vw - 24px)); height:min(740px,calc(100dvh - 32px)); padding:0; overflow:hidden; }
+.account-social-header { display:flex; align-items:center; gap:16px; padding:16px 48px 16px 22px; min-height:96px; box-sizing:border-box; flex:none; background:var(--pc-header); }
+.account-header-labels { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:2px; }
+.account-social-header h2 { margin:0; font:400 25px/1.15 ForcedSquare,Arial,sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.account-header-labels p { margin:5px 0 0; color:var(--muted); font:16px/1.3 ForcedSquare,Arial,sans-serif; overflow-wrap:anywhere; }
+.account-avatar { display:grid; place-items:center; flex:none; background:#28346a; font:30px ForcedSquare,Arial,sans-serif; position:relative; overflow:hidden; width:64px; height:64px; border-radius:5px; border:0; box-shadow:0 0 0 4px #19204266; }
+.account-avatar img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.account-dialog .account-close { position:absolute; top:9px; right:9px; width:32px; height:32px; padding:0; margin:0; background:#111a32aa; clip-path:none; --focus-cut:0px; font:26px/1 ForcedSquare,Arial,sans-serif; color:var(--muted); }
+.account-dialog .account-close:hover { color:white; background:#3d527c; }
+.account-tabs { flex:none; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; margin:0; padding:0 12px; background:var(--pc-canvas); border-bottom:1px solid #344c75; }
+.account-tabs[hidden] { display:none; }
+.account-tabs button { display:flex; flex-direction:column; align-items:center; gap:6px; margin:0; padding:13px 3px 10px; min-height:65px; font:16px/1.2 ForcedSquare,Arial,sans-serif; background:transparent; color:var(--muted); clip-path:none; --focus-cut:0px; border-bottom:2px solid transparent; transition:background .15s,color .15s; }
+.account-tabs button.selected { color:var(--gold); border-color:var(--gold); background:var(--pc-action); }
+.account-tabs button:hover { background-color:#344c7544; color:white; }
+.account-tabs svg { display:block; flex:none; width:20px; height:20px; }
+.account-dialog .account-body { padding:18px 20px; font-size:16px; overflow-y:auto; }
+.friend-group-title { display:flex; align-items:center; box-sizing:border-box; min-height:36px; margin:12px -20px 0; padding:6px 20px; color:var(--muted); background:var(--pc-raised); border:0; font:16px/24px ForcedSquare,Arial,sans-serif; }
+.friend-row { margin:0 -8px; padding:6px 8px; border:0; min-height:56px; }
+.friend-row + .friend-row { box-shadow:inset 0 1px var(--pc-line); }
+.friend-row:hover { background:#344c7526; }
+.friend-avatar { width:36px; height:36px; border-radius:3px; border:0; }
+.friend-labels { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.account-body .friend-name { min-width:0; text-align:left; overflow-wrap:anywhere; clip-path:none; --focus-cut:0px; background:transparent; margin:0; padding:0; font-size:20px; line-height:1.2; }
+.friend-username { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); font-size:16px; }
+.friend-status { color:var(--muted); flex:none; font-size:16px; }
+.account-body .friend-profile { font-size:16px; }
+.account-dialog button:focus-visible { outline:none; outline-offset:-3px; }
+@media(max-width:480px) { .account-social-header { padding-left:18px; gap:12px; } .account-social-header h2 { font-size:23px; } .account-avatar { width:52px; height:52px; } .account-tabs { padding-inline:6px; } .account-tabs button { font-size:16px; } .account-dialog .account-body { padding-inline:16px; } .friend-group-title { margin-inline:-16px; padding-inline:16px; } }
+
+.account-body .friend-name:hover { background:transparent; box-shadow:none; color:var(--gold); }
+@media(max-width:480px) { .friend-profile { margin-left:0; } .account-body .friend-name { font-size:18px; } }
+
+.account-name-line,.account-username-line { display:flex; align-items:center; gap:6px; min-width:0; }
+.account-name-line h2 { min-width:0; }
+.account-username-line p { min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.account-dialog .account-social-header .account-icon-button { width:24px; min-width:24px; height:22px; min-height:22px; padding:2px; }
+.account-dialog .account-icon-button { display:grid; place-items:center; flex:none; width:28px; height:28px; margin:0; padding:5px; clip-path:none; --focus-cut:0px; background:transparent; color:var(--muted); border-radius:3px; }
+.account-dialog .account-icon-button:hover { background:#8194b322; color:var(--ice); box-shadow:none; }
+.account-icon-button svg { display:block; flex:none; width:18px; height:18px; }
+.account-dialog .account-icon-button.is-copied { color:#78e1b6; }
+.account-header-edit { display:grid; grid-template-columns:minmax(0,1fr) 28px 28px; align-items:center; gap:4px; margin:0 0 4px; }
+.account-header-edit input { min-width:0; width:100%; box-sizing:border-box; padding:6px; font:17px/1.4 ForcedSquare,Arial,sans-serif; clip-path:none; --focus-cut:0px; }
+.account-footer { display:flex; justify-content:flex-end; flex:none; padding:12px 16px; border-top:1px solid #344c7555; }
+.account-footer[hidden] { display:none; }
+.account-footer button { margin:0; padding:8px 12px; font:italic 18px/1.2 ForcedSquare,Arial,sans-serif; }
+.account-body .friend-search { display:flex; align-items:stretch; gap:8px; margin:0 0 16px; }
+.account-body .friend-search input { flex:1; min-width:0; width:0; margin:0; }
+.account-body .friend-search button { flex:none; margin:0; font-size:18px; padding:10px 14px; }
+.friends-content > .friend-group-title:first-child { margin-top:0; }
+.account-dialog .account-body:has(>.friends-content>:is(.friend-group-title,.friend-request-group):first-child){padding-top:0}
+.friend-request-group { margin:0; border:0; }
+.friend-request-group:first-child .friend-group-title { margin-top:0; }
+.friends-content .friend-request-heading { display:flex; align-items:center; justify-content:space-between; margin:0; padding:10px 12px; background:#344c7544; border-left:2px solid #7186ae; font:italic 18px/1.3 ForcedSquare,Arial,sans-serif; }
+.friend-request-count { color:var(--muted); font:16px/1.3 ForcedSquare,Arial,sans-serif; font-variant-numeric:tabular-nums; }
+.friend-request-group .friend-row:last-child { border-bottom:0; }
+.friend-request-group .friend-actions > .account-note { display:none; }
+.account-visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media(max-width:380px) { .account-social-header { padding-right:32px; gap:10px; } .account-header-edit { grid-template-columns:minmax(0,1fr) 24px 24px; gap:2px; } .account-header-edit .account-icon-button { width:24px; } .account-body .friend-search { gap:4px; } .account-body .friend-search button { padding-inline:10px; } }
+.account-body .discord-sign-in { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; margin:0; padding:12px; border-radius:4px; clip-path:none; --focus-cut:0px; background:#5865f2; color:white; font:400 17px/1.3 ForcedSquare,Arial,sans-serif; transition:background .16s; }
+.account-body .discord-sign-in:hover { background:#4752c4; }
+.discord-mark { display:flex; flex:none; width:24px; }
+.discord-mark svg { width:24px; height:20px; }
+.account-sign-in-status { margin:0 0 16px; color:var(--muted); font:17px/1.4 ForcedSquare,Arial,sans-serif; }
+.account-sign-in-actions { display:flex; align-items:center; gap:8px; }
+.account-sign-in-actions .discord-sign-in { flex:1; min-width:0; }
+.account-return-code { margin:20px 0 0; padding-top:16px; border-top:1px solid #344c75; }
+.account-return-code summary { color:var(--muted); font:16px/1.4 ForcedSquare,Arial,sans-serif; cursor:pointer; }
+.account-return-form { margin-top:14px; }
+.account-return-form label { font:16px ForcedSquare,Arial,sans-serif; color:var(--muted); }
+.account-return-row { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.account-return-row input { flex:1 1 130px; width:0; min-width:0; margin:0; font:16px ForcedSquare,Arial,sans-serif; }
+.account-return-row button { margin:0; font-size:17px; }
+.account-body .account-sign-in-cancel { display:block; margin:16px 0 0 auto; padding:6px 0; clip-path:none; --focus-cut:0px; background:transparent; color:var(--muted); font:16px ForcedSquare,Arial,sans-serif; }
+
+/* Use the game face without synthetic bold at compact social-panel sizes. */
+.account-dialog,.account-dialog * { font-weight:400; font-synthesis:none; }
+.friends-only .account-social-header { min-height:72px; padding:18px 48px 18px 20px; }
+.friend-invite-title { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:18px; line-height:24px; }
+.friend-invite-row .friend-labels { padding-right:0; }
+.friend-invite-row .friend-username { font-size:15px; line-height:20px; }
+.friend-invite-symbol { color:var(--muted); }
+.friend-invite-symbol svg { width:20px; height:20px; }
+
+.friend-name-line{display:flex;align-items:center;gap:4px;min-width:0}
+.friend-name-line .friend-name{min-width:0;overflow-wrap:anywhere}
+.account-body .friend-menu-toggle{display:inline-grid;place-items:center;align-self:flex-start;flex:none;clip-path:none; --focus-cut:0px;background:transparent;border:0;padding:0;margin:0;color:var(--muted);width:24px;min-width:24px;height:26px}
+.friend-menu-toggle svg{display:block;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transform:translateY(-2px)}
+.account-body .friend-menu-toggle:hover,.account-body .friend-menu-toggle[aria-expanded=true]{color:var(--gold);background:#30416a}
+.account-embedded .friend-labels .friend-status,.friend-labels .friend-status{display:flex;align-items:center;gap:7px;font:400 16px/1.3 ForcedSquare,Arial,sans-serif;margin-top:3px}
+.account-embedded .friend-labels .friend-status::before,.friend-labels .friend-status::before{margin:0;flex:none}
+.friend-menu{position:fixed;inset:auto;margin:0;padding:5px;width:220px;box-sizing:border-box;border:1px solid #536388;border-top:2px solid var(--gold);background:#202c4b;color:var(--pc-text);box-shadow:0 10px 30px #0008;font:400 17px ForcedSquare,Arial,sans-serif;z-index:100110}
+.friend-menu:popover-open{display:flex;flex-direction:column;gap:2px}
+.friend-menu button{display:block;width:100%;box-sizing:border-box;margin:0;padding:9px 10px;text-align:left;clip-path:none; --focus-cut:0px;transform:none;background:transparent;color:inherit;border:0;font:400 17px/1.2 ForcedSquare,Arial,sans-serif;cursor:pointer}
+.friend-menu button:hover,.friend-menu button:focus-visible{background:#34466e;color:var(--gold);outline:none}
+.friend-menu p{margin:5px 9px;font-size:16px}
+.friend-menu button:disabled{opacity:.45;cursor:default}
+
+.account-sign-in-manual { flex-wrap:wrap; }
+.account-sign-in-manual > input { flex:1 1 100%; min-width:0; width:100%; font:16px/1.4 ForcedSquare,Arial,sans-serif; }
+.account-sign-in-manual > button { font-size:16px; }
+.account-sign-in-manual > .discord-sign-in { flex:1 1 100%; min-height:44px; }
+
+.account-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.account-tabs button{position:relative;font-size:16px}.account-unread{position:absolute;top:-4px;right:-5px;display:grid;place-items:center;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:var(--gold);color:var(--pc-canvas);font:400 12px/14px ForcedSquare,Arial,sans-serif;pointer-events:none}.account-social-header .account-avatar{padding:0;clip-path:none; --focus-cut:0px;min-width:0;min-height:0;margin:0;font-style:normal}.account-body button.friend-name{border:0}
+
+.account-message-launcher { position:relative; }
+.social-empty { padding:20px 16px; color:var(--muted); }
+.social-empty p { margin:0 0 12px; }
+.social-empty button { margin:0; }
+@media(pointer:coarse) {
+ .account-body .friend-actions button { min-height:44px; }
+ .account-body .friend-menu-toggle { width:44px;min-width:44px;height:44px;min-height:44px;align-self:center; }
+ .friend-menu button { min-height:44px; }
+ .account-dialog .account-icon-button { width:44px;min-width:44px;min-height:44px; }
+}
+
+/* On phones, keep the two identity lines beside the portrait and put the
+   full-size touch actions in one rail, rather than stretching both text rows. */
+@media(max-width:620px),(max-height:500px) {
+ .account-header-labels { display:grid; grid-template-columns:minmax(0,1fr) repeat(3,44px); grid-template-rows:26px 26px; column-gap:4px; row-gap:0; align-items:center; }
+ .account-name-line,.account-username-line { display:contents; }
+ .account-name-line h2 { grid-column:1; grid-row:1; line-height:26px; }
+ .account-username-line p { grid-column:1; grid-row:2; line-height:22px; }
+ .account-dialog .account-social-header .account-icon-button { width:44px; min-width:44px; height:44px; min-height:44px; padding:10px; grid-row:1/3; }
+ #account-edit-name { grid-column:2; }
+ #account-copy-friend-code { grid-column:3; }
+ #account-view-messages { grid-column:4; }
+ .account-header-edit { grid-column:1/-1; grid-row:1; grid-template-columns:minmax(0,1fr) 44px 44px; margin:0; }
+ .account-header-edit input { grid-column:1; grid-row:1; }
+ .account-dialog .account-social-header .account-header-edit .account-icon-button { grid-row:1; }
+ .account-header-edit button[type=submit] { grid-column:2; }
+ .account-header-edit button[type=button] { grid-column:3; }
+ .account-header-edit ~ .account-username-line p { grid-column:1/3; }
+ .account-header-edit ~ .account-username-line #account-copy-friend-code { grid-column:3; grid-row:2; }
+ .account-header-edit ~ .account-username-line #account-view-messages { grid-column:4; grid-row:2; }
+ .account-header-labels:has(.account-header-edit) { grid-template-rows:auto 44px; }
+}
+/* Friend entries are a compact identity row; empty action areas take no space. */
+.friend-actions:empty{display:none}
+.friend-row-heading{gap:10px;min-height:44px}
+.friend-labels{position:relative;gap:0;padding-right:38px}
+.friend-labels.has-unread{padding-right:60px}
+.friend-unread{position:absolute;right:44px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:var(--gold);pointer-events:none}
+.friend-name-line{min-height:24px}
+.account-body .friend-name{font-style:normal;min-height:0;max-width:100%;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:18px;line-height:24px}
+.account-body .friend-menu-toggle{position:absolute;right:-6px;top:50%;transform:translateY(-50%);align-self:auto;width:44px;min-width:44px;height:44px;min-height:44px}
+.account-embedded .friend-labels .friend-status,.friend-labels .friend-status{margin-top:0;font-size:15px;line-height:20px}
+.account-dialog .friend-group-title{border:0}
+.account-body :is(.friend-name,.friend-menu-toggle):focus-visible{background-image:none;outline:2px solid var(--gold);outline-offset:2px;text-decoration:none}
+.account-body :is(.friend-name,.friend-menu-toggle)::after{content:none}
+
+/* Identity remains the focus; progression gets a single compact row. */
+.account-dialog .account-social-header:has(.account-xp){display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:8px;padding-block:12px}
+.account-player-title{font-size:15px;line-height:18px}
+.account-header-labels>.player-achievements{--medal-size:20px;margin-top:0}
+.account-xp{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-width:0;color:var(--gold);font:400 15px/20px ForcedSquare,Arial,sans-serif}
+.account-xp[hidden]{display:none}
+.account-xp>span{flex:none}
+.account-xp progress{display:block;flex:1;min-width:0;width:0;height:5px;appearance:none;border:0;border-radius:0;background:#111a3299;color:var(--gold)}
+.account-xp progress::-webkit-progress-bar{background:#111a3299}
+.account-xp progress::-webkit-progress-value{background:var(--gold)}
+.account-xp progress::-moz-progress-bar{background:var(--gold)}
+.account-xp:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.account-dialog .account-header-labels{display:flex;flex-direction:column;align-items:stretch;gap:2px;justify-content:center;text-align:left}
+
+
+.account-dialog .account-header-labels>h2{min-width:0;max-width:100%;text-align:left}
+.account-dialog.account-embedded .account-avatar{width:66px;height:66px}
+.account-dialog.account-embedded .account-header-labels{height:66px;justify-content:center}
+.account-dialog.account-embedded .account-header-labels>h2{font-size:22px;line-height:24px}
+.account-dialog .account-username-line{display:flex}
+
+/* Keep progression subordinate to the identity, without reducing text readability. */
+.account-xp .level-chip{min-width:28px;height:20px;padding-inline:7px;font-size:15px}
+.account-xp progress{box-shadow:inset 0 0 0 1px #ffffff2e}
+
+.avatar-edit-hint{display:grid;place-items:center;position:absolute;inset:0;z-index:3;opacity:0;pointer-events:none;background:#101a3938}.avatar-edit-hint svg{width:24px;height:24px;opacity:.65}.account-avatar:is(:hover,:focus-visible)>.avatar-edit-hint{opacity:1}@media(hover:none){.account-avatar>.avatar-edit-hint{opacity:.45}}
+
+.account-social-header .account-profile-name{all:unset;display:block;box-sizing:border-box;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font:inherit;clip-path:none}.account-social-header .account-profile-name{position:relative;isolation:isolate}.account-social-header .account-profile-name::before,.account-social-header .account-profile-name::after{content:none}.account-social-header .account-profile-name:focus-visible{outline:2px solid var(--pc-gold);outline-offset:3px}
+
+.friend-status.is-away{color:var(--pc-gold)}.friend-status.is-away::before{background:var(--pc-gold)}
+
+/* Reserve action space on the name line; activity gets the full reading width. */
+.friend-labels,.friend-labels.has-unread{padding-right:0}.friend-name-line{padding-right:38px}.friend-labels.has-unread .friend-name-line{padding-right:60px}.friend-status>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.friend-status{min-width:0;white-space:nowrap}
+
+.account-embedded .friend-labels .friend-status::before,.friend-labels .friend-status::before{content:none;display:none}.account-embedded .friend-labels .friend-status,.friend-labels .friend-status{gap:0}

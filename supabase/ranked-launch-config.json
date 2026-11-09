@@ -1,0 +1,19 @@
+{
+  "tierNames": [
+    "bronze",
+    "silver",
+    "gold",
+    "platinum",
+    "diamond",
+    "master"
+  ],
+  "tierFloors": [
+    0,
+    5000,
+    10000,
+    15000,
+    20000,
+    25000
+  ],
+  "provisionalMatches": 5
+}

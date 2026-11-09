@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="29.00 28.06 853.62 206.52" role="img" aria-labelledby="title"><title id="title">PolyCup</title>
+<!-- Outlined ForcedSquare wordmark; matching the game's angular typography. -->
+<defs>
+ <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#edf1ff"/><stop offset=".48" stop-color="#b5c4ff"/><stop offset=".5" stop-color="#95a8ee"/><stop offset="1" stop-color="#6b81d0"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#fff3b4"/><stop offset=".4" stop-color="#ffda70"/><stop offset="1" stop-color="#b2782b"/></linearGradient>
+ <path id="word" d="M 181.25 126.19 L 79.81 126.19 L 69.88 177.00 L 45.00 177.00 L 69.68 50.68 L 196.01 50.68 L 181.25 126.19 Z M 165.22 76.43 L 89.53 76.43 L 84.67 101.31 L 160.36 101.31 L 165.22 76.43 Z M 312.60 76.43 L 292.95 177.00 L 191.51 177.00 L 211.16 76.43 L 312.60 76.43 Z M 281.99 101.31 L 232.22 101.31 L 222.30 152.12 L 272.06 152.12 L 281.99 101.31 Z M 338.19 177.00 L 313.31 177.00 L 339.28 44.06 L 364.17 44.06 L 338.19 177.00 Z M 457.55 177.00 L 407.32 218.59 L 387.83 218.59 L 390.99 202.40 L 422.23 177.00 L 356.98 177.00 L 376.63 76.43 L 401.52 76.43 L 386.73 152.12 L 437.53 152.12 L 452.32 76.43 L 477.21 76.43 L 457.55 177.00 Z M 522.97 76.43 L 508.18 152.12 L 608.58 152.12 L 603.71 177.00 L 477.39 177.00 L 501.90 51.55 L 628.23 51.55 L 623.37 76.43 L 522.97 76.43 Z M 726.56 177.00 L 625.99 177.00 L 645.64 76.43 L 670.52 76.43 L 655.73 152.12 L 706.54 152.12 L 721.33 76.43 L 746.21 76.43 L 726.56 177.00 Z M 846.97 177.00 L 771.28 177.00 L 763.83 215.11 L 738.95 215.11 L 766.05 76.43 L 866.62 76.43 L 846.97 177.00 Z M 836.87 101.31 L 786.07 101.31 L 776.14 152.12 L 826.95 152.12 L 836.87 101.31 Z "/>
+</defs>
+<g fill-rule="evenodd" stroke-linejoin="round">
+ <use href="#word" fill="#17224c" stroke="#17224c" stroke-width="12"/>
+ <use href="#word" fill="url(#face)" stroke="url(#gold)" stroke-width="5" paint-order="stroke fill"/>
+</g>
+</svg>

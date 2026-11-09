@@ -1,0 +1,324 @@
+.team-race-header {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 6px;
+  width: min(520px, calc(100vw - 20px));
+  z-index: 100100;
+  pointer-events: none;
+  font:
+    italic 400 20px/1.1 ForcedSquare,
+    Arial,
+    sans-serif;
+  color: #f4f7ff;
+}
+.team-race-header * {
+  font-style: italic;
+}
+.team-match-bar {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) 68px;
+  min-height: 62px;
+  filter: drop-shadow(0 4px 7px #0a112940);
+}
+.team-match-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  min-width: 0;
+  background: #14214b;
+}
+.team-match-track {
+  display: block;
+  font-size: 23px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.team-match-phase {
+  font-size: 16px;
+  color: #c2d1e9;
+}
+.team-match-phase.is-overtime {
+  color: #ffdc72;
+}
+.team-match-score {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+.team-match-score::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--team-card);
+  box-shadow: inset 0 -3px var(--team-color);
+}
+.team-match-score > strong {
+  font-size: 46px;
+  line-height: 1;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.team-match-score:first-child::before {
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%);
+}
+.team-match-score:last-child::before {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+}
+.team-match-gain {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 5px 0;
+  text-align: center;
+  background: var(--team-card);
+  color: var(--team-color);
+  font-size: 25px;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+/* Clip only the score-cell fill so its gain can travel freely above it. */
+.team-round-announcement {
+  position: absolute;
+  top: calc(100% + 34px);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  text-align: center;
+  padding: 12px 24px;
+  isolation: isolate;
+}
+.team-round-announcement::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #14214bf0;
+  clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  box-shadow: inset 0 -3px var(--team-color, #ffdc72);
+}
+.team-round-announcement > strong {
+  display: block;
+  font-size: 27px;
+  font-weight: 400;
+  color: var(--team-color, #f4f7ff);
+  white-space: nowrap;
+}
+.team-round-announcement > small {
+  display: block;
+  font-size: 17px;
+  margin-top: 5px;
+  color: #e1eaff;
+}
+.team-round-announcement > small:empty {
+  display: none;
+}
+.hud.team-mode,
+.hud.team-mode.spectating {
+  left: 0;
+  transform: none;
+  width: min(320px, calc(100vw - 24px));
+  top: max(var(--pwc-hud-top, 0px), var(--team-header-bottom, 0px));
+  overflow: hidden;
+  max-height: calc(
+    100dvh - max(var(--pwc-hud-top, 0px), var(--team-header-bottom, 0px)) -
+      var(--pwc-hud-bottom, 60px)
+  );
+}
+.team-live-standings {
+  background: transparent;
+  margin: 0;
+}
+.team-live-standings > h2 {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 17px;
+  font-weight: 400;
+  color: #d7e3f7;
+  background: #14214b;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.team-race-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 28px 72px;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 3px 12px 3px 8px;
+  background: var(--team-card);
+  margin-top: 2px;
+  font-size: 17px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+.team-race-row.is-you {
+  box-shadow: inset 2px 0 #ffe079;
+}
+.team-race-row .racer-name {
+  gap: 5px;
+  min-width: 0;
+  font-size: 17px;
+}
+.team-race-row .racer-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.team-race-row .car-skin {
+  width: 24px;
+  height: 21px;
+  flex: none;
+  background: transparent;
+}
+.team-race-row .country-flag {
+  width: 17px;
+  height: 13px;
+  flex: none;
+}
+.team-race-place {
+  color: #e1eaff;
+  text-align: center;
+}
+.team-race-points {
+  text-align: right;
+  color: #d8efeb;
+  font-weight: 400;
+}
+.team-race-points:not(:empty) {
+  background: #3c6e58;
+  color: #d9ffdf;
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  padding: 2px 3px;
+  text-align: center;
+}
+.team-race-time {
+  display: grid;
+  align-self: stretch;
+  place-items: center;
+  background: #e9f1f8;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  padding: 2px 5px;
+  text-align: center;
+  white-space: nowrap;
+  color: #152238;
+  font-variant-numeric: tabular-nums;
+}
+.team-mvp {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 4px;
+  padding: 5px 10px 7px;
+  align-items: center;
+  background: #14214b;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+.team-mvp > small {
+  font-size: 14px;
+  color: #ffdc72;
+}
+.team-mvp-names {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-inline: 5px;
+  color: #e1eaff;
+}
+.team-mvp > strong {
+  color: #ffdc72;
+  font-size: 17px;
+  font-weight: 400;
+  text-align: center;
+  padding: 3px;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+@media (pointer: coarse), (max-width: 600px), (max-height: 500px) {
+  .team-race-header {
+    width: min(400px, calc(100vw - 20px));
+  }
+  .team-match-bar {
+    grid-template-columns: 52px minmax(0, 1fr) 52px;
+    min-height: 48px;
+  }
+  .team-match-score > strong {
+    font-size: 34px;
+  }
+  .team-match-info {
+    padding: 7px 12px;
+    gap: 3px;
+  }
+  .team-match-track {
+    font-size: 19px;
+  }
+  .team-match-phase {
+    font-size: 14px;
+  }
+  .team-match-gain {
+    font-size: 21px;
+    padding: 3px 0;
+  }
+  .team-round-announcement {
+    top: calc(100% + 26px);
+    padding: 9px 14px;
+  }
+  .team-round-announcement > strong {
+    font-size: 21px;
+    white-space: normal;
+  }
+  .team-round-announcement > small {
+    font-size: 15px;
+  }
+  .hud.team-mode,
+  .hud.team-mode.spectating {
+    width: min(264px, calc(100vw - 28px));
+  }
+  .team-live-standings > h2 {
+    font-size: 14px;
+    padding: 5px 9px;
+  }
+  .team-race-row {
+    grid-template-columns: 14px minmax(0, 1fr) 23px 61px;
+    min-height: 24px;
+    font-size: 14px;
+    padding: 2px 8px 2px 5px;
+    gap: 3px;
+  }
+  .team-race-row .racer-name {
+    font-size: 14px;
+    gap: 3px;
+  }
+  .team-race-row .car-skin {
+    width: 19px;
+    height: 17px;
+  }
+  .team-race-row .country-flag {
+    display: none;
+  }
+  .team-mvp {
+    padding: 4px 8px;
+  }
+  .team-mvp > strong {
+    font-size: 14px;
+    padding: 2px;
+  }
+  .team-mvp > small {
+    font-size: 12px;
+  }
+  .hud.team-mode[data-phase='warmup'] .team-live-standings {
+    display: none;
+  }
+}
+@media (max-height: 450px) {
+  .team-race-row {
+    min-height: 21px;
+  }
+  .team-live-standings > h2 {
+    display: none;
+  }
+}

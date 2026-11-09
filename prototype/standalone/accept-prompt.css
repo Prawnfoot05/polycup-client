@@ -1,0 +1,8 @@
+#prototype-match .accept-players{display:flex;justify-content:center;gap:16px;margin:24px 0 16px}
+#prototype-match .accept-player{position:relative;display:inline-flex;border:2px solid #526381;padding:3px;border-radius:4px}
+#prototype-match .accept-player.is-ready{border-color:#7de4bb;background:#234741}
+#prototype-match .player-portrait{width:38px;height:38px;flex-basis:38px}
+#prototype-match .accept-player>.status-icon{position:absolute;width:20px;height:20px;right:-8px;bottom:-8px;background:#234741;border:1px solid #7de4bb;border-radius:50%;color:#7de4bb}
+#prototype-match .accept-clock{font-size:16px;color:#ffda6c;margin:10px 0}
+#prototype-match .accept-silhouette{display:block;width:38px;height:38px;padding:5px;box-sizing:border-box;color:#a7bad6}
+#prototype-match .is-ready .accept-silhouette{color:#7de4bb}
