@@ -11,9 +11,12 @@ const hub = process.argv.includes('--hub');
 // A 0.6 client requires the coordinated replay/presence/progression host.
 const protocol = 2;
 const {version} = JSON.parse(await readFile('prototype/standalone/package.json','utf8'));
+if (JSON.parse(await readFile('package.json','utf8')).version !== version) throw Error('Standalone/PML versions differ');
 if (!/^\d+\.\d+\.\d+$/.test(version)) throw Error('Invalid standalone release version');
 const root = path.resolve(pml ? 'output/standalone/site-pml' : 'output/standalone/site');
 await mkdir(root, { recursive: true });
+await writeFile(path.join(root, 'favicon.svg'), await readFile('assets/polycup-monogram.svg'));
+await writeFile(path.join(root, 'favicon.png'), await readFile('assets/polycup-favicon.png'));
 const bannerCatalog = JSON.parse(await readFile('src/banner-catalog.json', 'utf8'));
 const bannerDigest = createHash('sha256');
 const trackBanners = JSON.parse(await readFile('src/track-banner-catalog.json', 'utf8'));
@@ -158,6 +161,8 @@ const metadata = {
     .update(notices)
     .update(await readFile(new URL(import.meta.url)))
     .update(await readFile('prototype/standalone/startup-shell.mjs'))
+    .update(await readFile('assets/polycup-monogram.svg'))
+    .update(await readFile('assets/polycup-favicon.png'))
     .update(JSON.stringify({ pml, hub, protocol }))
     .digest('hex')
     .slice(0, 16),
@@ -168,7 +173,7 @@ const metadata = {
 await writeFile(path.join(root, 'build.json'), JSON.stringify(metadata));
 await writeFile(
   path.join(root, 'index.html'),
-  `<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PolyCup</title><script>window.polycupBuild=${JSON.stringify(metadata)};window.polycupClientShell=${JSON.stringify(hub ? 'hub' : 'qa')};window.polycupClientRuntime=${JSON.stringify(pml ? 'pml' : 'adapter')};window.polytrackModConfiguration={modName:'PolyCup',author:'Prawnfoot05'};</script></head><body><canvas id="screen"></canvas><div id="ui"></div><div id="transition-layer"></div>${startupShell()}</body></html>`,
+  `<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/png" sizes="128x128" href="favicon.png"><link rel="icon" type="image/svg+xml" href="favicon.svg"><title>PolyCup</title><script>window.polycupBuild=${JSON.stringify(metadata)};window.polycupClientShell=${JSON.stringify(hub ? 'hub' : 'qa')};window.polycupClientRuntime=${JSON.stringify(pml ? 'pml' : 'adapter')};window.polytrackModConfiguration={modName:'PolyCup',author:'Prawnfoot05'};</script></head><body><canvas id="screen"></canvas><div id="ui"></div><div id="transition-layer"></div>${startupShell()}</body></html>`,
 );
 console.log('Built local standalone prototype: ' + root);
 

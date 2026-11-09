@@ -3,7 +3,9 @@ import { configureClientAssets } from '../../src/client-assets.ts';
 import { configurePmlAccount } from '../../src/account-config.ts';
 import { protectTransientDisconnect } from './rtc-recovery.ts';
 // @ts-ignore JavaScript diagnostics have runtime validation.
-import { observeFetch, errorLocation, peerSnapshot } from './client-diagnostics.mjs';
+import { observeFetch, errorLocation, peerSnapshot, diagnosticErrorGate } from './client-diagnostics.mjs';
+// @ts-ignore Passive browser rendering diagnostics.
+import { observeClientGraphics } from './graphics-diagnostics.mjs';
 // @ts-ignore JavaScript timing helpers.
 import { timePeerOperations, timeSignalSocket, watchStartupStalls } from './startup-timing.mjs';
 import { Controller } from '../../src/controller.ts';
@@ -83,8 +85,9 @@ const bootAt = performance.now();
 const diagnosticClient = crypto.randomUUID();
 const diagnosticFetch = w.fetch.bind(w);
 let diagnosticContext = (): Record<string, unknown> => ({});
+const allowDiagnostic = diagnosticErrorGate();
 const report = (event: string, detail: any = {}) => {
-  if (!roomId) return;
+  if (!roomId || !allowDiagnostic(roomId, event, detail)) return;
   void diagnosticFetch(serviceURL('/diagnostics'), {
     method: 'POST',
     headers: {
@@ -120,6 +123,10 @@ w.addEventListener('offline', () => report('network_offline'));
 w.addEventListener('online', () => report('network_online'));
 w.addEventListener('pagehide', () => report('page_hidden'));
 document.addEventListener('visibilitychange', () => report('visibility', { hidden: document.hidden }));
+if (!new URL(location.href).searchParams.has('host')) observeClientGraphics(report, {
+  room: () => roomId,
+  active: () => ['loading', 'warmup', 'countdown', 'racing'].includes(String(diagnosticContext().cupPhase)),
+});
 const NativePeer = w.RTCPeerConnection;
 const NativeSocket = w.WebSocket;
 const nativeFetch = w.fetch.bind(w),

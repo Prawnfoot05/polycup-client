@@ -1,3 +1,4 @@
+import { hasLayoutBox } from '../../src/visibility.ts';
 import { rankedEndpoint, standalonePlatform, type ClientPlatform } from '../../src/client-platform.ts';
 import { winStreak, winStreakCSS, streakLength } from '../../src/win-streak.ts';
 import { installErrorDismissal, retryDismissedErrors } from '../../src/dismissible-errors.ts';
@@ -267,7 +268,7 @@ export function installRankedPanel(
     if(practice.hidden!==hide)practice.hidden=hide;
     if(practice.disabled!==busy)practice.disabled=busy;
     if(practice.textContent!==label)practice.textContent=label;
-    controls.update(q?.state==='queued',!panel.checkVisibility()&&!postgameQueued&&!resultOpen&&!dialog.open&&loading.root.hidden,
+    controls.update(q?.state==='queued',!hasLayoutBox(panel)&&!postgameQueued&&!resultOpen&&!dialog.open&&loading.root.hidden,
       Number(q?.waiting??0),busy,!!state.active,message.textContent??'',queueJoinedAt,q?.host_capacity===0?'Waiting for server':'Searching');
   }
   setInterval(syncQueueControls,100);
@@ -504,7 +505,7 @@ export function installRankedPanel(
     // Remember the return destination before a postgame offer closes results.
     // The ranked panel is still hidden from the preceding race at that point.
     if (q.state === 'matched' && q.match.status === 'reserved' && !dialog.open)
-      acceptHadHub = postgameQueued || !!(panel.closest('dialog') as HTMLDialogElement | null)?.open || panel.checkVisibility();
+      acceptHadHub = postgameQueued || !!(panel.closest('dialog') as HTMLDialogElement | null)?.open || hasLayoutBox(panel);
     if (q.state === 'matched') proto.ui.closeResultRecords?.();
     if (postgameQueued) {
       if (q.state === 'queued') {

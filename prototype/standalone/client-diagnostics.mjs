@@ -23,6 +23,23 @@ export function errorLocation(error) {
   return match ? match[0] : undefined;
 }
 
+// Repeated exceptions from a frame/interval loop must not become a request loop.
+export function diagnosticErrorGate({ now = () => performance.now() } = {}) {
+  let scope = '', sent = 0;
+  const seen = new Map();
+  return (room, event, detail = {}) => {
+    if (!['client_error', 'client_rejection', 'controller_error'].includes(event)) return true;
+    if (!room) return false;
+    if (scope !== room) { scope = room; sent = 0; seen.clear(); }
+    const key = `${event}:${String(detail.location ?? '').slice(0, 100)}:${String(detail.message ?? '').slice(0, 300)}`;
+    const prior = seen.get(key), at = now();
+    if (sent >= 48 || (!prior && seen.size >= 24) || (prior && (prior.count >= 3 || at - prior.at < 60000))) return false;
+    seen.set(key, { at, count: (prior?.count ?? 0) + 1 });
+    sent++;
+    return true;
+  };
+}
+
 export function observeFetch(fetch, report, { origin, room, now = () => performance.now() }) {
   let scope = '', failures = 0, slow = 0;
   return (input, init) => {

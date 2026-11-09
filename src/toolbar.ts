@@ -1,3 +1,4 @@
+import { hasLayoutBox } from './visibility.ts';
 import { nativeHudHidden } from './native-hud.ts';
 import trophy from '../assets/toolbar-trophy.svg';
 import { layoutCupHud, type HudElements } from './hud-layout.ts';
@@ -140,7 +141,7 @@ export class CupToolbar {
       this.#observer.observe(surface, { subtree: true, attributes: true, attributeFilter: ['open'] });
     }
     this.#fallback.hidden =
-      !menu?.checkVisibility() ||
+      !hasLayoutBox(menu) ||
       getComputedStyle(menu).visibility !== 'visible' ||
       document.body.classList.contains('polycup-menu-covered') ||
       !!document.querySelector('#prototype-ranked-loading:not([hidden])') ||

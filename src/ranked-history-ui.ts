@@ -13,6 +13,7 @@ import { tracks as rankedTracks } from '../supabase/catalogs/polytrack-0.6.3.jso
 import { historyReviewWarning } from './history-review-warning.ts';
 import { profilePicture, profilePictureCSS } from './profile-picture.ts';
 import { placing, ratingChange, ratingNumber as number } from './ranked-format.ts';
+import { formatTime } from './time.ts';
 import { watchMatchReplay } from './match-replay.ts';
 import type { CasualHistoryEntry, CasualMatchResult } from './ranked.ts';
 export { placing, ratingChange } from './ranked-format.ts';
@@ -234,7 +235,7 @@ export class RankedHistoryUI {
       this.#body.classList.toggle('is-rich', rich);
       const heading = h('div', undefined, 'ranked-history-columns');
       for (const label of rich
-        ? ['Place', 'Track', 'Racers', 'Rank', 'Change']
+        ? ['Place', 'Track', 'Racers', 'Time', 'Rank', 'Change']
         : ['Place', 'Date', 'Rating', 'Change'])
         heading.append(h('span', label));
       this.#body.append(heading);
@@ -265,6 +266,7 @@ export class RankedHistoryUI {
             place,
             this.#track(row, time, artwork),
             this.#racers(row),
+            h('span', typeof row.time_ms === 'number' && row.time_ms > 0 ? formatTime(row.time_ms) : '—', 'ranked-history-time'),
             row.tier
               ? rankBadge({
                   tier: row.tier,
@@ -476,7 +478,7 @@ export class RankedHistoryUI {
       this.#track({ track_id: result.track_id }, h('span'), artwork),
     );
     const columns = h('div', undefined, 'ranked-result-columns');
-    for (const label of ['#', 'Player', 'Rating', 'Change']) {
+    for (const label of ['#', 'Player', 'Time', 'Rating', 'Change']) {
       const column = h('span', label);
       if (label === '#') {
         column.replaceChildren(h('span', 'Place', 'pc-sr-only'), h('span', '#'));
@@ -512,7 +514,10 @@ export class RankedHistoryUI {
         change.title = `+${player.base_gain} match · +${player.streak_bonus} streak`;
         change.setAttribute('aria-label', change.textContent + '; ' + change.title);
       }
-      row.append(position, playerName, h('span', number(player.rating_after)), change);
+      row.append(position, playerName,
+        h('span', typeof player.time_ms === 'number' && player.time_ms > 0
+          ? formatTime(player.time_ms) : player.dnf ? 'DNF' : '—', 'ranked-result-time'),
+        h('span', number(player.rating_after)), change);
       playerLooks.decorate(row, player.player_id);
       this.#body.append(row);
       const flags =

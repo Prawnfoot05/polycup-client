@@ -1,3 +1,4 @@
+import { hasLayoutBox } from './visibility.ts';
 import { REPLAY_NEUTRAL_STYLE } from './replay-style.ts';
 import { REPLAY_EVENT } from './native-replay.ts';
 import type { LoadedTrack, NativeConnection, PolyModLoader } from './game-types.ts';
@@ -61,6 +62,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
     type: insert,
     token: 'ee = 0;',
     func: `
+    const polycupHasLayoutBox = ${hasLayoutBox.toString()};
     let polycupRaceRequest = null;
     let polycupReturning = null;
     let polycupPracticeHold = false;
@@ -168,7 +170,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
       const d=event.detail;if(!d)return;
       const menu=document.querySelector('.main-buttons-container:has([data-polycup-action="practice"])');
       const solo=$ instanceof Is && !Za.get($)?.multiplayerConnection && !ss.get($);
-      if(menu?.checkVisibility() && !o.isTransitioning && performance.now()-Number(document.body.dataset.polycupPracticeOpenedAt??0)>1500) delete document.body.dataset.polycupPractice;
+      if(polycupHasLayoutBox(menu) && !o.isTransitioning && performance.now()-Number(document.body.dataset.polycupPracticeOpenedAt??0)>1500) delete document.body.dataset.polycupPractice;
       d.active=!!document.body.dataset.polycupPractice && !Za.get($)?.multiplayerConnection;
       d.driving=solo && d.active;
       const clear=()=>{if(solo){const input=qa.get($);if(input)for(const k of ['up','right','down','left','reset'])input[k]=false;}};
@@ -177,7 +179,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
       if(d.action==='complete'){polycupPracticeHold=false;polycupReplayPause=null;delete document.body.dataset.polycupPractice;}
       if(d.action==='open') d.ready=(async()=>{
         if(d.active)return;
-        if(!menu?.checkVisibility()){
+        if(!polycupHasLayoutBox(menu)){
           const returned={};window.dispatchEvent(new CustomEvent('${RETURN_EVENT}',{detail:returned}));
           if(await returned.ready===false)throw Error('Returning to the menu timed out. Try again.');
         }

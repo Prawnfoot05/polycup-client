@@ -136,3 +136,18 @@
 @media(max-height:500px){.cup-hub .cup-leaderboard .leaderboard-toolbar :is(select,.track-directory-search input){min-height:32px;height:32px;padding:4px 10px;font-size:16px}}
 
 .cup-leaderboard .leaderboard-tabs[hidden]{display:none}
+
+/* A track board uses square controls and identity rows throughout. */
+.cup-leaderboard .track-records :is(button,select){clip-path:none;--focus-cut:0px;border-radius:0;transform:none}
+.cup-leaderboard .track-record-controls select{box-sizing:border-box;min-height:44px;padding:8px 36px 8px 12px;background-image:none;border:0;border-bottom:1px solid var(--pc-line)}
+.cup-leaderboard .track-records select:not(:focus-visible){background-image:none}
+.cup-leaderboard .track-records :is(button,select):focus-visible{background-image:none!important;outline:2px solid var(--pc-gold)!important;outline-offset:-2px}
+.cup-leaderboard .track-records :is(button,select):focus-visible::after{display:none}
+.cup-leaderboard .track-records .track-player-link{clip-path:none;--focus-cut:0px}
+.track-player-link .player-portrait{clip-path:none;border-radius:3px}
+.track-page-controls{display:flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+.cup-leaderboard .track-records .track-page-arrow{display:grid;place-items:center;width:36px;height:40px;min-height:40px;padding:8px}
+.track-page-arrow svg{width:18px;height:18px;fill:currentColor;display:block}
+.track-record-footer>.track-adjacent{flex:0 0 auto;white-space:nowrap}
+.track-record-page{min-width:0;text-align:center}
+@media(max-width:620px){.track-page-controls{gap:5px}.track-page-controls>span{font-size:13px;white-space:normal;max-width:100px}.cup-leaderboard .track-records .track-page-arrow{width:30px;height:36px;min-height:36px;padding:7px}.cup-leaderboard .track-record-footer>.track-adjacent{font-size:15px;padding:8px 6px}.track-record-footer{gap:5px}}

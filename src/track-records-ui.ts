@@ -323,20 +323,35 @@ export class TrackRecordsUI {
     this.#body.replaceChildren(table);
     if (!board.entries.length)
       this.#body.append(h('p', 'No ranked times yet.', 'track-record-empty'));
-    const previous = this.#button('Previous', () => {
+    const previous = this.#button('‹', () => {
       this.#offset = Math.max(0, this.#offset - PAGE);
       void this.show(this.#context!);
     });
+    previous.setAttribute('aria-label', 'Previous page');
+    previous.className = 'track-page-arrow';
     previous.disabled = !this.#offset;
-    const next = this.#button('Next', () => {
+    const next = this.#button('›', () => {
       this.#offset += PAGE;
       void this.show(this.#context!);
     });
+    next.setAttribute('aria-label', 'Next page');
+    next.className = 'track-page-arrow';
+    for (const [button, right] of [[previous, false], [next, true]] as const) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 20 20');
+      svg.setAttribute('aria-hidden', 'true');
+      const path = document.createElementNS(svg.namespaceURI, 'path');
+      path.setAttribute('d', right ? 'M5 2h5l8 8-8 8H5l8-8z' : 'M15 2h-5l-8 8 8 8h5l-8-8z');
+      svg.append(path);
+      button.replaceChildren(svg);
+    }
     next.disabled = this.#offset + PAGE >= board.total;
     const center = h('div', undefined, 'track-record-page');
-    center.append(
+    const pages = h('div', undefined, 'track-page-controls');
+    pages.append(previous,
       h('span', 'Page ' + (Math.floor(this.#offset / PAGE) + 1) + ' · ' + board.total + ' racers'),
-    );
+      next);
+    center.append(pages);
     if (board.focus && !board.entries.some((r) => r.player_id === board.focus!.player_id)) {
       const r = board.focus;
       center.append(
@@ -349,6 +364,17 @@ export class TrackRecordsUI {
         ),
       );
     }
-    this.#footer.replaceChildren(previous, center, next);
+    const index = this.#directory.findIndex(t => t.track_id === this.#track);
+    const adjacent = (step: number) => {
+      const button = this.#button(step < 0 ? 'Previous track' : 'Next track', () => {
+        const track = this.#directory[index + step];
+        if (!track) return;
+        this.select(track.track_id, this.#focus);
+        this.#refresh();
+      }, 'track-adjacent');
+      button.disabled = index < 0 || !this.#directory[index + step];
+      return button;
+    };
+    this.#footer.replaceChildren(adjacent(-1), center, adjacent(1));
   }
 }

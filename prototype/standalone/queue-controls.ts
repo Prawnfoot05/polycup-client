@@ -1,3 +1,4 @@
+import { hasLayoutBox } from '../../src/visibility.ts';
 import { nativeHudHidden } from '../../src/native-hud.ts';
 import {protectUITouches} from '../../src/touch-ui.ts';
 import {installErrorDismissal,retryDismissedErrors} from '../../src/dismissible-errors.ts';
@@ -68,7 +69,7 @@ export class QueueControls {
   }
   #reserveTouchSpace(bottom: boolean) {
     const node=bottom?document.querySelector<HTMLElement>('.game-ui:not(.hidden) .touch-controls-ui > .right-container'):null;
-    if(!node?.checkVisibility()){this.#clearTouchSpace();return;}
+    if(!hasLayoutBox(node)){this.#clearTouchSpace();return;}
     if(this.#touchSpace?.node!==node){this.#clearTouchSpace();this.#touchSpace={node,original:node.style.translate,lift:0};}
     const space=this.#touchSpace!;
     const scale=node.getBoundingClientRect().height/node.offsetHeight||1;

@@ -63,7 +63,7 @@
 .ranked-history-change.positive { color: var(--pc-positive); }
 .ranked-history-change.negative { color: var(--pc-danger); }
 .ranked-history-note { color: var(--pc-muted); margin: 8px 0 20px; }
-.ranked-result-columns,.ranked-result-row { display: grid; grid-template-columns: 40px minmax(0,1fr) 75px 95px; align-items: center; gap: 10px; padding: 14px 8px; border-bottom: 1px solid var(--pc-line); }
+.ranked-result-columns,.ranked-result-row { display: grid; grid-template-columns: 40px minmax(0,1fr) 100px 90px 95px; align-items: center; gap: 10px; padding: 14px 8px; border-bottom: 1px solid var(--pc-line); }
 .ranked-result-columns {color:var(--pc-muted);font-size:16px;border:0;padding-block:4px 12px;}
 .ranked-result-row { padding-block:6px; }
 .ranked-result-columns > :nth-child(n+3){text-align:right}
@@ -96,7 +96,7 @@
 @media (max-width: 460px) {
   .ranked-history { font-size: 16px; }
   .ranked-history-body { padding: 10px 8px; }
-  .ranked-result-columns,.ranked-result-row { grid-template-columns: 28px minmax(0,1fr) 55px 70px; gap: 6px; }
+  .ranked-result-columns,.ranked-result-row { grid-template-columns: 28px minmax(150px,1fr) 76px 60px 70px; gap: 6px; }
   .ranked-history .ranked-history-row, .ranked-history-columns { gap: 5px; padding-inline: 4px; }
 }
 
@@ -111,7 +111,7 @@
 .ranked-history .ranked-history-feedback button{flex:none;width:auto;margin:0;padding:8px 14px}
 
 /* Lead with placement, followed by track, opponents, rank badge and change. */
-.ranked-history-body.is-rich :is(.ranked-history-columns,.ranked-history-row){grid-template-columns:82px minmax(0,1.8fr) 124px 100px 64px;gap:12px}
+.ranked-history-body.is-rich :is(.ranked-history-columns,.ranked-history-row){grid-template-columns:72px minmax(0,1.8fr) 110px 90px 100px 64px;gap:12px}
 .ranked-history-body.is-rich .ranked-history-columns>:nth-child(n+3),.ranked-history-body.is-rich .ranked-history-row>:nth-child(n+3){justify-self:center;text-align:center}
 
 .ranked-history-row.is-win .ranked-history-place{color:var(--pc-gold)}
@@ -130,13 +130,13 @@
 .ranked-history-row .ranked-rating-badge.is-grandmaster .ranked-rating-value{font-size:15px}
 @media(max-width:600px){
  .ranked-history-body.is-rich .ranked-history-columns{display:none}
- .ranked-history-body.is-rich .ranked-history-row{grid-template-columns:52px minmax(0,1fr) auto;grid-template-areas:"place track change" "place racers rank";gap:8px 6px}
+ .ranked-history-body.is-rich .ranked-history-row{grid-template-columns:52px minmax(0,1fr) auto;grid-template-areas:"place track change" "place time rank" "place racers racers";gap:8px 6px}
  .ranked-history-body.is-rich .ranked-history-row>.ranked-history-track{grid-area:track;gap:8px}
  .ranked-history-body.is-rich .ranked-history-track-art{width:32px;height:36px}
  .ranked-history-body.is-rich .ranked-history-track-art img{max-width:32px;max-height:36px}
  .ranked-history-body.is-rich .ranked-history-row>.ranked-history-racers{grid-area:racers}
  .ranked-history-body.is-rich .ranked-history-row>.ranked-history-place{grid-area:place}
- .ranked-history-body.is-rich .ranked-history-row>:nth-child(4){grid-area:rank}
+ .ranked-history-body.is-rich .ranked-history-row>:nth-child(5){grid-area:rank}
  .ranked-history-body.is-rich .ranked-history-row>.ranked-history-change{grid-area:change;justify-self:end}
  .ranked-history-body.is-rich .ranked-history-row>.ranked-history-racers{justify-self:start}
 }
@@ -154,3 +154,9 @@
 .history-match-track strong{font:400 20px/1.2 ForcedSquare,Arial,sans-serif}
 .history-match-track .ranked-history-track>span:last-child>span:empty{display:none}
 .ranked-history .match-result-metadata{margin:18px 8px 0;font-size:16px;color:var(--pc-muted)}
+
+/* Match kind is a history-list filter, not a second navigation row in a result. */
+.ranked-history[data-view=match]>.history-scope-tabs{display:none}
+.ranked-result-time,.ranked-history-time{font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:600px){.ranked-history-body.is-rich .ranked-history-time{grid-area:time;justify-self:start!important}}
+@media(max-width:460px){.ranked-history[data-view=match] :is(.ranked-result-columns,.ranked-result-row){min-width:455px;box-sizing:border-box}}

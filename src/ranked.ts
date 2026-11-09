@@ -151,6 +151,7 @@ export interface InputReview {
   }[];
 }
 export interface RankedHistoryEntry {
+  time_ms?: number | null;
   match_id: string;
   finished_at: string;
   place: number;
