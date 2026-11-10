@@ -32,7 +32,12 @@ export function replyAction(select: () => void) {
 export function replyQuote(reply: MessageReply, log: HTMLElement) {
   const quote = h('button', undefined, 'message-reply-quote');
   quote.type = 'button';
-  if (!reply.unavailable) quote.append(profilePicture(reply.display_name ?? '', reply.avatar_url));
+  if (!reply.unavailable) {
+    const portrait = profilePicture(reply.display_name ?? '', reply.avatar_url);
+    // The original author is independent of the enclosing message sender.
+    portrait.dataset.playerAvatar = 'independent';
+    quote.append(portrait);
+  }
   quote.append(h('strong', reply.display_name ?? ''), h('span',
     reply.unavailable ? 'Original message unavailable' : excerpt(reply.body ?? '')));
   quote.setAttribute('aria-label', 'Show original message' + (reply.display_name ? ' from ' + reply.display_name : ''));

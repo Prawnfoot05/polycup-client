@@ -272,6 +272,7 @@ class PlayerLooksStore {
     for (const portrait of node.querySelectorAll<HTMLElement>(
       '.player-portrait,.friend-avatar,.account-avatar',
     )) {
+      if (portrait.dataset.playerAvatar === 'independent') continue;
       if (value.avatar_url !== undefined) {
         const url = avatarURL(value.avatar_url);
         let image = portrait.querySelector<HTMLImageElement>(':scope > img');
