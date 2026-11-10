@@ -166,6 +166,16 @@ export class CupUI {
     return true;
   }
   closeResultRecords() { this.#resultRecords?.close(); }
+  prepareMatchHandoff() {
+    // Profile/DM dialogs live outside the hub. Close them even when the hub's
+    // panel was already hidden; late profile reads are invalidated by close().
+    this.#accountUI.closeSocial();
+    this.#accountUI.close();
+    this.#finder.close();
+    this.closeResultRecords();
+    this.#rulesDialog.close();
+    this.#chatUI.close();
+  }
 
   constructor(controller: Controller, hubOptions: CupHubOptions = {}) {
     this.#c = controller;

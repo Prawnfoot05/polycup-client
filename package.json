@@ -1,12 +1,11 @@
 {
   "name": "polycup-client",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "type": "module",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "prepare:game": "node scripts/prepare-local-game.mjs",
-    "build": "node prototype/standalone/build.mjs --pml --hub",
-    "build:pml": "node scripts/build-pml.mjs"
+    "build": "node prototype/standalone/build.mjs --pml --hub"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0"

@@ -110,5 +110,75 @@
     "requirement": "tech",
     "target": 250,
     "rarity": "legendary"
+  },
+  {
+    "id": "level-summer-7",
+    "name": "Summer 7",
+    "requirement": "level",
+    "target": 2,
+    "rarity": "common"
+  },
+  {
+    "id": "level-shardmir-2",
+    "name": "Shardmir 2",
+    "requirement": "level",
+    "target": 5,
+    "rarity": "common"
+  },
+  {
+    "id": "level-wintertide",
+    "name": "Wintertide",
+    "requirement": "level",
+    "target": 10,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "level-shrouded-oasis",
+    "name": "Shrouded Oasis",
+    "requirement": "level",
+    "target": 15,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "level-shardmir",
+    "name": "Shardmir",
+    "requirement": "level",
+    "target": 20,
+    "rarity": "rare"
+  },
+  {
+    "id": "level-the-crossfades",
+    "name": "The Crossfades",
+    "requirement": "level",
+    "target": 30,
+    "rarity": "rare"
+  },
+  {
+    "id": "level-atlantis",
+    "name": "Atlantis",
+    "requirement": "level",
+    "target": 40,
+    "rarity": "epic"
+  },
+  {
+    "id": "level-stardust",
+    "name": "Stardust",
+    "requirement": "level",
+    "target": 50,
+    "rarity": "epic"
+  },
+  {
+    "id": "level-starbound",
+    "name": "Starbound",
+    "requirement": "level",
+    "target": 75,
+    "rarity": "legendary"
+  },
+  {
+    "id": "level-midas-metropolis",
+    "name": "Midas Metropolis",
+    "requirement": "level",
+    "target": 100,
+    "rarity": "legendary"
   }
 ]

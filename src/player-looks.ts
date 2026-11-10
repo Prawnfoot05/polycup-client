@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { bannerURL } from './banner.ts';
 import {
   cosmetic,
+  cosmeticURL,
   paintPlayerAchievements,
   stylePlayerTitle,
   titleName,
@@ -264,7 +265,8 @@ class PlayerLooksStore {
   }
   #paint(node: HTMLElement, value: PlayerLooks) {
     this.#paintProgression(node, this.#progression.get(value.player_id)?.value);
-    const banner = bannerURL(value.banner_id);
+    const banner = bannerURL(value.banner_id),
+      frame = cosmeticURL(cosmetic(value.frame_id, 'frame'));
     node.classList.toggle('has-player-banner', !!banner && node.dataset.playerBanner !== 'off');
     node.style.setProperty('--player-banner', banner ? `url("${banner}")` : 'none');
     for (const portrait of node.querySelectorAll<HTMLElement>(
@@ -285,6 +287,8 @@ class PlayerLooksStore {
           image.onerror = () => image?.remove();
         }
       }
+      portrait.classList.toggle('has-player-frame', !!frame);
+      portrait.style.setProperty('--player-frame', frame ? `url("${frame}")` : 'none');
     }
     const title = cosmetic(value.title_id, 'title');
     const slot = node.querySelector<HTMLElement>('[data-player-title]');

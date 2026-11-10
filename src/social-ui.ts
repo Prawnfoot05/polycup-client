@@ -26,6 +26,7 @@ import { alignProfileCards } from './profile-layout.ts';
 import { rewardRarity, rarityOrder } from './reward-rarity.ts';
 import { paintBanner, bannerURL, bannerMetadata } from './banner.ts';
 import { socialIcon } from './social-icons.ts';
+import { ReplyComposer, replyAction, replyQuote, messageReplyCSS, type MessageReply } from './message-reply.ts';
 import { tracks as rankedTracks } from '../supabase/catalogs/polytrack-0.6.3.json';
 import type { Friends } from './friends.ts';
 import type { LibraryTrack } from './game-types.ts';
@@ -65,7 +66,11 @@ export class SocialUI {
   #hasOlder = false;
   #loadError = false;
   #sending = false;
-  #pending?: { peer: string; body: string; nonce: string };
+  #pending?: { peer: string; body: string; nonce: string; reply?: string };
+  #replyDrafts = new Map<string, MessageReply>();
+  #reply = new ReplyComposer(() => {
+    this.#replyDrafts.delete(this.#peer); this.#pending = undefined; this.#input.focus();
+  });
   #drafts = new Map<string, string>();
   #readThrough = new Map<string, string>();
   #blockedView = false;
@@ -99,7 +104,7 @@ export class SocialUI {
           rewardEditorCSS +
           profileAccentCSS +
           avatarEditorCSS +
-          typingCSS,
+          typingCSS + messageReplyCSS,
       ),
       this.#profile,
       this.#messages,
@@ -150,6 +155,10 @@ export class SocialUI {
     };
     this.#input.onblur = () => this.#typingSignal?.input(false);
     this.#input.onkeydown = (event) => {
+      if (event.key === 'Escape' && this.#reply.value) {
+        event.preventDefault(); event.stopPropagation();
+        this.#reply.value = undefined; this.#replyDrafts.delete(this.#peer); this.#pending = undefined; return;
+      }
       if (
         event.key === 'Enter' &&
         !event.shiftKey &&
@@ -166,7 +175,7 @@ export class SocialUI {
       event.preventDefault();
       void this.#sendMessage();
     };
-    this.#form.append(this.#input, this.#send);
+    this.#form.append(this.#reply.element, this.#input, this.#send);
     this.#error.setAttribute('role', 'alert');
     this.#thread.append(
       this.#threadHeader,
@@ -208,6 +217,7 @@ export class SocialUI {
         playerLooks.undecorate(this.#threadHeader);
         this.#threadHeader.replaceChildren();
         this.#drafts.clear();
+      this.#replyDrafts.clear(); this.#reply.value = undefined;
         this.#readThrough.clear();
         this.#input.value = '';
         this.#pending = undefined;
@@ -940,6 +950,7 @@ export class SocialUI {
               const generation = this.#profileGeneration;
               const cosmeticsChanged =
                 selection.title_id !== (p.cosmetics?.title_id ?? null) ||
+                selection.frame_id !== (p.cosmetics?.frame_id ?? null) ||
                 JSON.stringify(selection.achievement_ids) !==
                   JSON.stringify(p.cosmetics?.achievement_ids ?? []);
               if (
@@ -1239,6 +1250,7 @@ export class SocialUI {
     this.#error.textContent = '';
     this.#new.hidden = true;
     this.#input.value = this.#drafts.get(peer) ?? '';
+    this.#reply.value = this.#replyDrafts.get(peer);
     this.#form.hidden = true;
     this.#log.replaceChildren(h('p', 'Loading conversation…', 'social-note'));
     playerLooks.undecorate(this.#threadHeader);
@@ -1356,8 +1368,9 @@ export class SocialUI {
         undefined,
         'dm-message' + (row.sender_id === this.api.user ? ' mine' : ''),
       );
+      message.dataset.messageId = row.id;
       const elapsed = previous ? Date.parse(row.created_at) - Date.parse(previous.created_at) : -1;
-      if (previous?.sender_id === row.sender_id && elapsed >= 0 && elapsed < 300000)
+      if (!row.reply && previous?.sender_id === row.sender_id && elapsed >= 0 && elapsed < 300000)
         message.classList.add('is-continuation');
       message.title = new Date(row.created_at).toLocaleString();
       const meta = h('div', undefined, 'dm-message-meta');
@@ -1365,7 +1378,14 @@ export class SocialUI {
       stamp.dateTime = row.created_at;
       stamp.title = new Date(row.created_at).toLocaleString();
       meta.append(h('span', row.sender_id === this.api.user ? 'You' : p.display_name), stamp);
+      if (row.reply) message.append(replyQuote(row.reply, this.#log));
       message.append(meta);
+      if (p.can_message) message.append(replyAction(() => {
+        if (this.#sending) return;
+        const target = { id: row.id, display_name: row.sender_id === this.api.user ? 'You' : p.display_name, body: row.body };
+        this.#replyDrafts.set(this.#peer, target); this.#reply.value = target;
+        this.#pending = undefined; this.#input.focus({ preventScroll: true });
+      }));
       if (row.invitation) {
         const invite = row.invitation;
         const card = h('div',undefined,'dm-invite-card');
@@ -1426,20 +1446,22 @@ export class SocialUI {
       body = this.#input.value,
       owner = this.api.user;
     const pending =
-      this.#pending?.peer === peer && this.#pending.body === body
+      this.#pending?.peer === peer && this.#pending.body === body && this.#pending.reply === this.#reply.value?.id
         ? this.#pending
-        : { peer, body, nonce: crypto.randomUUID() };
+        : { peer, body, nonce: crypto.randomUUID(), reply: this.#reply.value?.id };
     this.#pending = pending;
     this.#sending = true;
     this.#input.disabled = true;
     this.#updateSend();
     this.#error.textContent = '';
     try {
-      const row = await this.api.send(peer, body, pending.nonce);
+      const row = await this.api.send(peer, body, pending.nonce, pending.reply);
       if (owner !== this.api.user) return;
       this.#pending = undefined;
       this.#drafts.delete(peer);
+      this.#replyDrafts.delete(peer);
       if (this.#peer === peer) {
+        this.#reply.value = undefined;
         this.#input.value = '';
         if (!this.#rows.some((m) => m.id === row.id)) this.#rows.push(row);
         this.#drawThread();

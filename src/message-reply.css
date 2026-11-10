@@ -1,0 +1,32 @@
+.dm-message,.shared-chat-message { position:relative; }
+.message-reply-action { position:absolute!important; right:0; top:0; display:grid!important; place-items:center; width:32px; height:28px; min-width:32px!important; padding:4px!important; background:var(--pc-panel,#192345)!important; border:0; clip-path:none!important; opacity:0; transition:opacity .12s; z-index:2; }
+.message-reply-action svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.5; stroke-linecap:square; stroke-linejoin:miter; }
+.dm-message:hover>.message-reply-action,.shared-chat-message:hover>.message-reply-action,
+.dm-message:focus-within>.message-reply-action,.shared-chat-message:focus-within>.message-reply-action { opacity:1; }
+.social-dialog .message-reply-quote,.shared-chat .message-reply-quote { position:relative; display:flex!important; gap:6px; align-items:center; width:calc(100% - 20px); max-width:100%; min-width:0!important; min-height:0!important; margin:0 0 3px 20px; padding:0!important; border:0!important; background:transparent!important; box-shadow:none!important; clip-path:none!important; text-align:left!important; font:400 15px/1.3 ForcedSquare,Arial,sans-serif!important; color:var(--pc-muted,#aebbd9)!important; }
+.message-reply-quote:before { content:''; position:absolute; width:14px; height:15px; left:-20px; top:8px; border-top:2px solid #61769a; border-left:2px solid #61769a; border-radius:7px 0 0 0; }
+.message-reply-quote .player-portrait { width:16px!important; height:16px!important; min-width:16px; flex:0 0 16px!important; margin:0!important; font-size:11px!important; }
+.dm-message:has(.message-reply-quote)>p { margin:2px 0 0; }
+.dm-message:has(.message-reply-quote)>.dm-message-meta { margin-bottom:2px; }
+.dm-message:has(>.message-reply-action) .dm-message-meta,.shared-chat-message:has(>.message-reply-action) .shared-chat-byline { padding-right:34px; }
+.shared-chat:not(.replies-enabled) .message-reply-action { display:none!important; }
+.message-reply-quote strong { flex-shrink:0; max-width:35%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.shared-chat-message:has(.message-reply-quote) { display:grid; grid-template-columns:30px minmax(0,1fr); column-gap:10px; row-gap:2px; }
+.shared-chat-message:has(.message-reply-quote)>div { display:contents; }
+.shared-chat-message:has(.message-reply-quote) .message-reply-quote { grid-column:2; grid-row:1; }
+.shared-chat-message:has(.message-reply-quote) .shared-chat-byline { grid-column:2; grid-row:2; }
+.shared-chat-message:has(.message-reply-quote)>div>p { grid-column:2; grid-row:3; }
+.shared-chat-message:has(.message-reply-quote)>.player-portrait { grid-column:1; grid-row:2 / span 2; align-self:start; margin-top:2px; }
+.message-reply-quote span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dm-compose,.shared-chat-compose { flex-wrap:wrap; }
+.shared-chat-compose textarea { flex:1; width:auto; }
+.message-reply-compose { box-sizing:border-box; flex:0 0 100%; grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 10px; background:var(--pc-panel,#192345); border-left:2px solid var(--pc-gold,#ffdc70); text-align:left; }
+.message-reply-compose[hidden] { display:none!important; }
+.message-reply-compose>div { display:grid; gap:4px; min-width:0; }
+.message-reply-compose strong { font-size:15px; }
+.message-reply-compose span { font-size:14px; color:var(--pc-muted,#aebbd9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.message-reply-compose button { min-width:30px!important; min-height:30px!important; width:30px; height:30px; padding:0!important; color:var(--pc-text,#eef3ff)!important; background:transparent!important; clip-path:none!important; font-size:22px!important; }
+.message-reply-target { animation:message-reply-flash 1.8s ease-out; }
+@keyframes message-reply-flash { from { background-color:#526795; } to { background-color:transparent; } }
+@media(hover:none),(pointer:coarse) { .message-reply-action { opacity:1; } .dm-message,.shared-chat-message { padding-right:36px; } }
+@media(prefers-reduced-motion:reduce) { .message-reply-target { animation:none; outline:1px solid var(--pc-muted,#aebbd9); } }

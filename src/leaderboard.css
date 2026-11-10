@@ -87,7 +87,7 @@
 .track-record-link strong{font-weight:400}.track-record-link small{font-size:14px;color:var(--pc-muted)}
 .track-record-link strong,.track-player-link>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .track-player-link .player-portrait{flex:none;width:30px;height:30px}
-.track-record-art{display:flex;align-items:center;justify-content:center;flex:none;width:62px;height:42px;background:#15224a}
+.track-record-art{display:flex;align-items:center;justify-content:center;flex:none;width:62px;height:42px;background:transparent}
 .track-record-art img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated}
 .track-record-body tr:is(.is-self,.is-focus){background:#30416a}
 .track-record-body tr.is-focus{box-shadow:inset 3px 0 var(--gold)}
@@ -136,6 +136,33 @@
 @media(max-height:500px){.cup-hub .cup-leaderboard .leaderboard-toolbar :is(select,.track-directory-search input){min-height:32px;height:32px;padding:4px 10px;font-size:16px}}
 
 .cup-leaderboard .leaderboard-tabs[hidden]{display:none}
+
+/* Record-holder nameplates follow the same forward cut as the toolbar fields. */
+.track-record-leaders{display:flex;flex:1 1 560px;min-width:0;gap:14px;list-style:none;padding:0;margin:0}
+.track-record-leaders[hidden]{display:none}
+.track-record-leaders>li{flex:1 1 0;min-width:0;max-width:224px}
+.cup-leaderboard button.track-record-leader{--podium-color:var(--pc-muted);--leader-outline:var(--pc-line);--leader-cut:9.7778px;display:grid;grid-template-columns:44px minmax(0,1fr);align-items:stretch;gap:4px;width:100%;min-height:44px;margin:0;padding:0;clip-path:none;--focus-cut:0px;background:transparent;color:var(--pc-text);text-align:center;font-style:normal;opacity:1}
+.cup-leaderboard button.track-record-leader[data-podium="1"]{--podium-color:#ffd76b}
+.cup-leaderboard button.track-record-leader[data-podium="2"]{--podium-color:#d8e2f0}
+.cup-leaderboard button.track-record-leader[data-podium="3"]{--podium-color:#f0ad78}
+.track-record-leader-identity{position:relative;display:block;min-width:0;height:44px;background:var(--pc-action);clip-path:polygon(var(--leader-cut) 0,100% 0,calc(100% - var(--leader-cut)) 100%,0 100%)}
+.track-record-leader-place{position:absolute;z-index:1;bottom:1px;left:2px;min-width:14px;padding:1px 3px;background:#111a3de8;color:var(--podium-color);font-size:14px;line-height:14px;text-align:center}
+.track-record-leader-identity>.player-portrait{display:grid;width:100%;height:100%;clip-path:none;border-radius:0;font-size:22px}
+.track-record-leader-detail{position:relative;display:grid;grid-template-rows:1fr 1fr;min-width:0;height:44px;background:var(--pc-action);clip-path:polygon(var(--leader-cut) 0,100% 0,calc(100% - var(--leader-cut)) 100%,0 100%)}
+/* Foreground vector edges stay one pixel wide over both photos and nameplates.
+   Fixed-width diagonal tiles keep the same slope at different card widths. */
+:is(.track-record-leader-identity,.track-record-leader-detail)::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:var(--leader-outline);mask-image:linear-gradient(#fff,#fff),linear-gradient(#fff,#fff),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 44' preserveAspectRatio='none'%3E%3Cpath d='M10.35 .5 .6 43.5' fill='none' stroke='white' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 44' preserveAspectRatio='none'%3E%3Cpath d='M11.4 .5 1.65 43.5' fill='none' stroke='white' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");mask-position:top,bottom,left,right;mask-size:100% 1px,100% 1px,12px 100%,12px 100%;mask-repeat:no-repeat}
+.track-record-leader-name{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 12px;font-size:18px;font-style:italic;font-weight:400;line-height:22px;text-align:center}
+.track-record-leader-count{display:block;min-width:0;padding:0 10px;border-top:1px solid var(--pc-line);color:var(--pc-text);font-size:15px;font-style:italic;line-height:21px;white-space:nowrap;text-align:center}
+.cup-leaderboard button.track-record-leader:is(:hover,:focus-visible){background:transparent;box-shadow:none;text-decoration:none}
+.cup-leaderboard button.track-record-leader::after{display:none}
+.track-record-leader:not(:disabled):is(:hover,:focus-visible) .track-record-leader-detail{background:var(--pc-action-hover)}
+.cup-leaderboard button.track-record-leader:not(:disabled):hover{--leader-outline:var(--pc-control-edge)}
+.cup-leaderboard button.track-record-leader:not(:disabled):focus-visible{--leader-outline:var(--pc-gold)}
+.track-record-leader:not(:disabled):is(:hover,:focus-visible) .track-record-leader-identity img{filter:brightness(1.08)}
+.track-record-leader:not(:disabled):focus-visible .track-record-leader-count{box-shadow:inset 0 -2px var(--pc-gold)}
+.cup-leaderboard button.track-record-leader:focus-visible{background-image:none;outline:none}
+@media(max-width:620px){.track-record-leaders{flex-basis:100%;gap:7px}.track-record-leaders>li{max-width:none}.cup-leaderboard button.track-record-leader{grid-template-columns:36px minmax(0,1fr);gap:3px}.track-record-leader-name{font-size:15px;padding-inline:7px}.track-record-leader-count{font-size:13px;padding-inline:6px}.track-record-leader-place{font-size:12px;line-height:13px;min-width:12px;padding-inline:2px}.track-record-leaders:not([hidden])~.track-directory-search{order:0;flex:1 1 120px}.track-record-leaders:not([hidden])~select{margin-left:auto}}
 
 /* A track board uses square controls and identity rows throughout. */
 .cup-leaderboard .track-records :is(button,select){clip-path:none;--focus-cut:0px;border-radius:0;transform:none}

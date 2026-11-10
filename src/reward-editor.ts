@@ -66,6 +66,7 @@ export function rewardEditor(
   form.setAttribute('aria-label', options.banners ? 'Profile appearance' : 'Profile rewards');
   const selection: Required<EquippedCosmetics> = {
     title_id: collection.title_id ?? null,
+    frame_id: null,
     achievement_ids: [...(collection.achievement_ids ?? [])],
     achievement_variants: { ...(collection.achievement_variants ?? {}) },
   };
@@ -223,7 +224,9 @@ export function rewardEditor(
           ? 'Banners'
           : tab === 'title'
             ? 'Titles'
-            : 'Achievements',
+            : tab === 'frame'
+              ? 'Avatar frames'
+              : 'Achievements',
     );
     for (const [kind, button] of buttons) {
       button.setAttribute('aria-selected', String(kind === tab));
@@ -268,7 +271,7 @@ export function rewardEditor(
     const none = h('button', 'None', 'reward-option reward-none');
     none.type = 'button';
     if (tab !== 'achievement') {
-      const key = 'title_id';
+      const key = tab === 'title' ? 'title_id' : 'frame_id';
       none.setAttribute('aria-pressed', String(!selection[key]));
       none.onclick = () => {
         selection[key] = null;
@@ -285,7 +288,7 @@ export function rewardEditor(
         selected =
           tab === 'achievement'
             ? selection.achievement_ids.includes(item.id)
-            : selection.title_id === item.id;
+            : selection[tab === 'title' ? 'title_id' : 'frame_id'] === item.id;
       const button = h('button', undefined, 'reward-option');
       button.type = 'button';
       if (family) button.dataset.rewardFamily = familyKey(base);
@@ -313,6 +316,7 @@ export function rewardEditor(
       button.classList.toggle('is-locked', !state.unlocked);
       if (item.art) {
         const art = h('span', undefined, 'reward-art');
+        if (item.kind === 'frame') art.append(h('span', 'P', 'reward-avatar'));
         const image = h('img');
         image.src = cosmeticURL(item);
         image.alt = '';
@@ -367,7 +371,7 @@ export function rewardEditor(
           selection.achievement_ids = selected
             ? selection.achievement_ids.filter((id) => id !== item.id)
             : [...selection.achievement_ids, item.id];
-        else selection.title_id = item.id;
+        else selection[tab === 'title' ? 'title_id' : 'frame_id'] = item.id;
         status.textContent = '';
         options.preview(selection);
         draw();

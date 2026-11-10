@@ -37,6 +37,7 @@ export interface PlayerProfile {
   presence?: ActivityPresence | null;
 }
 export interface DirectMessage {
+  reply?: import('./message-reply.ts').MessageReply | null;
   invitation?: {id: string;title: string;friendly: boolean;active: boolean;code: string | null;expires_at: string | null};
   id: string;
   sender_id: string;
@@ -247,7 +248,7 @@ export class Social {
   async updateCosmetics(selection: EquippedCosmetics) {
     await this.#rpc('polycup_update_cosmetics', {
       title_key: selection.title_id ?? null,
-      frame_key: null, // Reserved backend parameter; avatar frames are not shipped.
+      frame_key: selection.frame_id ?? null,
       badge_keys: selection.achievement_ids ?? [],
     });
   }
@@ -337,7 +338,7 @@ export class Social {
       after_id: after,
     });
   }
-  async send(peer: string, body: string, nonce: string) {
+  async send(peer: string, body: string, nonce: string, reply?: string) {
     if (!this.#user) throw Error('Sign in to send messages.');
     const text = body.trim();
     if (!text || Array.from(text).length > 1000)
@@ -346,6 +347,7 @@ export class Social {
       peer_key: peer,
       message_text: text,
       nonce_key: nonce,
+      ...(reply ? { reply_key: reply } : {}),
     });
     void this.refresh(true);
     return message;

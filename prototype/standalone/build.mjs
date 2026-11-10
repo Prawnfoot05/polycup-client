@@ -6,10 +6,11 @@ import { unpack } from '../../scripts/asar.mjs';
 import { packageLoaderSource, removeApplicationSourceArtifacts } from '../../scripts/package-loader-source.mjs';
 import { dependencyNotices } from '../../scripts/package-dependency-notices.mjs';
 import { startupShell } from './startup-shell.mjs';
+import { RANKED_CLIENT_PROTOCOL } from '../../src/client-platform.ts';
 const pml = process.argv.includes('--pml');
 const hub = process.argv.includes('--hub');
 // A 0.6 client requires the coordinated replay/presence/progression host.
-const protocol = 2;
+const protocol = RANKED_CLIENT_PROTOCOL;
 const {version} = JSON.parse(await readFile('prototype/standalone/package.json','utf8'));
 if (JSON.parse(await readFile('package.json','utf8')).version !== version) throw Error('Standalone/PML versions differ');
 if (!/^\d+\.\d+\.\d+$/.test(version)) throw Error('Invalid standalone release version');
@@ -44,7 +45,7 @@ for (const banner of bannerCatalog) {
 const cosmeticCatalog=JSON.parse(await readFile('src/cosmetic-catalog.json','utf8'));
 for(const base of cosmeticCatalog)for(const item of [base,...(base.variants??[])]){
  if(!item.art)continue;
- if(!/^achievements\/[a-z0-9-]+\.(?:svg|png)$/.test(item.art))throw Error('Invalid curated reward artwork');
+ if(!/^(?:frames|achievements)\/[a-z0-9-]+\.(?:svg|png)$/.test(item.art))throw Error('Invalid curated reward artwork');
  const bytes=await readFile('assets/cosmetics/'+item.art);
  bannerDigest.update(base.id+':'+(item.key??'base')).update(bytes);
  await mkdir(path.dirname(path.join(root,'cosmetics',item.art)),{recursive:true});
@@ -144,6 +145,7 @@ const browserBuild = await build({
 const notices = await dependencyNotices(browserBuild.metafile.inputs);
 await mkdir(path.join(root,'source'),{recursive:true});
 await writeFile(path.join(root,'source/THIRD-PARTY-NOTICES.txt'),notices);
+await writeFile(path.join(root,'camera-sweeps.json'),await readFile('prototype/standalone/camera-sweeps.json'));
 await mkdir(path.join(root,'auth'),{recursive:true});
 for(const name of ['index.html','return.js','return.css'])
   await writeFile(path.join(root,'auth',name),await readFile('account-site/auth/'+name));
@@ -153,6 +155,7 @@ const metadata = {
   id: createHash('sha256')
     .update(bannerDigest.digest())
     .update(await readFile(path.join(root, 'polycup.js')))
+    .update(await readFile(path.join(root,'camera-sweeps.json')))
     .update(await readFile('account-site/auth/return.js'))
     .update(await readFile('account-site/auth/index.html'))
     .update(await readFile('account-site/auth/return.css'))

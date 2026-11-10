@@ -54,7 +54,7 @@ export class LeaderboardUI {
     const controls = h('div', undefined, 'leaderboard-toolbar');
     this.#tabs.before(controls);
     this.#types.hidden = true;
-    controls.append(this.#tabs, this.#tracks.searchControl, this.#season);
+    controls.append(this.#tabs, this.#tracks.recordLeadersControl, this.#tracks.searchControl, this.#season);
     container.append(this.#dialog);
   }
   close() {
@@ -110,6 +110,7 @@ export class LeaderboardUI {
       header,
       this.#types,
       this.#tabs,
+      this.#tracks.recordLeadersControl,
       this.#tracks.searchControl,
       h('p', 'Swipe for more stats', 'leaderboard-scroll-hint'),
       this.#body,

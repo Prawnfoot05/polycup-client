@@ -20,6 +20,7 @@ import { RankedQueueUI } from './ranked-queue-ui.ts';
 import { RankedReconnectUI } from './ranked-reconnect-ui.ts';
 import { CupGuide } from './cup-guide.ts';
 import { CommunityUI, sharedChatCSS } from './shared-chat-ui.ts';
+import { PatchNotes, patchNotesCSS } from './patch-notes.ts';
 
 export interface CupHubOptions {
   rankedActivity?: HTMLElement;
@@ -71,6 +72,7 @@ export class CupHub {
   #rankedBefore: { match: string; player: string; profile: RankedProfile | null } | null = null;
   #rankedEntered = '';
   #guide: CupGuide;
+  #patchNotes: PatchNotes;
   get #rankedActive() {
     return this.options.rankedActive?.() ?? this.#account.account?.queue.active;
   }
@@ -98,6 +100,7 @@ export class CupHub {
   ) {
     this.#account = account;
     this.#guide = new CupGuide(shadow);
+    this.#patchNotes = new PatchNotes(shadow);
     account.setSignOutAllowed(() => !this.#room?.requiresAccount && !this.#rankedActive);
     this.#controller = controller;
     this.#entered = entered;
@@ -186,7 +189,7 @@ export class CupHub {
         throw error;
       }
     });
-    shadow.append(h('style', css + sharedChatCSS), this.#dialog);
+    shadow.append(h('style', css + sharedChatCSS + patchNotesCSS), this.#dialog);
     this.#dialog.setAttribute('aria-label', 'PolyCup');
     const header = h('header', undefined, 'hub-header');
     const brand = h('div', undefined, 'hub-brand');
@@ -419,6 +422,9 @@ export class CupHub {
         this.#communityView,
       );
       header.append(this.#viewTabs);
+      const notes = this.#button('Patch notes', () => this.#patchNotes.open(), true);
+      notes.classList.add('hub-patch-notes');
+      header.append(notes);
       main.append(views, activities);
     } else main.append(this.#error, listHeader, this.#list, activities);
     if (options.rankedActivity) {
@@ -823,6 +829,7 @@ export class CupHub {
     }
     this.#reconnectUI?.close();
     this.#guide.close();
+    this.#patchNotes.close();
     this.#account.account?.queue.setVisible(false);
     clearInterval(this.#timer);
     this.#timer = undefined;

@@ -1,5 +1,7 @@
 /* Appearance is an image layer; existing winner/selection background colours remain underneath. */
 .player-look.has-player-banner{background-image:linear-gradient(90deg,#111932e8,#111932a8),var(--player-banner)!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
+.has-player-frame{position:relative!important}
+.player-look .has-player-frame:after{content:"";display:block;transform:none;clip-path:none;border:0;width:auto;height:auto;position:absolute;inset:0;z-index:2;pointer-events:none;background:var(--player-frame) center/100% 100% no-repeat}
 .player-title{font:400 15px/1.3 ForcedSquare,Arial,sans-serif;overflow:hidden;text-overflow:clip;white-space:nowrap;max-width:100%;width:100%;min-width:0}
 .player-title[hidden]{display:none}
 .player-achievements{--medal-size:var(--plate-medal-s)}

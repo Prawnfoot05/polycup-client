@@ -492,6 +492,78 @@
     "enabled": true
   },
   {
+    "id": "grid",
+    "kind": "frame",
+    "name": "Grid",
+    "family": "Starter",
+    "metric": "open",
+    "target": 0,
+    "color": "#c8d4e5",
+    "art": "frames/grid.svg",
+    "enabled": false,
+    "rarity": "common"
+  },
+  {
+    "id": "apex",
+    "kind": "frame",
+    "name": "Apex",
+    "family": "Levels",
+    "metric": "level",
+    "target": 5,
+    "color": "#8ecbff",
+    "art": "frames/apex.svg",
+    "enabled": false,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "circuit",
+    "kind": "frame",
+    "name": "Circuit",
+    "family": "Levels",
+    "metric": "level",
+    "target": 15,
+    "color": "#c6adff",
+    "art": "frames/circuit.svg",
+    "enabled": false,
+    "rarity": "rare"
+  },
+  {
+    "id": "laurel",
+    "kind": "frame",
+    "name": "Laurel",
+    "family": "Levels",
+    "metric": "level",
+    "target": 30,
+    "color": "#ffd76b",
+    "art": "frames/laurel.svg",
+    "enabled": false,
+    "rarity": "epic"
+  },
+  {
+    "id": "velocity",
+    "kind": "frame",
+    "name": "Velocity",
+    "family": "Fullspeed",
+    "metric": "fullspeed_wins",
+    "target": 40,
+    "color": "#85e0bc",
+    "art": "frames/velocity.svg",
+    "enabled": false,
+    "rarity": "rare"
+  },
+  {
+    "id": "precision",
+    "kind": "frame",
+    "name": "Precision",
+    "family": "Tech",
+    "metric": "tech_wins",
+    "target": 40,
+    "color": "#ffa69e",
+    "art": "frames/precision.svg",
+    "enabled": false,
+    "rarity": "rare"
+  },
+  {
     "id": "first-finish",
     "kind": "achievement",
     "name": "First game",
@@ -705,6 +777,42 @@
     "color": "#ffb369",
     "art": "achievements/streak-20.png",
     "enabled": true,
+    "rarity": "legendary"
+  },
+  {
+    "id": "streak-frame-5",
+    "kind": "frame",
+    "name": "Ember",
+    "family": "Win streaks",
+    "metric": "best_streak",
+    "target": 5,
+    "color": "#ff786b",
+    "art": "frames/streak-5.svg",
+    "enabled": false,
+    "rarity": "rare"
+  },
+  {
+    "id": "streak-frame-10",
+    "kind": "frame",
+    "name": "Blaze",
+    "family": "Win streaks",
+    "metric": "best_streak",
+    "target": 10,
+    "color": "#ff695d",
+    "art": "frames/streak-10.svg",
+    "enabled": false,
+    "rarity": "epic"
+  },
+  {
+    "id": "streak-frame-20",
+    "kind": "frame",
+    "name": "Inferno",
+    "family": "Win streaks",
+    "metric": "best_streak",
+    "target": 20,
+    "color": "#ffb45c",
+    "art": "frames/streak-20.svg",
+    "enabled": false,
     "rarity": "legendary"
   },
   {

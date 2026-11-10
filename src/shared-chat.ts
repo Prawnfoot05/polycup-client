@@ -2,7 +2,9 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { TypingSignal } from './typing.ts';
 import type { ActivityPresence } from './activity.ts';
 
+import type { MessageReply } from './message-reply.ts';
 export interface SharedMessage {
+  reply?: MessageReply | null;
   id: string;
   sender_id: string;
   display_name: string;
@@ -18,6 +20,7 @@ export interface OnlinePlayer {
   presence?: ActivityPresence;
 }
 export interface ChatFeed {
+  readonly supportsReplies?: boolean;
   readonly messages: readonly SharedMessage[];
   readonly error: string;
   readonly writable: boolean;
@@ -26,7 +29,7 @@ export interface ChatFeed {
   subscribe(fn: () => void): () => void;
   start(): void;
   stop(): void;
-  send(body: string, nonce: string): Promise<void>;
+  send(body: string, nonce: string, reply?: string): Promise<void>;
 }
 /** One visible surface owns a feed. Notifications only invalidate; rows come from
  * the permission-checked RPC, so blocked senders never enter the rendered log. */
@@ -246,14 +249,15 @@ export class SharedChat implements ChatFeed {
     this.#flight = flight;
     return flight;
   }
-  async send(body: string, nonce: string) {
+  get supportsReplies() { return this.#scope === 'community'; }
+  async send(body: string, nonce: string, reply?: string) {
     body = body.trim();
     if (!this.writable) throw Error('Sign in with Discord to chat.');
     if (!body || body.length > 400) throw Error('Write a message of 1 to 400 characters.');
     const generation = this.#generation;
     await this.#rpc(
       'polycup_chat_send',
-      { channel_key: this.#scope, message_text: body, nonce_key: nonce },
+      { channel_key: this.#scope, message_text: body, nonce_key: nonce, ...(reply ? { reply_key: reply } : {}) },
       generation,
     );
     await this.refresh();

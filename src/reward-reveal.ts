@@ -20,7 +20,7 @@ export class RewardReveal {
     this.element.hidden = true;
   }
   show(key: string, rewards: RewardUnlock[], done: () => void) {
-    rewards = rewards.filter((reward) => reward.kind !== 'frame');
+    rewards = rewards.filter((reward) => reward.kind !== 'frame' || !!cosmetic(reward.id, 'frame'));
     if (!rewards.length || seen.has(key)) return false;
     try {
       if (localStorage.getItem('polycup.reward-seen.' + key)) return false;
@@ -40,7 +40,7 @@ export class RewardReveal {
     for (const reward of rewards) {
       const item = cosmetic(
         reward.id,
-        reward.kind === 'banner' || reward.kind === 'frame' ? undefined : reward.kind,
+        reward.kind === 'banner' ? undefined : reward.kind,
         reward.variant,
       );
       const url = reward.kind === 'banner' ? bannerURL(reward.id) : cosmeticURL(item);
@@ -67,9 +67,11 @@ export class RewardReveal {
       const kind =
         reward.kind === 'achievement'
           ? 'Achievement badge'
-          : reward.kind === 'banner'
-            ? 'Profile banner'
-            : 'Player title';
+          : reward.kind === 'frame'
+            ? 'Avatar frame'
+            : reward.kind === 'banner'
+              ? 'Profile banner'
+              : 'Player title';
       const rarityLabel = h('p', rarity.name, 'reward-reveal-rarity');
       const details = h('p', kind, 'reward-reveal-kind');
       card.append(rarityLabel, art, details, h('h3', name));

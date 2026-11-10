@@ -15,6 +15,7 @@ import { registerCarVisibility, CupTransport } from '../../src/native.ts';
 import { installRankedPanel } from './ranked-panel.ts';
 import { registerCupMenu, launchNativeRace } from '../../src/native-cup-menu.ts';
 import { registerLobbyNavigation } from '../../src/native-lobby.ts';
+import { registerNativePlayerList, rankedPlayerList } from '../../src/native-player-list.ts';
 import { registerVersionCheck } from '../../src/version-check.ts';
 import * as Cup from '../../src/cup.ts';
 import { standardPreset } from '../../src/presets.ts';
@@ -23,7 +24,7 @@ import { configureStandaloneAccount } from '../../src/account-config.ts';
 import { startupRequest } from './startup-requests.ts';
 import { installNativeInstanceRecovery } from './native-instance.ts';
 import { rankedRoomIsActive } from './room-watch.ts';
-// Standalone client entry, bundled with the pinned PolyModLoader lifecycle.
+// This entry is built only by the local prototype builder, never the PML release.
 const w = window as any;
 w.polycupBoot && (w.polycupBoot.entered = true);
 w.polycupBoot?.stage('configuration');
@@ -49,7 +50,7 @@ if (useHub && shellMode.environment === 'pilot') {
   document.body.append(label);
 }
 // Skip the base game's tutorial; players enter PolyCup from the main menu.
-if ((useHub || (new URL(location.href).searchParams.has('host'))) && !localStorage.getItem('polytrack_v5_prod_startup_info'))
+if ((useHub || (new URL(location.href).searchParams.has('host') || new URL(location.href).searchParams.has('camera-editor'))) && !localStorage.getItem('polytrack_v5_prod_startup_info'))
   localStorage.setItem(
     'polytrack_v5_prod_startup_info',
     JSON.stringify({ lastVersion: '0.6.3', isTutorialCompleted: true }),
@@ -300,6 +301,9 @@ const runtime: any = {
       w.polycupPrototype?.ui?.render();
     });
     w.polycupPrototype = { controller: c, runtime, launchNativeRace, Cup, standardPreset };
+    w.polycupPrototype.visibleNativePlayers = (connection: any, players: any[]) =>
+      rankedPlayerList(connection, players, c.connection,
+        w.polycupPrototype?.rankedMatch ? c.nativeState?.roster.map(player => player.id) : null);
     diagnosticContext = () => ({
       cupPhase:c.nativeState?.phase ?? 'menu', round:c.nativeState?.runtime?.round ?? 0,
       nativeId:c.localPlayerId, peers:c.lobby.length,
@@ -540,6 +544,19 @@ const runtime: any = {
     };
     proto.setRoom = (id: string) => (roomId = id);
     proto.prepare = (fixture = false) => {
+      if (fixture) {
+        const tracks = runtime.getFromPolyTrack(
+          `(()=>{const Sun=i(7929).A;return Array.from({length:16},(_,index)=>{const t=new Ul.A(0,new Sun());const finish=-24-index*4;t.addPart(0,0,0,5,0,0,0,null,0);for(let z=-4;z>finish;z-=4)t.addPart(0,0,z,0,0,0,0,null,null);t.addPart(0,0,finish,6,0,0,0,null,null);return {trackData:t,trackMetadata:{name:'Local physics test '+index,author:'PolyCup QA',lastModified:null}};});})()`,
+        );
+        c.availableTracks = () =>
+          tracks.map((t: any) => ({
+            id: t.trackData.getId(),
+            name: t.trackMetadata.name,
+            category: 'official',
+            thumbnail: '',
+            load: async () => t,
+          }));
+      }
       // Real tracks on the live service retain native WR/PB reads. Generated
       // fixtures and the offline prototype must stay isolated from leaderboards.
       c.native.worldRecord = !fixture && shellMode.live
@@ -669,6 +686,12 @@ const runtime: any = {
       report('racer_joined');
       document.getElementById('prototype-menu')?.setAttribute('hidden', '');
     };
+    if(new URL(location.href).searchParams.has('camera-editor') && !shellMode.live){
+      proto.ready=true;
+      const opening=setInterval(()=>{if(!runtime.menuDebug?.().loaded||runtime.menuDebug().transition)return;clearInterval(opening);void import('./camera-editor.ts').then(m=>m.installCameraEditor(proto));},100);
+      return;
+    }
+    if(!new URL(location.href).searchParams.has('host'))void import('./camera-intro.ts').then(m=>m.installCameraIntros(proto));
     if (!useHub)
       panel.style.cssText =
         'position:fixed;top:16px;left:16px;z-index:99999;background:#1b2342;color:white;padding:16px;font:16px sans-serif;max-width:440px;border-top:4px solid #ffd76b';
@@ -762,6 +785,7 @@ w.polycupRuntime = runtime;
 installNativeInstanceRecovery(runtime, 0, report);
 registerCarVisibility(runtime, 0);
 registerLobbyNavigation(runtime, 0);
+registerNativePlayerList(runtime, 0);
 registerCupMenu(runtime, 0, !externalPml);
 if(!externalPml) registerStandaloneBranding(runtime, 0);
 runtime.registerGlobalMixin({

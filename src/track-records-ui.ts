@@ -1,7 +1,7 @@
 import { tracks as rankedTracks } from '../supabase/catalogs/polytrack-0.6.3.json';
 const trackNames = new Map(rankedTracks.map((t) => [t.id, t.name]));
 import { element as h } from './dom.ts';
-import type { Ranked, TrackDirectoryEntry, TrackBoard } from './ranked.ts';
+import type { Ranked, TrackDirectoryEntry, TrackBoard, TrackRecordLeader } from './ranked.ts';
 import type { LibraryTrack } from './game-types.ts';
 import { formatTime, formatGap } from './time.ts';
 import { profilePicture } from './profile-picture.ts';
@@ -12,11 +12,15 @@ type Context = { season: string; friends: boolean; user: string | null };
 export class TrackRecordsUI {
   #element = h('section', undefined, 'track-records');
   #searchControl = h('div', undefined, 'track-directory-search');
+  #recordLeadersControl = h('ol', undefined, 'track-record-leaders');
   get element() {
     return this.#element;
   }
   get searchControl() {
     return this.#searchControl;
+  }
+  get recordLeadersControl() {
+    return this.#recordLeadersControl;
   }
   #controls = h('div', undefined, 'track-record-controls');
   #body = h('div', undefined, 'track-record-body');
@@ -44,10 +48,13 @@ export class TrackRecordsUI {
     this.#feedback.setAttribute('role', 'status');
     this.#feedback.hidden = true;
     this.searchControl.hidden = true;
+    this.recordLeadersControl.hidden = true;
+    this.recordLeadersControl.setAttribute('aria-label', 'Most track records this season');
     this.element.append(this.#controls, this.#feedback, this.#body, this.#footer);
   }
   stop() {
     this.searchControl.hidden = true;
+    this.recordLeadersControl.hidden = true;
     ++this.#generation;
   }
   invalidate() {
@@ -123,6 +130,8 @@ export class TrackRecordsUI {
     if (!this.#track) context = { ...context, friends: false };
     const generation = ++this.#generation;
     this.searchControl.hidden = true;
+    if (this.#track || this.#context?.season !== context.season || this.#context?.user !== context.user)
+      this.recordLeadersControl.hidden = true;
     if (this.#context?.user !== context.user) {
       this.#cache.clear();
       this.#directory = [];
@@ -159,6 +168,12 @@ export class TrackRecordsUI {
     this.#body.inert = this.#footer.inert = true;
     this.#feedback.hidden = false;
     this.#feedback.textContent = this.#body.childElementCount ? 'Updating…' : 'Loading records…';
+    // The optional podium must never delay browsing the track directory.
+    const leadersPending = !track
+      ? this.#cached<TrackRecordLeader[]>('leaders:' + key, () =>
+          this.api.trackRecordLeaders(context.season || null),
+        ).catch(() => null)
+      : Promise.resolve(null);
     try {
       const [directory, board] = await Promise.all([
         this.#cached<TrackDirectoryEntry[]>(key, () =>
@@ -189,7 +204,13 @@ export class TrackRecordsUI {
         this.#artwork.clear();
       }
       if (track && board) this.#drawBoard(board);
-      else this.#drawDirectory();
+      else {
+        this.#drawDirectory();
+        void leadersPending.then((leaders) => {
+          if (leaders && generation === this.#generation && this.user() === context.user)
+            this.#drawLeaders(leaders);
+        });
+      }
     } catch {
       if (generation !== this.#generation) return;
       this.#feedback.hidden = false;
@@ -207,6 +228,32 @@ export class TrackRecordsUI {
         this.#body.inert = this.#footer.inert = false;
       }
     }
+  }
+  #drawLeaders(leaders: TrackRecordLeader[]) {
+    this.recordLeadersControl.replaceChildren();
+    for (const leader of leaders.slice(0, 3)) {
+      const item = h('li');
+      const card = this.#button('', () => this.profile?.(leader.player_id), 'track-record-leader');
+      card.disabled = !this.profile;
+      card.dataset.podium = String(leader.position);
+      const count = `${leader.records} ${leader.records === 1 ? 'record' : 'records'}`;
+      card.setAttribute('aria-label', `${leader.display_name}: ${count}, rank ${leader.position}`);
+      card.title = `${leader.display_name} · ${count} this season (shared fastest times count)`;
+      const identity = h('span', undefined, 'track-record-leader-identity');
+      identity.append(
+        h('span', String(leader.position), 'track-record-leader-place'),
+        profilePicture(leader.display_name, leader.avatar_url),
+      );
+      const detail = h('span', undefined, 'track-record-leader-detail');
+      detail.append(
+        h('strong', leader.display_name, 'track-record-leader-name'),
+        h('small', count, 'track-record-leader-count'),
+      );
+      card.append(identity, detail);
+      item.append(card);
+      this.recordLeadersControl.append(item);
+    }
+    this.recordLeadersControl.hidden = !this.recordLeadersControl.childElementCount;
   }
   #drawDirectory() {
     const search = h('input');
@@ -265,6 +312,7 @@ export class TrackRecordsUI {
   }
   #drawBoard(board: TrackBoard) {
     this.searchControl.hidden = true;
+    this.recordLeadersControl.hidden = true;
     this.#controls.hidden = false;
     const selected = this.#directory.find((t) => t.track_id === this.#track),
       select = h('select');

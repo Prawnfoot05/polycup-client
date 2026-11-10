@@ -1,0 +1,155 @@
+.camera-studio {
+  position: fixed;
+  z-index: 100000;
+  top: 12px;
+  left: 12px;
+  bottom: 12px;
+  width: 290px;
+  box-sizing: border-box;
+  overflow: auto;
+  background: #1b2342f5;
+  border-top: 4px solid #ffd76b;
+  color: #e7eefb;
+  padding: 16px;
+  font:
+    16px/1.3 ForcedSquare,
+    Arial,
+    sans-serif;
+  box-shadow: 0 10px 35px #08112666;
+}
+.camera-studio h1 {
+  font-size: 26px;
+  font-weight: 400;
+  margin: 0 0 12px;
+}
+.camera-studio .studio-note {
+  font:
+    13px/1.5 Arial,
+    sans-serif;
+  color: #adc0dc;
+  margin: 12px 0;
+}
+.camera-studio .studio-status {
+  color: #ffd76b;
+  font-size: 14px;
+  min-height: 36px;
+}
+.camera-studio button,
+.camera-studio select,
+.camera-studio input {
+  box-sizing: border-box;
+  font: inherit;
+  clip-path: none;
+  max-width: 100%;
+}
+.camera-studio button {
+  border: 0;
+  background: #2c3b66;
+  color: #fff;
+  min-height: 36px;
+  padding: 8px 10px;
+  margin: 4px 0;
+  cursor: pointer;
+}
+.camera-studio > button,
+.camera-studio > select {
+  width: 100%;
+}
+.camera-studio .studio-primary {
+  background: #ffd76b;
+  color: #18213d;
+}
+.camera-studio button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.camera-studio button:focus-visible,
+.camera-studio input:focus-visible,
+.camera-studio select:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+.camera-studio select,
+.camera-studio input[type='number'] {
+  background: #13214c;
+  color: #fff;
+  border: 1px solid #536486;
+  padding: 6px;
+}
+.camera-studio .studio-frames {
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow: auto;
+}
+.studio-frames button {
+  width: 100%;
+  text-align: left;
+  border-left: 3px solid transparent;
+}
+.studio-frames button[aria-pressed='true'] {
+  border-left-color: #ffd76b;
+  background: #35466e;
+}
+.camera-studio .studio-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.studio-settings label {
+  font-size: 12px;
+  color: #adc0dc;
+}
+.studio-settings input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+.camera-studio .studio-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.camera-studio input[type='range'] {
+  width: 100%;
+  accent-color: #ffd76b;
+}
+.camera-studio ~ * {
+  --camera-editor-active: 1;
+}
+@media (max-width: 650px) {
+  .camera-studio {
+    width: 220px;
+    font-size: 14px;
+    padding: 10px;
+  }
+  .camera-studio .studio-note {
+    font-size: 12px;
+  }
+}
+
+.camera-authoring #ui {
+  visibility: hidden;
+}
+.camera-studio input[type='number'] {
+  font:
+    14px/1.3 Arial,
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.camera-studio input[type='range'] {
+  appearance: auto;
+  background: transparent;
+  border: 0;
+  height: 20px;
+  margin: 8px 0;
+  padding: 0;
+  outline-offset: 2px;
+}
+.camera-studio input[type='range']::-webkit-slider-thumb {
+  appearance: auto;
+  width: auto;
+  height: auto;
+  border: initial;
+  background: initial;
+}

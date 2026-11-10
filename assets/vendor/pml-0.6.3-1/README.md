@@ -14,4 +14,4 @@ Download this directory preserving its layout. With Node.js and npm installed:
 
 The output is dist/PolyModLoader.js and dist/PolyTypes.js. TypeScript is pinned to 6.0.3 in package-lock.json. Declaration files are generated too. No game files, accounts or server credentials are needed to rebuild these loader modules.
 
-This directory covers the PolyModLoader modules only. PolyCup application source is provided separately in this repository under GPL v3 or later. PolyTrack's native code and assets are by Kodub and retain their original terms.
+This directory covers the PolyModLoader modules only. It does not publish or assign a licence to PolyCup's private application source. PolyTrack's native code and assets are by Kodub and retain their original terms.

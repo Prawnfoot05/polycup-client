@@ -1,5 +1,4 @@
 import { hasLayoutBox } from '../../src/visibility.ts';
-import { rankedEndpoint, standalonePlatform, type ClientPlatform } from '../../src/client-platform.ts';
 import { winStreak, winStreakCSS, streakLength } from '../../src/win-streak.ts';
 import { installErrorDismissal, retryDismissedErrors } from '../../src/dismissible-errors.ts';
 import { playerName } from '../../src/cosmetics.ts';
@@ -19,11 +18,13 @@ import { installClientUpdates } from './client-updates.ts';
 import { RankedInputOutbox } from '../../src/ranked-inputs.ts';
 import { RankedHistoryUI } from '../../src/ranked-history-ui.ts';
 import { SharedChatUI } from '../../src/shared-chat-ui.ts';
+import { RankedResultsChat } from '../../src/results-chat.ts';
 import { protectUITouches } from '../../src/touch-ui.ts';
 import { PollRetry } from './poll-retry.ts';
 import { practiceControl, menuIdentity } from '../../src/native-cup-menu.ts';
 import { QueueControls } from './queue-controls.ts';
 import { requireNativeInstance } from './native-instance.ts';
+import { rankedEndpoint, standalonePlatform, type ClientPlatform } from '../../src/client-platform.ts';
 
 export function installRankedPanel(
   proto: any,
@@ -68,15 +69,15 @@ export function installRankedPanel(
       resultChat?.ui.stop();
       resultChat = {
         match,
-        ui: new SharedChatUI(proto.ui.account.chat('ranked:' + match), 'Match chat', undefined, 'frames'),
+        ui: new SharedChatUI(new RankedResultsChat(proto.ui.account.chat('ranked:' + match), proto.controller, match), 'Match chat', undefined, 'frames'),
       };
     }
     return resultChat.ui;
   };
   const presentations = new Map<string, any>();
   let presentationMatch = '';
-  // Dismissing a processing result is not acknowledging its eventual rating.
-  // Keep polling, but only reopen when a settled result is actually available.
+  // Leaving processing results dismisses their presentation, not settlement.
+  // Late ratings remain in history; never reopen them over a later activity.
   const dismissedPendingResults = new Set<string>();
   let entered = '',
     loadingBusy = false;
@@ -506,6 +507,9 @@ export function installRankedPanel(
     // The ranked panel is still hidden from the preceding race at that point.
     if (q.state === 'matched' && q.match.status === 'reserved' && !dialog.open)
       acceptHadHub = postgameQueued || !!(panel.closest('dialog') as HTMLDialogElement | null)?.open || hasLayoutBox(panel);
+    if (q.state === 'matched' && (previous?.match?.id !== q.match.id ||
+        (previous.match.status === 'reserved' && q.match.status !== 'reserved')))
+      proto.ui.prepareMatchHandoff?.();
     if (q.state === 'matched') proto.ui.closeResultRecords?.();
     if (postgameQueued) {
       if (q.state === 'queued') {
@@ -703,7 +707,7 @@ export function installRankedPanel(
   }
   const garageRows = (): FinishRow[] => {
     const state = proto.controller.nativeState;
-    if (!state || state.phase !== 'complete') return [];
+    if (!state || state.id !== active || state.phase !== 'complete') return [];
     return resultRows(state).map((r: any) => {
       const account = proto.bindings?.get(r.id) ?? String(r.id);
       garageNames.set(account, { native: r.id, name: r.name });
@@ -732,6 +736,7 @@ export function installRankedPanel(
     }
     finish.close();
     resultOpen = false;
+    finalView = undefined;
     active = joined = entered = '';
     revision++;
     proto.controller.connection?.dispose();
@@ -750,7 +755,7 @@ export function installRankedPanel(
       ranked: true,
       title: 'Match finished',
       subtitle: '',
-      track: proto.controller.nativeState?.tracks?.[0]?.name,
+      track: proto.controller.nativeState?.id === active ? proto.controller.nativeState.tracks?.[0]?.name : undefined,
       rows: localRows.length ? localRows : [...presentations].map(([account, p]) => {
         const name = document.createElement('span');
         name.className = 'player-with-portrait';
@@ -785,11 +790,11 @@ export function installRankedPanel(
     }
   });
   async function results() {
-    if (resultOpen) return;
+    if (resultOpen || !active || dismissedPendingResults.has(active)) return;
     const expectedRevision = revision,
       expectedActive = active;
     const current = () => revision === expectedRevision && active === expectedActive && !resultOpen;
-    let r = await request('result'),
+    let r = await request('result', { match: expectedActive }),
       unrated = false;
     if (!current()) return;
     if (!r && active && deniedResultAdmission !== active) {
@@ -838,7 +843,9 @@ export function installRankedPanel(
         };
       }
     }
-    if (!r) return;
+    // Older services may ignore the match selector. An unrelated unread result
+    // must never replace the current match's pending/settled screen.
+    if (!r || r.match_id !== expectedActive) return;
     const own = r.players.find((p: any) => p.player_id === player);
     if (!own && !unrated) return;
     resultOpen = true;
@@ -903,6 +910,8 @@ export function installRankedPanel(
     };
     const winner = r.players.filter((p: any) => p.place === 1 && !p.abandoned);
     const name = winner.length === 1 ? winner[0].display_name : '';
+    const resultTrack = proto.controller.availableTracks().find((t: any) => t.id === r.track_id)?.name ??
+      (proto.controller.nativeState?.id === r.match_id ? proto.controller.nativeState.tracks?.[0]?.name : undefined);
     finalView = {
       key: r.match_id,
       chat: matchChat(r.match_id),
@@ -924,8 +933,8 @@ export function installRankedPanel(
         ? 'No rating change'
         : own?.abandoned
           ? 'You conceded or left the match.'
-          : (proto.controller.nativeState?.tracks?.[0]?.name ?? ''),
-      track: proto.controller.nativeState?.tracks?.[0]?.name,
+          : (resultTrack ?? ''),
+      track: resultTrack,
       openTrackRecords: r.track_id || proto.controller.nativeState?.tracks?.[0]?.id ? async () => {
         const track=r.track_id || proto.controller.nativeState?.tracks?.[0]?.id;
         // Keep the postgame screen and any queued search alive underneath records.

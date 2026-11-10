@@ -53,6 +53,13 @@ export interface TrackDirectoryEntry {
   own_time: number | null;
   own_position: number | null;
 }
+export interface TrackRecordLeader {
+  player_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  records: number;
+  position: number;
+}
 export interface TrackRecordEntry {
   player_id: string;
   display_name: string;
@@ -440,6 +447,9 @@ export class Ranked {
   }
   trackDirectory(season: string | null = null, friends = false): Promise<TrackDirectoryEntry[]> {
     return this.rpc('polycup_track_directory', { season_key: season, friends_only: friends });
+  }
+  trackRecordLeaders(season: string | null = null): Promise<TrackRecordLeader[]> {
+    return this.rpc('polycup_track_record_leaders', { season_key: season });
   }
   trackBoard(
     track: string,

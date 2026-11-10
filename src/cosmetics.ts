@@ -3,7 +3,7 @@ import { rewardRarity, type RewardRarity } from './reward-rarity.ts';
 import source from './cosmetic-catalog.json';
 import { element as h } from './dom.ts';
 import emptyAchievement from '../assets/cosmetics/achievements/empty.png';
-export type CosmeticKind = 'title' | 'achievement';
+export type CosmeticKind = 'title' | 'frame' | 'achievement';
 export interface CosmeticItem {
   id: string;
   kind: CosmeticKind;
@@ -19,6 +19,7 @@ export interface CosmeticItem {
 }
 export interface EquippedCosmetics {
   title_id?: string | null;
+  frame_id?: string | null;
   achievement_ids?: string[];
   achievement_variants?: Record<string, string>;
 }

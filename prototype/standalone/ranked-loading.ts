@@ -39,7 +39,7 @@ export class RankedLoading {
     *{box-sizing:border-box} .veil{height:100%;overflow:auto;display:grid;place-items:safe center;background:#10162de0;backdrop-filter:blur(7px);padding:24px}
     .banner{width:min(920px,100%);background:var(--pc-panel);box-shadow:0 16px 60px #0005}
     header{display:flex;align-items:center;gap:24px;padding:22px 28px;background:var(--pc-action)}
-    .track-preview{position:relative;width:128px;height:112px;min-width:0;min-height:0;flex:none;overflow:hidden;background:var(--pc-action)}
+    .track-preview{position:relative;width:128px;height:112px;min-width:0;min-height:0;flex:none;overflow:hidden;background:transparent}
     .track-preview img{position:absolute;inset:0;display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;padding:8px;object-fit:contain}
     .track-preview img[hidden]{display:none}
     .track-heading{min-width:0;display:flex;flex-direction:column;gap:7px}

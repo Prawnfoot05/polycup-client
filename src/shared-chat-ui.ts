@@ -5,7 +5,8 @@ import { profilePicture, profilePictureCSS } from './profile-picture.ts';
 import type { ChatFeed, SharedChat, SharedMessage } from './shared-chat.ts';
 import css from './shared-chat.css';
 import { drawTyping, typingCSS } from './typing-ui.ts';
-export const sharedChatCSS = profilePictureCSS + css + typingCSS;
+import { ReplyComposer, replyAction, replyQuote, messageReplyCSS } from './message-reply.ts';
+export const sharedChatCSS = profilePictureCSS + css + typingCSS + messageReplyCSS;
 const editors = new WeakMap<EventTarget, (event: KeyboardEvent) => void>();
 /** The game shields its modal inputs at window capture. Route the focused
  * editor there, before shielding, because target listeners cannot run later. */
@@ -36,6 +37,7 @@ export class SharedChatUI {
   #unsubscribe?: () => void;
   #sending = false;
   #nonce = '';
+  #reply = new ReplyComposer(() => { this.#nonce = ''; this.#input.focus(); });
   #signature = '';
   #bottom = true;
   #generation = 0;
@@ -80,6 +82,9 @@ export class SharedChatUI {
     this.#input.addEventListener('blur', () => this.#feed.typing?.input(false));
     editors.set(this.#input, (event) => {
       event.stopPropagation();
+      if (event.key === 'Escape' && this.#reply.value) {
+        event.preventDefault(); this.#reply.value = undefined; this.#nonce = ''; return;
+      }
       if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
         event.preventDefault();
         form.requestSubmit();
@@ -91,7 +96,7 @@ export class SharedChatUI {
       event.preventDefault();
       void this.#post();
     });
-    form.append(this.#input, this.#send);
+    form.append(this.#reply.element, this.#input, this.#send);
     this.#latest.type = 'button';
     this.#latest.hidden = true;
     this.#latest.onclick = () => {
@@ -139,6 +144,7 @@ export class SharedChatUI {
     this.#input.value = '';
     this.#input.readOnly = false;
     this.#nonce = '';
+    this.#reply.value = undefined;
     this.#sending = false;
   }
   clear() {
@@ -167,9 +173,10 @@ export class SharedChatUI {
     this.#status.textContent = 'Sending…';
     this.#status.setAttribute('role', 'status');
     try {
-      await this.#feed.send(body, this.#nonce);
+      await this.#feed.send(body, this.#nonce, this.#reply.value?.id);
       if (generation !== this.#generation) return;
       this.#input.value = '';
+      this.#reply.value = undefined;
       this.#nonce = '';
       this.#status.textContent = '';
       this.#bottom = true;
@@ -190,8 +197,9 @@ export class SharedChatUI {
     }
   }
   render() {
+    this.#element.classList.toggle('replies-enabled', !!this.#feed.supportsReplies && this.#feed.writable);
     const messages = this.#feed.messages,
-      signature = JSON.stringify(messages);
+      signature = JSON.stringify([!!this.#feed.supportsReplies && this.#feed.writable, messages]);
     const last = messages.at(-1)?.id ?? '';
     if (signature !== this.#signature) {
       const firstLoad = !this.#signature;
@@ -220,6 +228,7 @@ export class SharedChatUI {
     }
     this.#input.disabled = !this.#feed.writable;
     if (!this.#feed.writable) {
+      this.#reply.value = undefined;
       this.#input.value = '';
       this.#nonce = '';
     }
@@ -234,8 +243,9 @@ export class SharedChatUI {
   }
   #row(row: SharedMessage, previous?: SharedMessage) {
     const item = h('article', undefined, 'shared-chat-message');
+    item.dataset.messageId = row.id;
     const elapsed = previous ? Date.parse(row.created_at) - Date.parse(previous.created_at) : -1;
-    if (row.sender_id && previous?.sender_id === row.sender_id && elapsed >= 0 && elapsed < 300000)
+    if (!row.reply && row.sender_id && previous?.sender_id === row.sender_id && elapsed >= 0 && elapsed < 300000)
       item.classList.add('is-continuation');
     item.title = new Date(row.created_at).toLocaleString();
     const portrait = profilePicture(row.display_name, row.avatar_url);
@@ -259,8 +269,15 @@ export class SharedChatUI {
     }
     header.append(name, time);
     if (!this.#framesOnly) playerLooks.decorate(header, row.sender_id);
-    content.append(header, h('p', row.body));
+    if (row.reply) content.append(replyQuote(row.reply, this.#log));
+    content.append(header);
+    content.append(h('p', row.body));
     item.append(portrait, content);
+    if (this.#feed.supportsReplies && this.#feed.writable) item.append(replyAction(() => {
+      if (this.#sending || !this.#feed.writable) return;
+      this.#reply.value = { id: row.id, display_name: row.display_name, avatar_url: row.avatar_url, body: row.body };
+      this.#nonce = ''; this.#input.focus({ preventScroll: true });
+    }));
     item.dataset.playerBanner = 'off';
     playerLooks.decorate(item, row.sender_id);
     return item;
