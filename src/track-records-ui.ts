@@ -4,10 +4,16 @@ import { element as h } from './dom.ts';
 import { clickableRow } from './clickable-row.ts';
 import type { Ranked, TrackDirectoryEntry, TrackBoard, TrackRecordLeader } from './ranked.ts';
 import type { LibraryTrack } from './game-types.ts';
-import { formatTime, formatGap } from './time.ts';
+import { formatGap } from './time.ts';
+import { officialLapTime } from './official-position.ts';
 import { profilePicture } from './profile-picture.ts';
 import { playerLooks } from './player-looks.ts';
 const PAGE = 25;
+function lapTimeCell(track: string | null, frames: number | null) {
+  const cell = h('td');
+  cell.append(officialLapTime(track, frames));
+  return cell;
+}
 type Context = { season: string; friends: boolean; user: string | null };
 /** Lazy, paginated records. No background polling or per-track HTTP requests. */
 export class TrackRecordsUI {
@@ -300,7 +306,7 @@ export class TrackRecordsUI {
         row.append(
           cell,
           h('td', String(t.players)),
-          h('td', t.own_time == null ? '—' : formatTime(t.own_time)),
+          lapTimeCell(t.track_id, t.own_time),
           h('td', t.own_position == null ? '—' : String(t.own_position)),
         );
         body.append(row);
@@ -357,7 +363,7 @@ export class TrackRecordsUI {
       row.append(
         h('td', String(r.position)),
         name,
-        h('td', formatTime(r.time_ms)),
+        lapTimeCell(this.#track, r.time_ms),
         h(
           'td',
           r.time_ms === board.best_time

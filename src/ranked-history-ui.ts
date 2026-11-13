@@ -14,7 +14,7 @@ import { tracks as rankedTracks } from '../supabase/catalogs/polytrack-0.6.3.jso
 import { historyReviewWarning } from './history-review-warning.ts';
 import { profilePicture, profilePictureCSS } from './profile-picture.ts';
 import { placing, ratingChange, ratingNumber as number } from './ranked-format.ts';
-import { formatTime } from './time.ts';
+import { officialLapTime } from './official-position.ts';
 import { watchMatchReplay } from './match-replay.ts';
 import type { CasualHistoryEntry, CasualMatchResult } from './ranked.ts';
 export { placing, ratingChange } from './ranked-format.ts';
@@ -326,11 +326,7 @@ export class RankedHistoryUI {
             place,
             this.#track(row, time, artwork),
             this.#racers(row),
-            h(
-              'span',
-              typeof row.time_ms === 'number' && row.time_ms > 0 ? formatTime(row.time_ms) : '—',
-              'ranked-history-time',
-            ),
+            officialLapTime(row.track_id, row.time_ms, '—', 'ranked-history-time'),
             row.tier
               ? rankBadge({
                   tier: row.tier,
@@ -652,15 +648,7 @@ export class RankedHistoryUI {
       row.append(
         position,
         playerName,
-        h(
-          'span',
-          typeof player.time_ms === 'number' && player.time_ms > 0
-            ? formatTime(player.time_ms)
-            : player.dnf
-              ? 'DNF'
-              : '—',
-          'ranked-result-time',
-        ),
+        officialLapTime(result.track_id, player.time_ms, player.dnf ? 'DNF' : '—', 'ranked-result-time'),
         rating,
         change,
       );

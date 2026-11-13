@@ -25,6 +25,7 @@ import { practiceControl, menuIdentity } from '../../src/native-cup-menu.ts';
 import { QueueControls } from './queue-controls.ts';
 import { requireNativeInstance } from './native-instance.ts';
 import { rankedEndpoint, standalonePlatform, type ClientPlatform } from '../../src/client-platform.ts';
+import { configureOfficialPositions } from '../../src/official-position.ts';
 
 export function installRankedPanel(
   proto: any,
@@ -34,6 +35,7 @@ export function installRankedPanel(
   inHub = false,
   platform: ClientPlatform = standalonePlatform(location.origin),
 ) {
+  configureOfficialPositions(platform);
   const tokenKey = 'polycup.prototype.account';
   const loading = new RankedLoading();
   const finish = new MatchFinishUI();
@@ -791,6 +793,7 @@ export function installRankedPanel(
       title: 'Match finished',
       subtitle: '',
       track: localTrack?.name,
+      trackId: localTrack?.id,
       trackArt,
       rows: localRows.length ? localRows : [...presentations].map(([account, p]) => {
         const name = document.createElement('span');
@@ -977,6 +980,7 @@ export function installRankedPanel(
           ? 'You conceded or left the match.'
           : (resultTrack ?? ''),
       track: resultTrack,
+      trackId: r.track_id ?? nativeTrack?.id,
       trackArt: resultTrackEntry?.thumbnail,
       openTrackRecords: r.track_id || proto.controller.nativeState?.tracks?.[0]?.id ? async () => {
         const track=r.track_id || proto.controller.nativeState?.tracks?.[0]?.id;

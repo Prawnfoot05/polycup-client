@@ -14,7 +14,8 @@ export function seasonCountdown(now: number) {
 }
 
 export class SeasonCountdown {
-  readonly element = h('aside', undefined, 'hub-season-countdown');
+  #element = h('aside', undefined, 'hub-season-countdown');
+  get element() { return this.#element; }
   #value = h('span', undefined, 'hub-season-clock');
   #label = h('span', 'Season 0 ends in', 'hub-season-label');
   #timer?: ReturnType<typeof setInterval>;

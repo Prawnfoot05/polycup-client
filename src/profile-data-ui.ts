@@ -2,6 +2,7 @@ import { element as h } from './dom.ts';
 import { clickableRow } from './clickable-row.ts';
 import { profilePicture } from './profile-picture.ts';
 import { formatTime } from './time.ts';
+import { officialLapTime } from './official-position.ts';
 import type { LibraryTrack } from './game-types.ts';
 import type { PlayerProfile } from './social.ts';
 import type {
@@ -311,6 +312,8 @@ export function profileDataView(options: {
           else action.disabled = true;
           td.append(action);
           if (!action.disabled) clickableRow(row, action);
+        } else if (col.key === 'best_time') {
+          td.append(officialLapTime(entry.track_id, entry.best_time, '–'));
         } else {
           td.textContent = col.render
             ? col.render(entry)

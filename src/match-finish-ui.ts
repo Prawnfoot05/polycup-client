@@ -13,7 +13,7 @@ import { profilePictureCSS } from './profile-picture.ts';
 import { element as h } from './dom.ts';
 import { clickableRow } from './clickable-row.ts';
 import { placing, ratingNumber } from './ranked-format.ts';
-import { formatTime } from './time.ts';
+import { officialLapTime } from './official-position.ts';
 import css from './match-finish.css';
 import themeCSS from './interface-theme.css';
 import { SharedChatUI, sharedChatCSS } from './shared-chat-ui.ts';
@@ -43,6 +43,7 @@ export interface FinishView {
   title: string;
   subtitle: string;
   track?: string;
+  trackId?: string;
   trackArt?: string | Promise<string>;
   openTrackRecords?: () => void | Promise<void>;
   rows: FinishRow[];
@@ -342,15 +343,7 @@ export class MatchFinishUI {
       item.append(h('span', row.dnf ? '—' : placing(row.place), 'finish-place'), name);
       if (view.ranked)
         item.append(
-          h(
-            'span',
-            typeof row.time_ms === 'number' && row.time_ms > 0
-              ? formatTime(row.time_ms)
-              : row.dnf
-                ? 'DNF'
-                : '–',
-            'finish-time',
-          ),
+          officialLapTime(view.trackId, row.time_ms, row.dnf ? 'DNF' : '–', 'finish-time'),
         );
       item.append(rating, delta);
       if (view.ranked) {

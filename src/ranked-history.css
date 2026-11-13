@@ -111,7 +111,7 @@
 .ranked-history .ranked-history-feedback button{flex:none;width:auto;margin:0;padding:8px 14px}
 
 /* Lead with placement, followed by track, opponents, rank badge and change. */
-.ranked-history-body.is-rich :is(.ranked-history-columns,.ranked-history-row){grid-template-columns:72px minmax(0,1.8fr) 110px 90px 100px 64px;gap:12px}
+.ranked-history-body.is-rich :is(.ranked-history-columns,.ranked-history-row){grid-template-columns:72px minmax(0,1.8fr) 110px 100px 100px 64px;gap:12px}
 .ranked-history-body.is-rich .ranked-history-columns>:nth-child(n+3),.ranked-history-body.is-rich .ranked-history-row>:nth-child(n+3){justify-self:center;text-align:center}
 
 .ranked-history-row.is-win .ranked-history-place{color:var(--pc-gold)}
@@ -158,6 +158,7 @@
 /* Match kind is a history-list filter, not a second navigation row in a result. */
 .ranked-history[data-view=match]>.history-scope-tabs{display:none}
 .ranked-result-time,.ranked-history-time{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ranked-result-time.pc-official-time,.ranked-history-time.pc-official-time{justify-content:center}
 @media(max-width:600px){.ranked-history-body.is-rich .ranked-history-time{grid-area:time;justify-self:start!important}}
 @media(max-width:460px){.ranked-history[data-view=match] :is(.ranked-result-columns,.ranked-result-row){min-width:455px;box-sizing:border-box}}
 
