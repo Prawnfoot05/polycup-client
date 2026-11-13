@@ -6,7 +6,7 @@ import { unpack } from '../../scripts/asar.mjs';
 import { packageLoaderSource, removeApplicationSourceArtifacts } from '../../scripts/package-loader-source.mjs';
 import { dependencyNotices } from '../../scripts/package-dependency-notices.mjs';
 import { startupShell } from './startup-shell.mjs';
-import { RANKED_CLIENT_PROTOCOL } from '../../src/client-platform.ts';
+import { RANKED_CLIENT_PROTOCOL, CUP_WIRE_VERSION } from '../../src/client-platform.ts';
 const pml = process.argv.includes('--pml');
 const hub = process.argv.includes('--hub');
 // A 0.6 client requires the coordinated replay/presence/progression host.
@@ -122,7 +122,7 @@ import { PolyMod, MixinType } from './PolyTypes.js';
 window.polytrackModConfiguration={modName:'PolyCup',author:'Prawnfoot05'};
 window.polyModLoader = ActivePolyModLoader;
 const polyMod = new PolyMod();
-Object.assign(polyMod, {modID:'polytrack-world-cup',modName:'PolyCup',modVersion:${JSON.stringify(version)},modDependencies:[],loaded:true});
+Object.assign(polyMod, {modID:'polytrack-world-cup',modName:'PolyCup',modVersion:${JSON.stringify(CUP_WIRE_VERSION)},modDependencies:[],loaded:true});
 polyMod.preInit = (loader) => window.polycupRuntime.attachPml(loader, MixinType.INSERT);
 polyMod.init = () => window.polycupRuntime.init();
 ActivePolyModLoader.getAllMods().push(polyMod);

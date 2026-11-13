@@ -1,3 +1,4 @@
+import { CUP_WIRE_VERSION } from './client-platform.ts';
 import {
   syncTeams,
   teamSetupError,
@@ -15,10 +16,12 @@ const LEGACY_VERSION = '0.4.1';
 declare const __POLYCUP_APPLICATION_VERSION__: string | undefined;
 // Standalone has its own release and signalling transport. Its casual rooms
 // must not be advertised as compatible with the legacy PML distribution.
-export const VERSION =
+export const APPLICATION_VERSION =
   typeof __POLYCUP_APPLICATION_VERSION__ === 'string'
     ? __POLYCUP_APPLICATION_VERSION__
     : LEGACY_VERSION;
+export const VERSION = ['0.6.3', '0.6.4', '0.6.5'].includes(APPLICATION_VERSION)
+  ? CUP_WIRE_VERSION : APPLICATION_VERSION;
 export const RULES = Object.freeze({
   points: [10, 8, 6, 5, 4, 3, 2, 1],
   target: 140,

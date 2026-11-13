@@ -1,5 +1,7 @@
 /** Shared client contract. The PML adapter supplies its platform explicitly. */
 export const RANKED_CLIENT_PROTOCOL = 2;
+/** Gameplay-compatible patch releases share this identity with existing hosts. */
+export const CUP_WIRE_VERSION = '0.6.3';
 export const NATIVE_GAME_VERSION = '0.6.3';
 export type ClientPlatform = Readonly<{
   distribution: 'standalone' | 'pml';
