@@ -21,6 +21,7 @@ import { RankedReconnectUI } from './ranked-reconnect-ui.ts';
 import { CupGuide } from './cup-guide.ts';
 import { CommunityUI, sharedChatCSS } from './shared-chat-ui.ts';
 import { PatchNotes, patchNotesCSS } from './patch-notes.ts';
+import { SeasonCountdown } from './season-countdown.ts';
 
 export interface CupHubOptions {
   rankedActivity?: HTMLElement;
@@ -34,6 +35,7 @@ export class CupHub {
   #dialog = h('dialog', undefined, 'cup-hub polycup-surface');
   #social = h('aside', undefined, 'hub-social');
   #list = h('div', undefined, 'hub-list');
+  #seasonCountdown = new SeasonCountdown();
   #error = h('p', undefined, 'error');
   #online = h('span', 'Online: —', 'hub-online-count');
   #onlineAt = 0;
@@ -412,7 +414,7 @@ export class CupHub {
         buttons[next].click();
         buttons[next].focus();
       });
-      this.#browserView.append(this.#error, listHeader, this.#list);
+      this.#browserView.append(this.#error, listHeader, this.#list, this.#seasonCountdown.element);
       const views = h('div', undefined, 'hub-views');
       views.append(
         this.#browserView,
@@ -426,7 +428,7 @@ export class CupHub {
       notes.classList.add('hub-patch-notes');
       header.append(notes);
       main.append(views, activities);
-    } else main.append(this.#error, listHeader, this.#list, activities);
+    } else main.append(this.#error, listHeader, this.#list, this.#seasonCountdown.element, activities);
     if (options.rankedActivity) {
       options.rankedActivity.addEventListener('polycup-leaderboards', () =>
         this.#selectView('leaderboards'),
@@ -770,6 +772,7 @@ export class CupHub {
       this.#entered();
       return;
     }
+    this.#seasonCountdown.start();
     if (!this.#dialog.open) this.#dialog.showModal();
     if (this.options.rankedActivity) this.#community?.start();
     if (this.options.rankedActivity) this.#selectView(this.#view);
@@ -821,6 +824,7 @@ export class CupHub {
     }, 15000);
   }
   close() {
+    this.#seasonCountdown.stop();
     this.#community?.stop();
     this.#account.closeSocial();
     if (this.options.rankedActivity) {
