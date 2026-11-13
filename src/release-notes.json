@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.7",
+    "date": "2026-11-14",
+    "entries": [
+      "Restore ranked multiplayer compatibility across patch releases and prevent cancelled loading attempts from reopening."
+    ],
+    "notes": []
+  },
+  {
     "version": "0.6.6",
     "date": "2026-11-14",
     "entries": [

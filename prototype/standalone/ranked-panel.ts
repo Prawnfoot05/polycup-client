@@ -489,6 +489,19 @@ export function installRankedPanel(
     find.disabled = busy || !raceHosting;
     const previous = proto.queueState;
     proto.queueState = q;
+    // A cancelled loading attempt no longer owns a connection or loading UI.
+    // Abort it before an outstanding admission/join response can revive it.
+    if (active && !entered && !finish.isOpen &&
+        (q.state !== 'matched' || q.match?.id !== active)) {
+      revision++;
+      proto.resetRankedConnection?.();
+      active = joined = '';
+      connecting = false;
+      loading.hide();
+      dialog.close();
+      practiceControl('resume');
+      if (!practiceControl('state').active) showMenu(true);
+    }
     if(q.state==='queued'&&Number.isFinite(Date.parse(q.joined_at)))
       queueJoinedAt=Date.now()-Math.max(0,Date.parse(q.server_time??new Date().toISOString())-Date.parse(q.joined_at));
     else if(q.state==='idle')queueJoinedAt=0;
@@ -641,7 +654,7 @@ export function installRankedPanel(
             '[data-accept-action=' + focusAction + ']:not(:disabled)',
           )
           ?.focus();
-    } else {
+    } else if (['drafting', 'racing'].includes(q.match.status)) {
       if (dialog.open) dialog.close();
       status.textContent = 'Preparing your match…';
       if (entered !== active) {
@@ -656,6 +669,10 @@ export function installRankedPanel(
         void refreshLoading();
       }
       void connect();
+    } else {
+      loading.hide();
+      if (q.match.status === 'cancelled') backToMenu();
+      else pendingFinish();
     }
   }
   async function refreshLoading() {
@@ -663,11 +680,14 @@ export function installRankedPanel(
     loadingBusy = true;
     try {
       const expected = active;
+      const expectedRevision = revision;
       const a = await request('admission', { match: expected });
-      if (active !== expected || entered === expected) return;
+      if (active !== expected || revision !== expectedRevision || entered === expected ||
+          proto.queueState?.state !== 'matched' || proto.queueState.match?.id !== expected) return;
       if (!['drafting', 'racing'].includes(a.status)) {
         loading.hide();
-        showMenu(true);
+        if (a.status === 'cancelled') backToMenu();
+        else if (['completed', 'review', 'disputed'].includes(a.status)) pendingFinish();
         return;
       }
       const track = proto.controller.availableTracks().find((t: any) => t.id === a.track);
@@ -710,9 +730,10 @@ export function installRankedPanel(
     if (connecting || joined === active || !active) return;
     connecting = true;
     const expected = active;
+    const expectedRevision = revision;
     try {
       const admission = await request('admission', { match: expected });
-      if(active!==expected)return;
+      if(active!==expected || revision!==expectedRevision || proto.queueState?.state!=='matched' || proto.queueState.match?.id!==expected)return;
       for (const p of admission.players ?? []) presentations.set(p.account, p);
       if (!['drafting', 'racing'].includes(admission.status)) return;
       saveGarageSnapshot(expected);
@@ -723,16 +744,17 @@ export function installRankedPanel(
       status.textContent = 'Connecting to race…';
       report('stage', { phase: 'assignment_received' });
       await proto.joinRanked(admission);
-      if(active!==expected)return;
+      if(active!==expected || revision!==expectedRevision)return;
       joined = expected;
       practiceControl('complete');
     } catch (e: any) {
+      if(active!==expected || revision!==expectedRevision)return;
       message.textContent = e.message;
       loading.hide();
       practiceControl('resume');
       if (!practiceControl('state').active) showMenu(true);
     } finally {
-      connecting = false;
+      if (revision === expectedRevision) connecting = false;
     }
   }
   const garageRows = (): FinishRow[] => {
@@ -770,6 +792,8 @@ export function installRankedPanel(
     finalView = undefined;
     active = joined = entered = '';
     revision++;
+    proto.resetRankedConnection?.();
+    connecting = false;
     proto.controller.connection?.dispose();
     window.dispatchEvent(new Event('polycup-return-menu'));
     showMenu(true);

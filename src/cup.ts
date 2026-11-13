@@ -20,8 +20,10 @@ export const APPLICATION_VERSION =
   typeof __POLYCUP_APPLICATION_VERSION__ === 'string'
     ? __POLYCUP_APPLICATION_VERSION__
     : LEGACY_VERSION;
-export const VERSION = ['0.6.3', '0.6.4', '0.6.5'].includes(APPLICATION_VERSION)
-  ? CUP_WIRE_VERSION : APPLICATION_VERSION;
+// Release patches must never change the transport identity. Native signalling,
+// PML metadata and Cup messages all use the same explicit protocol version.
+export const VERSION = typeof __POLYCUP_APPLICATION_VERSION__ === 'string'
+  ? CUP_WIRE_VERSION : LEGACY_VERSION;
 export const RULES = Object.freeze({
   points: [10, 8, 6, 5, 4, 3, 2, 1],
   target: 140,
