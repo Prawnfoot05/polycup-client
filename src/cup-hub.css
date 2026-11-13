@@ -141,3 +141,21 @@
 .hub-season-clock{font:400 27px/1.1 ForcedSquare,Arial,sans-serif;font-variant-numeric:tabular-nums;color:var(--ice);white-space:nowrap}.hub-season-deadline{grid-column:1/-1}
 @media(max-width:620px){.hub-season-countdown{width:100%;padding:8px 12px;gap:3px 12px}.hub-season-heading strong{font-size:21px}.hub-season-clock{font-size:24px}}
 @media(max-height:500px){.hub-season-countdown{width:auto;max-width:100%;grid-template-columns:auto auto auto;padding:6px 10px;gap:12px}.hub-season-heading{flex-direction:row;align-items:baseline;gap:10px}.hub-season-deadline{grid-column:auto}.hub-season-clock{font-size:23px}}
+/* Mobile navigation must expose account access before a player has signed in. */
+@media(max-width:620px),(max-height:500px){
+ .cup-hub[data-view=browser] .hub-main{overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+ .cup-hub[data-view=browser] .hub-views{flex:1 0 auto;min-height:160px}
+ .cup-hub[data-view=browser] .hub-browser-view{box-sizing:border-box;min-height:160px;overflow:visible}
+ .cup-hub[data-view=browser] .hub-list{flex:1 0 auto;overflow:visible;min-height:72px}
+ .cup-hub[data-view=browser] .hub-list.is-empty{min-height:72px}
+ .cup-hub .hub-activities{flex:none}
+ .cup-hub.hub-social-open .hub-social{overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+ .cup-hub.hub-social-open .account-embedded{height:auto!important;min-height:100%;overflow:visible}
+ .cup-hub.hub-social-open .account-embedded .account-body{flex:1 0 auto;overflow:visible}
+}
+@media(max-height:500px) and (max-width:700px){
+ .cup-hub[data-view=browser] .hub-activities{display:block}
+ .cup-hub[data-view=browser] #prototype-menu.hub-standalone-ranked{border-left:0;border-top:1px solid var(--pc-section-line);padding-left:0}
+}
+@media(max-width:620px),(max-height:500px){.cup-hub.hub-social-open .account-embedded .account-footer:has(button:only-child){display:none}}
+@media(max-height:500px){.hub-view-tabs .tab-full{display:none}.hub-view-tabs .tab-short{display:inline}.hub-tabbed .hub-view-tabs button{font-size:17px;padding-inline:10px}}

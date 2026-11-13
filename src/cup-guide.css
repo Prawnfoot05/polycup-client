@@ -279,3 +279,16 @@
 }
 
 .hub-activities .ranked-queue-identity h2:has(.ranked-guide-button) { width:100px; }
+/* Keep first-visit actions in reach after rotating into a short viewport. */
+@media(max-height:500px){
+ .cup-welcome{width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ .cup-welcome .welcome-body{padding:14px 20px 8px}
+ .cup-welcome .welcome-trophy{margin-bottom:8px;gap:10px}
+ .cup-welcome .welcome-trophy img{width:36px;height:36px}
+ .cup-welcome h2{font-size:24px}
+ .cup-welcome .welcome-greeting{margin:8px 0 12px;font-size:17px}
+ .cup-welcome .welcome-paths{padding-top:10px;gap:16px}
+ .cup-welcome .welcome-paths p{font-size:16px;margin-top:5px}
+ .cup-welcome footer{padding:8px 20px 14px}
+ .cup-welcome footer button{min-height:44px}
+}

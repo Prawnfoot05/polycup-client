@@ -300,16 +300,17 @@ export class CupHub {
       }, 'join');
     });
     const socialToggle = this.#button(
-      'Friends',
+      this.#account.account?.user && !this.#account.account.user.is_anonymous ? 'Friends' : 'Sign in',
       () => {
         const open = this.#dialog.classList.toggle('hub-social-open');
         socialToggle.setAttribute('aria-expanded', String(open));
-        socialToggle.textContent = open ? 'Browse' : 'Friends';
+        socialToggle.setAttribute('aria-label', open ? 'Browse lobbies' : this.#account.account?.user && !this.#account.account.user.is_anonymous ? 'Friends and account' : 'Sign in with Discord');
+        socialToggle.textContent = open ? 'Browse' : this.#account.account?.user && !this.#account.account.user.is_anonymous ? 'Friends' : 'Sign in';
       },
       true,
     );
     socialToggle.className = 'hub-mobile-social quiet';
-    socialToggle.setAttribute('aria-label', 'Friends and account');
+    socialToggle.setAttribute('aria-label', this.#account.account?.user && !this.#account.account.user.is_anonymous ? 'Friends and account' : 'Sign in with Discord');
     socialToggle.setAttribute('aria-expanded', 'false');
     header.append(socialToggle);
     // Navigation must remain available while room restoration/list refresh is pending.
@@ -595,7 +596,7 @@ export class CupHub {
     this.#dialog.classList.remove('hub-social-open');
     const socialToggle = this.#dialog.querySelector<HTMLButtonElement>('.hub-mobile-social');
     if (socialToggle) {
-      socialToggle.textContent = 'Friends';
+      socialToggle.textContent = this.#account.account?.user && !this.#account.account.user.is_anonymous ? 'Friends' : 'Sign in';
       socialToggle.setAttribute('aria-expanded', 'false');
     }
     this.#leaderboard?.close();
@@ -869,6 +870,11 @@ export class CupHub {
     coverNativeMenu(false);
   }
   async refresh() {
+    const accountToggle = this.#dialog.querySelector<HTMLButtonElement>('.hub-mobile-social');
+    if (accountToggle && !this.#dialog.classList.contains('hub-social-open')) {
+      accountToggle.setAttribute('aria-label', this.#account.account?.user && !this.#account.account.user.is_anonymous ? 'Friends and account' : 'Sign in with Discord');
+      accountToggle.textContent = this.#account.account?.user && !this.#account.account.user.is_anonymous ? 'Friends' : 'Sign in';
+    }
     void this.#seasonRewards.check(this.#account.account?.user?.id ?? null, this.#account.account?.social);
     if (this.#refreshing) return;
     if (this.#dialog.open && !this.#onlineBusy && Date.now() - this.#onlineAt >= 30000) {
