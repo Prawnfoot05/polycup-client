@@ -941,7 +941,8 @@ export class Controller {
       this.#state ? rulesFor(this.#state).uploadLeaderboardTimes === true : undefined,
     );
     if (!this.#state || this.localPlayerId === null) return;
-    const racing = Cup.racingIds(this.#state).includes(this.localPlayerId);
+    const racing = Cup.racingIds(this.#state).includes(this.localPlayerId) &&
+      !Cup.roundDone(this.#state, this.localPlayerId);
     if (racing && this.#cameraRestoredGame !== game) {
       this.#native.release?.(game, this.#drivingView);
       this.#cameraRestoredGame = game;
@@ -1646,7 +1647,8 @@ export class Controller {
       ? // The authoritative Cup roster owns departures and round completion. The
         // native lobby list can briefly omit a still-racing peer during delivery.
         standings(this.#state).map((row) => row.id).filter(
-          (id) => Cup.racingIds(this.#state).includes(id) && !Cup.roundDone(this.#state, id),
+          (id) => Cup.racingIds(this.#state).includes(id) &&
+            !this.#state!.runtime?.dnfs.includes(id) && !Cup.roundDone(this.#state, id),
         )
       : [];
   }
@@ -1697,7 +1699,9 @@ export class Controller {
       this.#native.presentation?.(game, true, true);
       this.#native.visibility(
         game,
-        this.hideOtherGhosts ? [] : Cup.racingIds(this.#state),
+        this.hideOtherGhosts ? [] : Cup.racingIds(this.#state).filter(
+          (id) => !this.#state!.runtime?.dnfs.includes(id),
+        ),
         this.#selfId,
       );
       this.#filteredCars = true;
@@ -1715,7 +1719,15 @@ export class Controller {
       return;
     }
     const now = this.now(),
-      active = Cup.racingIds(this.#state);
+      active = Cup.racingIds(this.#state).filter((id) => !this.#state!.runtime?.dnfs.includes(id));
+    // Preserve a previous camera only while that racer is still competing. A
+    // buffered pose must not keep a retired/left racer selected or visible.
+    if (this.#followingId !== null && !this.watchable().includes(this.#followingId)) {
+      this.#followingId = null;
+      this.#watchedPose = null;
+      this.#lastWatchPose = null;
+      this.#lastSubscribe = 0;
+    }
     if (this.canSpectate() && !this.watchable().includes(this.#watchId!))
       this.selectWatch(this.watchable()[0]);
     if (!spectating && this.#followingGame === game) {
