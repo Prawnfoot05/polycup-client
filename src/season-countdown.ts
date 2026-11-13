@@ -29,7 +29,7 @@ export class SeasonCountdown {
   }
   update(now = Date.now()) {
     const state = seasonCountdown(now);
-    this.#label.textContent = state.ended ? 'Season 0 has ended' : 'Season 0 ends in';
+    this.element.hidden = state.ended;
     this.#value.textContent = state.text;
     this.#value.hidden = state.ended;
   }

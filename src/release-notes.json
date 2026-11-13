@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.6.6",
+    "date": "2026-11-14",
+    "entries": [
+      "Season 1 launch polish: remove the expired countdown panel, restore Mythic achievement tiers, and show final seasonal positions on season reward badges.",
+      "More reliable official PolyTrack placements, including million-entry leaderboards and retries after temporary lookup failures."
+    ],
+    "notes": []
+  },
+  {
     "version": "0.6.5",
     "date": "2026-11-14",
     "entries": [

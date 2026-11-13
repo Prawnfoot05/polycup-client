@@ -1,6 +1,6 @@
 # PolyCup
 
-PolyCup 0.6.5, by Kiki. Ranked and casual multiplayer for PolyTrack 0.6.3, built with PolyModLoader.
+PolyCup 0.6.6, by Kiki. Ranked and casual multiplayer for PolyTrack 0.6.3, built with PolyModLoader.
 
 One-round ranked races, casual FFA and teams, practice while queued, match replays, track leaderboards, and player profiles with social features and unlockable rewards.
 

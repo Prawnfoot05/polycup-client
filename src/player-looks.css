@@ -9,6 +9,12 @@
 .player-achievements>.player-achievement,.player-achievements>.achievement-empty{display:inline-grid;place-items:center;flex:none;width:var(--medal-size);height:var(--medal-size);margin:0}
 .player-achievements>.player-achievement img,.player-achievements>.achievement-empty img{display:block;width:100%;height:100%;object-fit:contain;margin:0}
 .player-achievement:focus-visible{outline:2px solid var(--pc-gold);outline-offset:2px}
+.season-badge-detail{position:fixed;inset:auto;margin:0;box-sizing:border-box;display:none;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:10px;width:max-content;max-width:calc(100vw - 16px);padding:10px 12px;background:var(--pc-hover,#344c76);color:var(--pc-text,#fff);border:0;box-shadow:0 5px 18px #0005;font:400 16px/1.3 ForcedSquare,Arial,sans-serif;pointer-events:none}
+.season-badge-detail:popover-open{display:grid}
+.player-achievements .season-badge-detail>img{width:44px;height:44px;object-fit:contain}
+.season-badge-labels{display:flex;flex-direction:column;gap:4px;min-width:0}
+.season-badge-rarity{color:var(--pc-muted,#b7c6e0);font-size:14px}
+.season-badge-position{align-self:end;font-size:14px;white-space:nowrap;margin-left:8px}
 .profile-rewards{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .profile-rewards>button{margin-left:auto}
 .profile-identity .player-title{margin-top:5px;font-size:18px}

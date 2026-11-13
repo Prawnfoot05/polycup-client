@@ -22,6 +22,7 @@ export interface EquippedCosmetics {
   frame_id?: string | null;
   achievement_ids?: string[];
   achievement_variants?: Record<string, string>;
+  achievement_positions?: Record<string, number>;
 }
 export interface PlayerLooks extends EquippedCosmetics {
   player_id: string;
@@ -85,7 +86,7 @@ export function cosmeticURL(item?: CosmeticItem) {
     ? clientAsset('cosmetics/' + item.art, import.meta.url || document.baseURI)
     : '';
 }
-export function cosmeticBadge(id: string, variant?: string | null) {
+export function cosmeticBadge(id: string, variant?: string | null, seasonPosition?: number) {
   const item = cosmetic(id, 'achievement', variant);
   if (!item) return null;
   const badge = h('span', undefined, 'player-achievement');
@@ -96,6 +97,32 @@ export function cosmeticBadge(id: string, variant?: string | null) {
   badge.tabIndex = 0;
   badge.setAttribute('aria-label', badge.title);
   badge.append(image);
+  if (/^season\d+_rank$/.test(item.metric) && validGlobalPosition(seasonPosition)) {
+    const detail = h('span', undefined, 'season-badge-detail');
+    detail.setAttribute('popover', 'manual');
+    detail.setAttribute('role', 'tooltip');
+    const art = h('img');
+    art.src = image.src;
+    art.alt = '';
+    const labels = h('span', undefined, 'season-badge-labels');
+    labels.append(h('strong', item.name), h('span', rewardRarity(item.rarity).name, 'season-badge-rarity'));
+    detail.append(art, labels, h('strong', `#${seasonPosition}`, 'season-badge-position'));
+    badge.append(detail);
+    badge.removeAttribute('title');
+    badge.setAttribute('aria-label', `${item.name} · ${rewardRarity(item.rarity).name} · #${seasonPosition}`);
+    const hide = () => { if (detail.matches(':popover-open')) detail.hidePopover(); };
+    const show = () => {
+      if (!badge.isConnected || detail.matches(':popover-open')) return;
+      detail.showPopover();
+      const a = badge.getBoundingClientRect(), b = detail.getBoundingClientRect();
+      detail.style.left = Math.max(8, Math.min(a.left, innerWidth - b.width - 8)) + 'px';
+      detail.style.top = Math.max(8, a.top >= b.height + 12 ? a.top - b.height - 8 : Math.min(a.bottom + 8, innerHeight - b.height - 8)) + 'px';
+    };
+    badge.onpointerenter = show;
+    badge.onpointerleave = hide;
+    badge.onfocus = show;
+    badge.onblur = hide;
+  }
   return badge;
 }
 /** Three stable slots, including the supplied artwork for unequipped medals. */
@@ -109,13 +136,13 @@ export function playerAchievements() {
 export function paintPlayerAchievements(slots: HTMLElement, looks: EquippedCosmetics = {}) {
   const ids = looks.achievement_ids ?? [];
   const signature = JSON.stringify(
-    ids.slice(0, 3).map((id) => [id, looks.achievement_variants?.[id]]),
+    ids.slice(0, 3).map((id) => [id, looks.achievement_variants?.[id], looks.achievement_positions?.[id]]),
   );
   if (slots.dataset.achievementSelection === signature) return;
   slots.dataset.achievementSelection = signature;
   slots.replaceChildren();
   for (let i = 0; i < 3; i++) {
-    const badge = ids[i] ? cosmeticBadge(ids[i], looks.achievement_variants?.[ids[i]]) : null;
+    const badge = ids[i] ? cosmeticBadge(ids[i], looks.achievement_variants?.[ids[i]], looks.achievement_positions?.[ids[i]]) : null;
     if (badge) {
       // Player labels also occur inside profile buttons; avoid nested tab stops.
       if (slots.closest('button,a')) badge.removeAttribute('tabindex');

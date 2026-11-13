@@ -471,6 +471,7 @@ export class SocialUI {
       paintPlayerAchievements(badges, {
         achievement_ids: ids,
         achievement_variants: p.cosmetics?.achievement_variants,
+        achievement_positions: p.cosmetics?.achievement_positions,
       });
     };
     drawBadges(p.cosmetics?.achievement_ids ?? []);

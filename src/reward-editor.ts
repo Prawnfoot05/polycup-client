@@ -69,6 +69,7 @@ export function rewardEditor(
     frame_id: null,
     achievement_ids: [...(collection.achievement_ids ?? [])],
     achievement_variants: { ...(collection.achievement_variants ?? {}) },
+    achievement_positions: { ...(collection.achievement_positions ?? {}) },
   };
   const unlocked = new Map(collection.items.map((item) => [item.id, item]));
   const nav = h('nav'),
@@ -205,7 +206,7 @@ export function rewardEditor(
   const drawSummary = () => {
     summary.replaceChildren(h('span', `${selection.achievement_ids.length} / 3 achievements`));
     for (const id of selection.achievement_ids) {
-      const badge = cosmeticBadge(id, unlocked.get(id)?.variant);
+      const badge = cosmeticBadge(id, unlocked.get(id)?.variant, collection.achievement_positions?.[id]);
       if (badge) summary.append(badge);
     }
   };
