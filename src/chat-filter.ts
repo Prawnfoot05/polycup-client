@@ -1,4 +1,4 @@
-const slurs = [
+export const slurs = [
   'nigger',
   'niggers',
   'nigga',
@@ -34,14 +34,20 @@ const slurs = [
   'sandniggers',
   'jigaboo',
   'jigaboos',
+  'dyke', 'dykes', 'beaner', 'beaners', 'zipperhead', 'zipperheads',
+  'nigglet', 'nigglets',
 ];
 const groups =
   '(?:jews|jewish people|blacks|black people|muslims|gays|gay people|trans people|immigrants|women|romani|roma|asians|white people)';
-const hate = [
-  new RegExp(`\\b(?:kill|gas|exterminate|lynch)(?: all| the| all the)? ${groups}\\b`, 'g'),
-  /\b(?:heil hitler|sieg heil|white power)\b/g,
+export const hatePatterns = [
+  `\\b(?:kill|gas|exterminate|lynch)(?: all| the| all the)? ${groups}\\b`,
+  `\\b(?:all |the )?${groups} (?:should|must|deserve to) (?:die|be killed|be exterminated)\\b`,
+  `\\b(?:all |the )?${groups} are (?:subhuman|vermin|a disease)\\b`,
+  '\\b(?:heil hitler|sieg heil|white power)\\b',
 ];
-const substitutions: Record<string, string> = {
+const hate = hatePatterns.map(pattern => new RegExp(pattern, 'g'));
+
+export const substitutions: Record<string, string> = {
   '0': 'o',
   '1': 'i',
   '!': 'i',
@@ -60,11 +66,11 @@ const substitutions: Record<string, string> = {
   ѕ: 's',
   х: 'x',
   у: 'y',
+  κ: 'k', ν: 'n', ι: 'i', ο: 'o', ε: 'e', α: 'a', τ: 't',
+  ɡ: 'g', ı: 'i', ӏ: 'l', ⅼ: 'l',
 };
-const patterns = slurs.map(
-  (word) =>
-    new RegExp(`(?<![a-z])${[...word].map((c) => `${c}+`).join('[\\s._*\\-]*')}(?![a-z])`, 'g'),
-);
+export const slurPatterns = slurs.map(word => `(?<![a-z])${[...word].map(c=>`${c}+`).join('[^a-z0-9]*')}(?![a-z])`);
+const patterns = slurPatterns.map(pattern => new RegExp(pattern,'g'));
 
 export function cleanChatText(text: string) {
   return text
@@ -98,5 +104,5 @@ export function filterChat(text: string) {
       for (let i = first; i <= last; i++) if (!/\s/u.test(original[i])) masked.add(i);
     }
   }
-  return original.map((c, i) => (masked.has(i) ? '*' : c)).join('');
+  return original.map((c, i) => (masked.has(i) ? '*' : c)).join('').replace(/\p{Cf}/gu, '');
 }

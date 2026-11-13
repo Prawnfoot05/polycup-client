@@ -3,6 +3,7 @@ import { PendingActions } from './pending-actions.ts';
 
 export const CHAT_LIMIT = 400;
 export interface ChatLine {
+  account?: string;
   seq: number;
   at: number;
   speaker: number;
@@ -45,6 +46,8 @@ function validLine(value: unknown): value is ChatLine {
   if (!value || typeof value !== 'object') return false;
   const l = value as ChatLine;
   return (
+    (l.account === undefined ||
+      (typeof l.account === 'string' && /^[a-f0-9-]{36}$/i.test(l.account))) &&
     Number.isSafeInteger(l.seq) &&
     l.seq > 0 &&
     Number.isSafeInteger(l.at) &&
@@ -243,6 +246,7 @@ export class CupChat {
             color: speaker.color,
             name: speaker.name,
             text,
+            account: /^ranked:[a-f0-9-]{36}$/i.test(peer.key) ? peer.key.slice(7) : undefined,
           };
           this.#lines.push(line);
           this.#seen.set(nonce, line.seq);

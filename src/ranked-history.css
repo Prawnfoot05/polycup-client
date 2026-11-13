@@ -63,7 +63,7 @@
 .ranked-history-change.positive { color: var(--pc-positive); }
 .ranked-history-change.negative { color: var(--pc-danger); }
 .ranked-history-note { color: var(--pc-muted); margin: 8px 0 20px; }
-.ranked-result-columns,.ranked-result-row { display: grid; grid-template-columns: 40px minmax(0,1fr) 100px 90px 95px; align-items: center; gap: 10px; padding: 14px 8px; border-bottom: 1px solid var(--pc-line); }
+.ranked-result-columns,.ranked-result-row { display: grid; grid-template-columns: 40px minmax(0,1fr) 100px 100px 95px; align-items: center; gap: 10px; padding: 14px 8px; border-bottom: 1px solid var(--pc-line); }
 .ranked-result-columns {color:var(--pc-muted);font-size:16px;border:0;padding-block:4px 12px;}
 .ranked-result-row { padding-block:6px; }
 .ranked-result-columns > :nth-child(n+3){text-align:right}
@@ -96,7 +96,7 @@
 @media (max-width: 460px) {
   .ranked-history { font-size: 16px; }
   .ranked-history-body { padding: 10px 8px; }
-  .ranked-result-columns,.ranked-result-row { grid-template-columns: 28px minmax(150px,1fr) 76px 60px 70px; gap: 6px; }
+  .ranked-result-columns,.ranked-result-row { grid-template-columns: 28px minmax(150px,1fr) 76px 82px 70px; gap: 6px; }
   .ranked-history .ranked-history-row, .ranked-history-columns { gap: 5px; padding-inline: 4px; }
 }
 
@@ -160,3 +160,13 @@
 .ranked-result-time,.ranked-history-time{font-variant-numeric:tabular-nums;white-space:nowrap}
 @media(max-width:600px){.ranked-history-body.is-rich .ranked-history-time{grid-area:time;justify-self:start!important}}
 @media(max-width:460px){.ranked-history[data-view=match] :is(.ranked-result-columns,.ranked-result-row){min-width:455px;box-sizing:border-box}}
+
+.ranked-result-columns>:is(:nth-child(3),:nth-child(4)),.ranked-result-row>.ranked-result-time{text-align:center}
+.ranked-result-rating{display:flex;justify-content:center}
+.ranked-result-rating .ranked-rating-badge{width:96px;height:29px}
+.ranked-result-rating .ranked-rating-value{font-size:25px}
+@media(max-width:600px){.ranked-result-rating .ranked-rating-badge{width:82px;height:26px}.ranked-result-rating .ranked-rating-value{font-size:21px}}
+
+.history-scope-tabs>select{margin-left:auto;align-self:center;max-width:190px;min-width:0;box-sizing:border-box;min-height:36px;height:36px;padding:8px 36px 8px 12px;border:0;border-bottom:1px solid var(--pc-line);border-radius:0;background-color:#13214a;color:#a6b9d3;font:400 18px/1 ForcedSquare,Arial,sans-serif;--focus-cut:8px;clip-path:var(--cut)}
+@media(max-width:620px){.history-scope-tabs>select{font-size:16px}}
+@media(max-height:500px){.history-scope-tabs>select{min-height:32px;height:32px;padding-block:4px;font-size:16px}}

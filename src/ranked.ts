@@ -185,6 +185,7 @@ export interface RankedMatchResult {
   finished_at: string;
   rounds: number;
   players: {
+    rank?: Pick<RankedProfile, 'tier' | 'rating' | 'gm_position' | 'provisional'> | null;
     avatar_url?: string;
     abandoned?: boolean;
     time_ms?: number | null;
@@ -205,12 +206,23 @@ export interface RankedMatchResult {
   }[];
 }
 export interface CasualHistoryEntry {
-  match_id: string; title: string; mode: 'ffa' | 'teams'; finished_at: string;
-  rounds: number; player_count: number; place: number;
+  match_id: string;
+  title: string;
+  mode: 'ffa' | 'teams';
+  finished_at: string;
+  rounds: number;
+  player_count: number;
+  place: number;
 }
-export interface CasualMatchResult extends Omit<CasualHistoryEntry,'place' | 'player_count'> {
-  players: {player_id: string | null; display_name: string; avatar_url?: string;
-    team?: 'blue' | 'red'; place: number; score: number}[];
+export interface CasualMatchResult extends Omit<CasualHistoryEntry, 'place' | 'player_count'> {
+  players: {
+    player_id: string | null;
+    display_name: string;
+    avatar_url?: string;
+    team?: 'blue' | 'red';
+    place: number;
+    score: number;
+  }[];
 }
 export interface RankedQueueInfo {
   enabled: boolean;
@@ -387,8 +399,16 @@ export class Ranked {
   ): Promise<boolean> {
     return this.rpc('polycup_submit_input_run', { match_key: match, instance_key: instance, run });
   }
-  saveGarageSnapshot(match: string, instance: string, profile: { name: string; country?: string | null; style?: string }): Promise<boolean> {
-    return this.rpc('polycup_ranked_garage_snapshot', { match_key: match, instance_key: instance, profile });
+  saveGarageSnapshot(
+    match: string,
+    instance: string,
+    profile: { name: string; country?: string | null; style?: string },
+  ): Promise<boolean> {
+    return this.rpc('polycup_ranked_garage_snapshot', {
+      match_key: match,
+      instance_key: instance,
+      profile,
+    });
   }
   submitReplayRun(
     match: string,
@@ -517,26 +537,28 @@ export class Ranked {
     const pictures = await this.pictures(rows.map((r) => r.player_id));
     return rows.map((r) => ({ ...r, avatar_url: pictures[r.player_id] }));
   }
-  #historyV2 = true;
-  async history(playerId: string, pageSize = 20, pageOffset = 0): Promise<RankedHistoryEntry[]> {
-    const args = { player_key: playerId, page_size: pageSize, page_offset: pageOffset };
-    if (this.#historyV2)
-      try {
-        return await this.rpc<RankedHistoryEntry[]>('polycup_ranked_history_v2', args);
-      } catch (error) {
-        // A backend without the richer rows keeps the original history.
-        if ((error as { code?: string }).code !== 'PGRST202') throw error;
-        this.#historyV2 = false;
-      }
-    return this.rpc('polycup_ranked_history', args);
+  async history(
+    playerId: string,
+    pageSize = 20,
+    pageOffset = 0,
+    season: string | null = null,
+  ): Promise<RankedHistoryEntry[]> {
+    return this.rpc('polycup_ranked_history_season', {
+      player_key: playerId,
+      page_size: pageSize,
+      page_offset: pageOffset,
+      season_key: season,
+    });
   }
   casualHistory(player: string, size = 20, offset = 0) {
     return this.rpc<CasualHistoryEntry[]>('polycup_casual_history', {
-      player_key: player, page_size: size, page_offset: offset,
+      player_key: player,
+      page_size: size,
+      page_offset: offset,
     });
   }
   casualResult(match: string) {
-    return this.rpc<CasualMatchResult>('polycup_casual_result', {match_key: match});
+    return this.rpc<CasualMatchResult>('polycup_casual_result', { match_key: match });
   }
 
   async session(

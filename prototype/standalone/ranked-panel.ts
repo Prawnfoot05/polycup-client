@@ -69,16 +69,42 @@ export function installRankedPanel(
       resultChat?.ui.stop();
       resultChat = {
         match,
-        ui: new SharedChatUI(new RankedResultsChat(proto.ui.account.chat('ranked:' + match), proto.controller, match), 'Match chat', undefined, 'frames'),
+        ui: new SharedChatUI(new RankedResultsChat(proto.ui.account.chat('ranked:' + match), proto.controller, match, id => presentations.get(id)), 'Match chat', undefined, 'frames'),
       };
     }
     return resultChat.ui;
   };
   const presentations = new Map<string, any>();
   let presentationMatch = '';
-  // Leaving processing results dismisses their presentation, not settlement.
+  // Leaving results dismisses their presentation, not settlement.
   // Late ratings remain in history; never reopen them over a later activity.
   const dismissedPendingResults = new Set<string>();
+  const connectionNotice = document.createElement('div');
+  connectionNotice.id = 'polycup-ranked-connection';
+  connectionNotice.setAttribute('role', 'status');
+  connectionNotice.hidden = true;
+  connectionNotice.style.cssText = 'position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:10000;padding:.7rem 1rem;background:#192343;color:#ffdb70;border-top:2px solid #ffdb70;pointer-events:none;max-width:80vw';
+  document.body.append(connectionNotice);
+  window.addEventListener('polycup-return-menu', () => { connectionNotice.hidden = true; });
+  function endLostConnection() {
+    if (!active || resultOpen || finish.isOpen || !proto.rankedMatch) return;
+    connectionNotice.hidden = true;
+    report('stage', {phase:'ranked_connection_ended',match:active});
+    proto.controller.captureReplayRun(true);
+    // Stop the native session: a racer must never keep driving after losing
+    // their authoritative connection and mistake that local run for a result.
+    pendingFinish('Connection lost. Your race has stopped; waiting for the server result.');
+    proto.controller.connection?.dispose();
+    window.dispatchEvent(new Event('polycup-return-menu'));
+  }
+  window.addEventListener('polycup-ranked-transport', ((event: CustomEvent) => {
+    if (!active || resultOpen || finish.isOpen || !proto.rankedMatch) return;
+    if (event.detail.phase === 'rtc_recovering') {
+      connectionNotice.textContent = 'Connection interrupted · Reconnecting…';
+      connectionNotice.hidden = false;
+    } else if (event.detail.phase === 'rtc_recovered') connectionNotice.hidden = true;
+    else if (event.detail.phase === 'rtc_recovery_expired') endLostConnection();
+  }) as EventListener);
   let entered = '',
     loadingBusy = false;
   proto.loading = loading;
@@ -558,6 +584,8 @@ export function installRankedPanel(
       return;
     }
     active = q.match.id;
+    if (['drafting', 'racing'].includes(q.match.status)) loading.setChat(matchChat(active));
+    if (q.match.abandoned && !resultOpen && proto.rankedMatch) endLostConnection();
     if (presentationMatch !== active) {
       presentations.clear();
       garageNames.clear();
@@ -729,7 +757,8 @@ export function installRankedPanel(
     });
   };
   const backToMenu = () => {
-    if (active && !resultOpen) {
+    connectionNotice.hidden = true;
+    if (active) {
       dismissedPendingResults.add(active);
       if (dismissedPendingResults.size > 32)
         dismissedPendingResults.delete(dismissedPendingResults.values().next().value!);
@@ -744,18 +773,25 @@ export function installRankedPanel(
     showMenu(true);
     nextIdlePoll = 0;
   };
-  function pendingFinish() {
+  function pendingFinish(notice = '') {
     if (finish.isOpen || !active || dismissedPendingResults.has(active)) return;
     loading.hide();
     showMenu(false);
     proto.controller.requestPanel(false);
     const localRows = garageRows();
+    const localTrack = proto.controller.nativeState?.id === active
+      ? proto.controller.nativeState.tracks?.[0] : undefined;
+    let trackArt: string | Promise<string> | undefined;
+    try {
+      trackArt = proto.controller.availableTracks().find((t: any) => t.id === localTrack?.id)?.thumbnail;
+    } catch { /* Optional artwork must not hold up results. */ }
     finish.show({
       key: active,
       ranked: true,
       title: 'Match finished',
       subtitle: '',
-      track: proto.controller.nativeState?.id === active ? proto.controller.nativeState.tracks?.[0]?.name : undefined,
+      track: localTrack?.name,
+      trackArt,
       rows: localRows.length ? localRows : [...presentations].map(([account, p]) => {
         const name = document.createElement('span');
         name.className = 'player-with-portrait';
@@ -764,6 +800,7 @@ export function installRankedPanel(
       }),
       self: player,
       pending: true,
+      notice,
       chat: matchChat(active),
       actions: [{ label: 'Back to menu', run: backToMenu }],
     });
@@ -808,6 +845,7 @@ export function installRankedPanel(
           // Keep checking the result; do not retry the denied admission or send
           // this expected state through network-outage exponential backoff.
           deniedResultAdmission = expected;
+          endLostConnection();
           return;
         }
         throw error;
@@ -849,6 +887,7 @@ export function installRankedPanel(
     const own = r.players.find((p: any) => p.player_id === player);
     if (!own && !unrated) return;
     resultOpen = true;
+    connectionNotice.hidden = true;
     dismissedPendingResults.delete(r.match_id);
     showMenu(false);
     loading.hide();
@@ -910,8 +949,11 @@ export function installRankedPanel(
     };
     const winner = r.players.filter((p: any) => p.place === 1 && !p.abandoned);
     const name = winner.length === 1 ? winner[0].display_name : '';
-    const resultTrack = proto.controller.availableTracks().find((t: any) => t.id === r.track_id)?.name ??
-      (proto.controller.nativeState?.id === r.match_id ? proto.controller.nativeState.tracks?.[0]?.name : undefined);
+    const nativeTrack = proto.controller.nativeState?.id === r.match_id
+      ? proto.controller.nativeState.tracks?.[0] : undefined;
+    const resultTrackEntry = proto.controller.availableTracks().find((t: any) => t.id === (r.track_id ?? nativeTrack?.id));
+    const resultTrack = resultTrackEntry?.name ??
+      nativeTrack?.name;
     finalView = {
       key: r.match_id,
       chat: matchChat(r.match_id),
@@ -935,6 +977,7 @@ export function installRankedPanel(
           ? 'You conceded or left the match.'
           : (resultTrack ?? ''),
       track: resultTrack,
+      trackArt: resultTrackEntry?.thumbnail,
       openTrackRecords: r.track_id || proto.controller.nativeState?.tracks?.[0]?.id ? async () => {
         const track=r.track_id || proto.controller.nativeState?.tracks?.[0]?.id;
         // Keep the postgame screen and any queued search alive underneath records.

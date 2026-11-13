@@ -39,6 +39,15 @@
   --red:var(--pc-danger);
 }
 :host { color:var(--pc-text); }
+/* A row owns a single full-width interaction plate, including its artwork. */
+.pc-clickable-row{position:relative;isolation:isolate;cursor:pointer}
+.pc-clickable-row>*{position:relative;z-index:1}
+.pc-clickable-row::after{content:'';position:absolute;inset:0 auto 0 0;z-index:0;width:0;box-sizing:border-box;pointer-events:none;clip-path:inherit;background:var(--pc-action-hover)!important;border-bottom:3px solid var(--pc-text)!important;transition:width .12s ease-out}
+.pc-clickable-row:is(:hover,:focus-visible)::after,.pc-clickable-row:has([data-row-action]:focus-visible)::after{width:100%}
+.pc-clickable-row:is(:focus-visible),.pc-clickable-row:has([data-row-action]:focus-visible){outline:2px solid var(--pc-gold);outline-offset:-2px}
+.ranked-history .ranked-history-row.pc-clickable-row:is(:hover,:focus-visible){background:transparent!important}
+.pc-clickable-row [data-row-action]{background:transparent!important;box-shadow:none!important;text-decoration:none!important;color:inherit!important;outline:none!important}
+.pc-clickable-row [data-row-action]::after{display:none!important}
 .polycup-surface {
   color:var(--pc-text);
   background:var(--pc-panel);

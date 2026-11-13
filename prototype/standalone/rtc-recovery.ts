@@ -3,7 +3,7 @@
 export function protectTransientDisconnect(
   pc: RTCPeerConnection,
   report: (phase: string) => void = () => {},
-  delay = 3000,
+  delay = 15000,
 ) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let releasing = false;

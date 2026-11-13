@@ -463,7 +463,7 @@ export function startRace(state: CupState, now: number) {
   touch(state);
 }
 /** A stable diagnostic reason; this is also the single source of acceptance rules. */
-export function finishRejection(state: CupState, id: number, frames: number, now: number) {
+export function finishRejection(state: CupState, id: number, frames: number, now: number, deliveryGraceMs = 1500) {
   if (state.phase !== 'racing') return 'not_racing';
   if (!activeIds(state).includes(id)) return 'not_in_roster';
   const run = state.runtime;
@@ -474,12 +474,12 @@ export function finishRejection(state: CupState, id: number, frames: number, now
   if (!Number.isSafeInteger(frames) || frames <= 0 || frames > 3600000) return 'invalid_time';
   // PolyTrack uses 1000 physics frames per second. Do not accept a finish from a prior run.
   if (frames > now - run.startsAt + 2000) return 'ahead_of_clock';
-  if (run.deadline !== null && now > run.deadline + 1500) return 'delivery_deadline';
+  if (run.deadline !== null && now > run.deadline + deliveryGraceMs) return 'delivery_deadline';
   if (run.deadline !== null && frames > run.deadline - run.startsAt) return 'finish_window';
   return null;
 }
-export function recordFinish(state: CupState, id: number, frames: number, now: number) {
-  if (finishRejection(state, id, frames, now)) return false;
+export function recordFinish(state: CupState, id: number, frames: number, now: number, deliveryGraceMs = 1500) {
+  if (finishRejection(state, id, frames, now, deliveryGraceMs)) return false;
   const run = state.runtime!;
   awardFinish(run, id, frames);
   run.finishes[id] = frames;

@@ -1,4 +1,5 @@
 import { installErrorDismissal } from './dismissible-errors.ts';
+import { clickableRow } from './clickable-row.ts';
 import { playerName as playerLabel } from './cosmetics.ts';
 import { playerLooks } from './player-looks.ts';
 import { element as h } from './dom.ts';
@@ -23,6 +24,8 @@ const trackNames = new Map(rankedTracks.map((track) => [track.id, track.name]));
 const PAGE_SIZE = 20;
 
 export class RankedHistoryUI {
+  #season = h('select');
+  #seasonKey: string | null = null;
   #scope: 'ranked' | 'casual' = 'ranked';
   #scopeTabs = h('nav', undefined, 'history-scope-tabs');
   #casualRows: CasualHistoryEntry[] = [];
@@ -62,6 +65,7 @@ export class RankedHistoryUI {
     _trackRecords?: (track: string, player?: string, season?: string) => void,
   ) {
     this.#shadow = shadow;
+    this.#name.dataset.playerBanner = 'off';
     protectUITouches(shadow);
     installErrorDismissal(shadow);
     shadow.append(h('style', css + rankCSS + profilePictureCSS));
@@ -77,15 +81,26 @@ export class RankedHistoryUI {
     this.#feedback.hidden = true;
     this.#feedback.setAttribute('role', 'status');
     this.#scopeTabs.setAttribute('aria-label', 'Match type');
-    for (const scope of ['ranked','casual'] as const) {
+    for (const scope of ['ranked', 'casual'] as const) {
       const button = this.#button(scope === 'ranked' ? 'Ranked' : 'Casual', () => {
         if (this.#scope === scope) return;
-        this.#scope = scope; this.#offset = 0; this.#hasContent = false;
-        this.#matchTrack.replaceChildren(); this.#paintScope(); void this.#load();
+        this.#scope = scope;
+        this.#offset = 0;
+        this.#hasContent = false;
+        this.#matchTrack.replaceChildren();
+        this.#paintScope();
+        void this.#load();
       });
       button.dataset.scope = scope;
       this.#scopeTabs.append(button);
     }
+    this.#season.setAttribute('aria-label', 'History season');
+    this.#season.onchange = () => {
+      this.#seasonKey = this.#season.value;
+      this.#offset = 0;
+      void this.#load();
+    };
+    this.#scopeTabs.append(this.#season);
     this.#paintScope();
     this.#dialog.append(header, this.#scopeTabs, this.#body, this.#feedback, this.#footer);
     this.#dialog.addEventListener('close', () => {
@@ -134,8 +149,42 @@ export class RankedHistoryUI {
       if (this.#embedded) this.#dialog.open = true;
       else this.#dialog.showModal();
     }
-    if (match) void this.#details(match);
-    else void this.#load();
+    if (match) {
+      void this.#details(match);
+      void client
+        .seasons()
+        .then((seasons) => {
+          if (identityGeneration !== this.#identityGeneration || !this.#dialog.open) return;
+          this.#season.replaceChildren();
+          for (const season of seasons) {
+            const o = h('option', season.name);
+            o.value = season.id;
+            this.#season.append(o);
+          }
+          this.#season.value = this.#seasonKey ?? seasons.find((s) => s.active)?.id ?? '';
+        })
+        .catch(() => {});
+    } else {
+      const generation = ++this.#generation;
+      void client
+        .seasons()
+        .then((seasons) => {
+          if (generation !== this.#generation || !this.#dialog.open) return;
+          this.#season.replaceChildren();
+          for (const season of seasons) {
+            const o = h('option', season.name);
+            o.value = season.id;
+            this.#season.append(o);
+          }
+          if (!seasons.some((s) => s.id === this.#seasonKey))
+            this.#seasonKey = seasons.find((s) => s.active)?.id ?? seasons[0]?.id ?? null;
+          this.#season.value = this.#seasonKey ?? '';
+          void this.#load();
+        })
+        .catch(() => {
+          if (generation === this.#generation) void this.#load();
+        });
+    }
   }
 
   close() {
@@ -187,9 +236,15 @@ export class RankedHistoryUI {
     error.setAttribute('role', 'alert');
     this.#body.replaceChildren(error, this.#button('Retry', retry));
     this.#footer.replaceChildren(
-      this.#button('Back', () => this.#scope === 'casual'
-        ? (this.#casualRows.length ? this.#casualList() : this.close())
-        : (this.#rows.length ? this.#list() : this.close())),
+      this.#button('Back', () =>
+        this.#scope === 'casual'
+          ? this.#casualRows.length
+            ? this.#casualList()
+            : this.close()
+          : this.#rows.length
+            ? this.#list()
+            : this.close(),
+      ),
     );
   }
 
@@ -199,7 +254,12 @@ export class RankedHistoryUI {
     this.#pending();
     try {
       // One extra row determines Next without a separate count query.
-      const rows = await this.#client!.history(this.#player, PAGE_SIZE + 1, offset);
+      const rows = await this.#client!.history(
+        this.#player,
+        PAGE_SIZE + 1,
+        offset,
+        this.#seasonKey,
+      );
       if (generation !== this.#generation || !this.#dialog.open) return;
       let checks: InputReview[] | null = null;
 
@@ -247,7 +307,7 @@ export class RankedHistoryUI {
       }
       for (const row of this.#rows.slice(0, PAGE_SIZE)) {
         const button = this.#button('', () => void this.#details(row.match_id));
-        button.className = 'ranked-history-row';
+        button.className = 'ranked-history-row pc-clickable-row';
         button.title = 'View match';
         const time = h(
           'time',
@@ -266,7 +326,11 @@ export class RankedHistoryUI {
             place,
             this.#track(row, time, artwork),
             this.#racers(row),
-            h('span', typeof row.time_ms === 'number' && row.time_ms > 0 ? formatTime(row.time_ms) : '—', 'ranked-history-time'),
+            h(
+              'span',
+              typeof row.time_ms === 'number' && row.time_ms > 0 ? formatTime(row.time_ms) : '—',
+              'ranked-history-time',
+            ),
             row.tier
               ? rankBadge({
                   tier: row.tier,
@@ -380,6 +444,12 @@ export class RankedHistoryUI {
         // Optional review lookup: only actual flags receive an indicator.
       }
       if (generation !== this.#generation || !this.#dialog.open) return;
+      if (result.season?.id && result.season.id !== this.#seasonKey) {
+        this.#seasonKey = result.season.id;
+        this.#rows = [];
+        this.#offset = 0;
+        this.#season.value = this.#seasonKey;
+      }
       this.#result(result, checks);
     } catch {
       if (generation === this.#generation && this.#dialog.open)
@@ -388,6 +458,7 @@ export class RankedHistoryUI {
   }
 
   #paintScope() {
+    this.#season.hidden = this.#scope !== 'ranked';
     for (const button of this.#scopeTabs.querySelectorAll<HTMLButtonElement>('button'))
       button.setAttribute('aria-pressed', String(button.dataset.scope === this.#scope));
   }
@@ -395,68 +466,115 @@ export class RankedHistoryUI {
     const generation = ++this.#generation;
     this.#pending();
     try {
-      const rows = await this.#client!.casualHistory(this.#player,PAGE_SIZE+1,offset);
+      const rows = await this.#client!.casualHistory(this.#player, PAGE_SIZE + 1, offset);
       if (generation !== this.#generation || !this.#dialog.open) return;
-      this.#casualRows = rows; this.#offset = offset; this.#casualList();
+      this.#casualRows = rows;
+      this.#offset = offset;
+      this.#casualList();
     } catch {
-      if (generation === this.#generation && this.#dialog.open) this.#error(() => void this.#loadCasual(offset));
+      if (generation === this.#generation && this.#dialog.open)
+        this.#error(() => void this.#loadCasual(offset));
     }
   }
   #casualList() {
-    ++this.#generation; this.#ready(); this.#hasContent = true;
-    this.#dialog.dataset.view = 'list'; this.#title.textContent = 'Match history';
-    this.#matchTrack.replaceChildren(); this.#body.classList.remove('is-rich'); this.#body.replaceChildren();
-    const headings = h('div',undefined,'casual-history-columns');
-    for (const label of ['Place','Lobby','Mode','Rounds']) headings.append(h('span',label));
+    ++this.#generation;
+    this.#ready();
+    this.#hasContent = true;
+    this.#dialog.dataset.view = 'list';
+    this.#title.textContent = 'Match history';
+    this.#matchTrack.replaceChildren();
+    this.#body.classList.remove('is-rich');
+    this.#body.replaceChildren();
+    const headings = h('div', undefined, 'casual-history-columns');
+    for (const label of ['Place', 'Lobby', 'Mode', 'Rounds']) headings.append(h('span', label));
     if (this.#casualRows.length) this.#body.append(headings);
-    else this.#body.append(h('p','No completed casual matches yet.','ranked-history-note'));
-    for (const row of this.#casualRows.slice(0,PAGE_SIZE)) {
-      const button = this.#button('',() => void this.#casualDetails(row.match_id));
+    else this.#body.append(h('p', 'No completed casual matches yet.', 'ranked-history-note'));
+    for (const row of this.#casualRows.slice(0, PAGE_SIZE)) {
+      const button = this.#button('', () => void this.#casualDetails(row.match_id));
       button.className = 'casual-history-row';
-      const place = h('span',undefined,'ranked-history-place');
-      place.append(h('strong',placing(row.place)),h('small',` / ${row.player_count}`));
-      const name = h('span',undefined,'casual-history-name');
-      name.append(h('strong',row.title),h('time',new Date(row.finished_at).toLocaleDateString(undefined,{month:'short',day:'numeric'})));
-      button.append(place,name,h('span',row.mode==='teams'?'Teams':'FFA'),h('span',String(row.rounds)));
+      const place = h('span', undefined, 'ranked-history-place');
+      place.append(h('strong', placing(row.place)), h('small', ` / ${row.player_count}`));
+      const name = h('span', undefined, 'casual-history-name');
+      name.append(
+        h('strong', row.title),
+        h(
+          'time',
+          new Date(row.finished_at).toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          }),
+        ),
+      );
+      button.append(
+        place,
+        name,
+        h('span', row.mode === 'teams' ? 'Teams' : 'FFA'),
+        h('span', String(row.rounds)),
+      );
       this.#body.append(button);
     }
     this.#footer.replaceChildren(
-      this.#button('Previous',() => void this.#loadCasual(Math.max(0,this.#offset-PAGE_SIZE)),this.#offset===0),
-      h('span',`Page ${Math.floor(this.#offset/PAGE_SIZE)+1}`),
-      this.#button('Next',() => void this.#loadCasual(this.#offset+PAGE_SIZE),this.#casualRows.length<=PAGE_SIZE),
+      this.#button(
+        'Previous',
+        () => void this.#loadCasual(Math.max(0, this.#offset - PAGE_SIZE)),
+        this.#offset === 0,
+      ),
+      h('span', `Page ${Math.floor(this.#offset / PAGE_SIZE) + 1}`),
+      this.#button(
+        'Next',
+        () => void this.#loadCasual(this.#offset + PAGE_SIZE),
+        this.#casualRows.length <= PAGE_SIZE,
+      ),
     );
   }
   async #casualDetails(match: string) {
-    const generation = ++this.#generation; this.#pending();
+    const generation = ++this.#generation;
+    this.#pending();
     try {
       const result = await this.#client!.casualResult(match);
       if (generation !== this.#generation || !this.#dialog.open) return;
       if (!result) throw Error('Match unavailable');
       this.#paintCasualResult(result);
     } catch {
-      if (generation === this.#generation && this.#dialog.open) this.#error(() => void this.#casualDetails(match));
+      if (generation === this.#generation && this.#dialog.open)
+        this.#error(() => void this.#casualDetails(match));
     }
   }
   #paintCasualResult(result: CasualMatchResult) {
-    this.#ready(); this.#hasContent = true; this.#dialog.dataset.view = 'match';
-    this.#title.textContent = 'Match result'; this.#matchTrack.textContent = result.title;
+    this.#ready();
+    this.#hasContent = true;
+    this.#dialog.dataset.view = 'match';
+    this.#title.textContent = 'Match result';
+    this.#matchTrack.textContent = result.title;
     this.#body.replaceChildren();
-    const heading = h('div',undefined,'casual-result-columns');
-    for (const label of ['#','Player','Points']) heading.append(h('span',label));
+    const heading = h('div', undefined, 'casual-result-columns');
+    for (const label of ['#', 'Player', 'Points']) heading.append(h('span', label));
     this.#body.append(heading);
     for (const player of result.players) {
-      const row = h('div',undefined,'casual-result-row');
+      const row = h('div', undefined, 'casual-result-row');
       row.classList.toggle('is-you', player.player_id === this.#player);
       if (player.team) row.dataset.team = player.team;
-      const name = this.#button('',() => { if (player.player_id) this.profile?.(player.player_id); });
+      const name = this.#button('', () => {
+        if (player.player_id) this.profile?.(player.player_id);
+      });
       name.className = 'player-with-portrait';
       name.disabled = !player.player_id || !this.profile;
-      name.append(profilePicture(player.display_name,player.avatar_url),h('span',player.display_name));
-      row.append(h('span',placing(player.place)),name,h('span',String(player.score)));
+      if (!name.disabled) clickableRow(row, name);
+      name.append(
+        profilePicture(player.display_name, player.avatar_url),
+        h('span', player.display_name),
+      );
+      row.append(h('span', placing(player.place)), name, h('span', String(player.score)));
       this.#body.append(row);
     }
-    this.#body.append(h('p',`${result.mode==='teams'?'Teams':'FFA'} · ${result.rounds} ${result.rounds===1?'round':'rounds'} · ${new Date(result.finished_at).toLocaleString()}`,'ranked-history-note'));
-    this.#footer.replaceChildren(this.#button('Back',() => this.#casualList()));
+    this.#body.append(
+      h(
+        'p',
+        `${result.mode === 'teams' ? 'Teams' : 'FFA'} · ${result.rounds} ${result.rounds === 1 ? 'round' : 'rounds'} · ${new Date(result.finished_at).toLocaleString()}`,
+        'ranked-history-note',
+      ),
+    );
+    this.#footer.replaceChildren(this.#button('Back', () => this.#casualList()));
   }
 
   #result(result: RankedMatchResult, checks: InputReview[] | null = null) {
@@ -489,6 +607,7 @@ export class RankedHistoryUI {
     this.#body.append(columns);
     for (const player of result.players) {
       const row = h('div', undefined, 'ranked-result-row');
+      row.dataset.playerBanner = 'off';
       row.classList.toggle('is-you', player.player_id === this.#player);
       const playerName = h(
         this.profile ? 'button' : 'span',
@@ -499,6 +618,7 @@ export class RankedHistoryUI {
         playerName.setAttribute('type', 'button');
         playerName.setAttribute('aria-label', 'View profile for ' + player.display_name);
         playerName.onclick = () => this.profile!(player.player_id);
+        clickableRow(row, playerName as HTMLButtonElement);
       }
       playerName.append(
         profilePicture(player.display_name, player.avatar_url),
@@ -514,10 +634,36 @@ export class RankedHistoryUI {
         change.title = `+${player.base_gain} match · +${player.streak_bonus} streak`;
         change.setAttribute('aria-label', change.textContent + '; ' + change.title);
       }
-      row.append(position, playerName,
-        h('span', typeof player.time_ms === 'number' && player.time_ms > 0
-          ? formatTime(player.time_ms) : player.dnf ? 'DNF' : '—', 'ranked-result-time'),
-        h('span', number(player.rating_after)), change);
+      const rating = h('span', undefined, 'ranked-result-rating');
+      rating.append(
+        rankBadge(
+          player.rank ??
+            (player.rating_after === null
+              ? null
+              : {
+                  rating: player.rating_after,
+                  tier: 'provisional',
+                  provisional: true,
+                  gm_position: null,
+                }),
+          player.rating_after === null ? '—' : 'Unranked',
+        ),
+      );
+      row.append(
+        position,
+        playerName,
+        h(
+          'span',
+          typeof player.time_ms === 'number' && player.time_ms > 0
+            ? formatTime(player.time_ms)
+            : player.dnf
+              ? 'DNF'
+              : '—',
+          'ranked-result-time',
+        ),
+        rating,
+        change,
+      );
       playerLooks.decorate(row, player.player_id);
       this.#body.append(row);
       const flags =

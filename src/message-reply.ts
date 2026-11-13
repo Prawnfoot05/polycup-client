@@ -1,3 +1,4 @@
+import { filterChat } from './chat-filter.ts';
 import { element as h } from './dom.ts';
 import css from './message-reply.css';
 import { profilePicture } from './profile-picture.ts';
@@ -6,18 +7,43 @@ export const messageReplyCSS = css;
 /** Quotes are resolved by the server, never supplied by the sending client. */
 export interface MessageReply {
   id: string;
+  sender_id?: string;
   display_name?: string;
   avatar_url?: string;
   body?: string;
   unavailable?: boolean;
 }
-const excerpt = (body: string) => body.replace(/\s+/g, ' ').slice(0, 140);
+/** Replies notify their original author, just like an explicit mention. */
+export function messageNotifies(
+  body: string,
+  reply: MessageReply | null | undefined,
+  user: string | null | undefined,
+  sender: string,
+) {
+  return (
+    !!user &&
+    sender !== user &&
+    (reply?.sender_id === user ||
+      [...body.matchAll(/<@([a-f0-9-]{36})(?:\|[^>]*)?>/gi)].some((match) => match[1] === user))
+  );
+}
+const excerpt = (body: string) =>
+  body
+    .replace(/<@[a-f0-9-]{36}(?:\|([^>]*))?>/gi, (_match, name) => {
+      try {
+        return '@' + (name ? decodeURIComponent(name) : 'Player');
+      } catch {
+        return '@Player';
+      }
+    })
+    .replace(/\s+/g, ' ')
+    .slice(0, 140);
 
-export function replyAction(select: () => void) {
+export function replyAction(select: () => void, author = '') {
   const button = h('button', undefined, 'message-reply-action');
   button.type = 'button';
   button.title = 'Reply';
-  button.setAttribute('aria-label', 'Reply');
+  button.setAttribute('aria-label', author ? 'Reply to ' + author : 'Reply');
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('aria-hidden', 'true');
@@ -38,13 +64,22 @@ export function replyQuote(reply: MessageReply, log: HTMLElement) {
     portrait.dataset.playerAvatar = 'independent';
     quote.append(portrait);
   }
-  quote.append(h('strong', reply.display_name ?? ''), h('span',
-    reply.unavailable ? 'Original message unavailable' : excerpt(reply.body ?? '')));
-  quote.setAttribute('aria-label', 'Show original message' + (reply.display_name ? ' from ' + reply.display_name : ''));
+  quote.append(
+    h('strong', reply.display_name ?? ''),
+    h('span', reply.unavailable ? 'Original message unavailable' : filterChat(excerpt(reply.body ?? ''))),
+  );
+  quote.setAttribute(
+    'aria-label',
+    'Show original message' + (reply.display_name ? ' from ' + reply.display_name : ''),
+  );
   quote.onclick = () => {
-    const original = [...log.querySelectorAll<HTMLElement>('[data-message-id]')]
-      .find(node => node.dataset.messageId === reply.id);
-    if (!original) { quote.title = 'Original message is not loaded'; return; }
+    const original = [...log.querySelectorAll<HTMLElement>('[data-message-id]')].find(
+      (node) => node.dataset.messageId === reply.id,
+    );
+    if (!original) {
+      quote.title = 'Original message is not loaded';
+      return;
+    }
     original.scrollIntoView({ block: 'nearest', behavior: 'auto' });
     original.classList.remove('message-reply-target');
     void original.offsetWidth;
@@ -56,22 +91,34 @@ export function replyQuote(reply: MessageReply, log: HTMLElement) {
 
 export class ReplyComposer {
   #element = h('div', undefined, 'message-reply-compose');
-  get element() { return this.#element; }
+  get element() {
+    return this.#element;
+  }
   #reply?: MessageReply;
-  constructor(private changed: () => void) { this.element.hidden = true; }
-  get value() { return this.#reply; }
+  constructor(private changed: () => void) {
+    this.element.hidden = true;
+  }
+  get value() {
+    return this.#reply;
+  }
   set value(value: MessageReply | undefined) {
     this.#reply = value;
     this.element.hidden = !value;
     this.element.replaceChildren();
     if (!value) return;
     const text = h('div');
-    text.append(h('strong', 'Replying to ' + value.display_name), h('span', excerpt(value.body ?? '')));
+    text.append(
+      h('strong', 'Replying to ' + value.display_name),
+      h('span', excerpt(value.body ?? '')),
+    );
     const cancel = h('button', '×');
     cancel.type = 'button';
     cancel.title = 'Cancel reply';
     cancel.setAttribute('aria-label', 'Cancel reply');
-    cancel.onclick = () => { this.value = undefined; this.changed(); };
+    cancel.onclick = () => {
+      this.value = undefined;
+      this.changed();
+    };
     this.element.append(text, cancel);
   }
 }

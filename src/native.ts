@@ -158,7 +158,7 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
       for(const key of ['up','right','down','left']) input[key]=controls[key]; },
     read: g => ({ connection: Za.get(g)?.multiplayerConnection, sessionId: Za.get(g)?.sessionId,
       trackData: Ta.get(g), metadata: Sa.get(g), car: Xa.get(g), spectator: fs.get(g),
-      disposed: ss.get(g), checkpointCount: ra.get(g).getTotalNumberOfCheckpointIndices() }),
+      disposed: !!ss.get(g) || !Xa.get(g) || !fs.get(g), checkpointCount: ra.get(g)?.getTotalNumberOfCheckpointIndices() ?? 0 }),
     camera: g => { const c=la.get(g).camera, car=Xa.get(g); return {
       sessionId: Za.get(g).sessionId, position:c.position.toArray(), quaternion:c.quaternion.toArray(),
       fov:c.fov, frames:car.getTime().numberOfFrames, speed:car.getSpeedKmh(),
@@ -218,10 +218,11 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
     },
     visibility: (g,ids,self) => { Cs.call(g); Xa.get(g).setVisible(ids===null||ids.includes(self));
       for(const [id,r] of as.get(g)) if(ids!==null&&!ids.includes(id)) r.car.setVisible(false); },
-    drivingView: g => !fs.get(g).isEnabled && la.get(g).camera === Xa.get(g).cameraCockpit ? 1 : 0,
-    release: (g,view) => { const car=Xa.get(g), renderer=la.get(g);
-      const cockpit=view === undefined ? !fs.get(g).isEnabled && renderer.camera === car.cameraCockpit : view === 1;
-      fs.get(g).isEnabled=false;
+    drivingView: g => !fs.get(g)?.isEnabled && Xa.get(g) && la.get(g)?.camera === Xa.get(g).cameraCockpit ? 1 : 0,
+    release: (g,view) => { const car=Xa.get(g), renderer=la.get(g), spectator=fs.get(g);
+      if(!car || !renderer || !spectator) return;
+      const cockpit=view === undefined ? !spectator.isEnabled && renderer.camera === car.cameraCockpit : view === 1;
+      spectator.isEnabled=false;
       renderer.setCamera(cockpit ? car.cameraCockpit : car.cameraOrbit);
       car.audioVolume=1; for(const r of as.get(g).values()) r.car.audioVolume=vs.get(g); },
     follow: (g,p,id) => { const camera=fs.get(g).camera; camera.position.fromArray(p.position);
@@ -327,6 +328,9 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
   }
   const original = api.Game.prototype.update;
   api.Game.prototype.update = function (...args) {
+    // A failed native constructor can publish its session before creating a car.
+    // Do not run car-dependent native updates or announce that world as ready.
+    if (!api.read(this).car) return;
     controller.observeGame(this);
     if (controller.countdownTouchControls && api.countdownTouchControls) {
       const { controls, allowed } = api.countdownTouchControls(this);
@@ -347,9 +351,8 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
   const dispose = api.Game.prototype.dispose;
   api.Game.prototype.dispose = function (...args) {
     controller.rememberDrivingView(this);
-    const result = dispose.apply(this, args);
-    controller.gameDisposed(this);
-    return result;
+    try { return dispose.apply(this, args); }
+    finally { controller.gameDisposed(this); }
   };
   for (const Connection of [api.Host, api.Client]) {
     const disposeConnection = Connection.prototype.dispose;

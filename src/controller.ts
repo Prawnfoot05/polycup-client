@@ -69,6 +69,12 @@ export function applyGarageIdentity(state: CupState, players: LobbyPlayer[]) {
   }
 }
 export class Controller {
+  // Host-only delivery allowance; never extends the valid driving-time window.
+  #finishDeliveryGraceMs = 1500;
+  allowFinishRecovery() {
+    if (this.#isHost && this.ranked && this.#state && rulesFor(this.#state).singleRound)
+      this.#finishDeliveryGraceMs = 15000;
+  }
   #beforeWaitingRaceConnect?: (signal: AbortSignal) => Promise<void>;
   get beforeWaitingRaceConnect() {
     return this.#beforeWaitingRaceConnect;
@@ -868,7 +874,7 @@ export class Controller {
   observeGame(game: NativeGame) {
     if (!this.#native) return;
     const info = this.#native.read(game);
-    if (!info.connection || info.disposed || this.#disposedConnections.has(info.connection)) return;
+    if (!info.connection || info.disposed || !info.car || this.#disposedConnections.has(info.connection)) return;
     this.rememberDrivingView(game);
     this.#game = game;
     this.#info = info;
@@ -1042,7 +1048,7 @@ export class Controller {
     );
   }
   shouldBlock(game: NativeGame) {
-    if (this.waitingRoom) return true;
+    if (this.#waitingRaceLoading || this.waitingRoom) return true;
     if (!this.#state || game !== this.#game) return false;
     if (this.localPlayerId === null) return true;
     if (!Cup.racingIds(this.#state).includes(this.localPlayerId)) return true;
@@ -1072,7 +1078,7 @@ export class Controller {
     return true;
   }
   shouldBlockRestart(game: NativeGame) {
-    return !!this.#state && game === this.#game && this.cup.phase !== 'warmup';
+    return this.#waitingRaceLoading || !!this.waitingRoom || (!!this.#state && game === this.#game && this.cup.phase !== 'warmup');
   }
   restartHotkey(event: KeyboardEvent) {
     if (this.#chatTyping) return false;
@@ -1297,9 +1303,9 @@ export class Controller {
       return;
     }
     const receivedAt = this.now();
-    const rejected = Cup.finishRejection(this.cup, id, m.frames, receivedAt);
+    const rejected = Cup.finishRejection(this.cup, id, m.frames, receivedAt, this.#finishDeliveryGraceMs);
     const before = standings(this.cup).map((r) => r.id);
-    if (Cup.recordFinish(this.cup, id, m.frames, receivedAt)) {
+    if (Cup.recordFinish(this.cup, id, m.frames, receivedAt, this.#finishDeliveryGraceMs)) {
       if (
         typeof m.checkpoint === 'number' &&
         Number.isSafeInteger(m.checkpoint) &&
@@ -1888,7 +1894,7 @@ export class Controller {
           const run = this.round;
           if (
             Cup.allFinished(this.#state) ||
-            (run.deadline !== null && this.now() >= run.deadline + 1500)
+            (run.deadline !== null && this.now() >= run.deadline + this.#finishDeliveryGraceMs)
           )
             this.finishRound();
         }
@@ -2065,6 +2071,7 @@ export class Controller {
     this.#viewCupId = s?.id ?? null;
   }
   releaseCup(message: string) {
+    this.#finishDeliveryGraceMs = 1500;
     this.#pendingFinish = null;
     this.#freecam = false;
     this.#freecamGame = null;
@@ -3231,7 +3238,7 @@ export class Controller {
       if (!this.racerAvailable(id)) Cup.sitOut(this.cup, id);
     this.#readyKey = '';
     this.#lastReady = 0;
-    this.#loadingSince = 0;
+    this.#loadingSince = this.now();
     this.#nextAuto = null;
     this.#loadingSession = this.gameInfo.sessionId;
     if (reuse) {
@@ -3356,7 +3363,7 @@ export class Controller {
     }
   }
   sendReady() {
-    if (this.localPlayerId === null || !this.#info || this.#info.disposed) return;
+    if (this.localPlayerId === null || !this.#info || this.#info.disposed || !this.#info.car) return;
     const s = this.cup,
       run = s.runtime;
     if (s.phase !== 'loading' || !run || this.gameInfo.trackData.getId() !== run.trackId) return;
@@ -3420,9 +3427,22 @@ export class Controller {
         return;
       }
     }
-    if (s.phase === 'loading' && run.sessionId !== null) {
+    if (s.phase === 'loading') {
       if (!this.#loadingSince) this.#loadingSince = this.now();
       if (this.now() - this.#loadingSince >= LOAD_GRACE_MS) {
+        if (run.sessionId === null) {
+          // No native world arrived at all. Stop retrying the broken session and
+          // expose the ordinary lobby controls instead of waiting indefinitely.
+          this.#review.close(s, 'void');
+          Cup.voidRound(s);
+          this.#auto = false;
+          this.#nextAuto = null;
+          this.#loadingSession = undefined;
+          this.#error = 'Track loading timed out.';
+          this.broadcast();
+          this.requestPanel(true, this.#error);
+          return;
+        }
         for (const id of Cup.racingIds(s)) if (!run.ready.includes(id)) Cup.sitOut(s, id);
       }
     }

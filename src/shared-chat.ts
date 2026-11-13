@@ -1,3 +1,4 @@
+import { filterChat } from './chat-filter.ts';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { TypingSignal } from './typing.ts';
 import type { ActivityPresence } from './activity.ts';
@@ -20,6 +21,12 @@ export interface OnlinePlayer {
   presence?: ActivityPresence;
 }
 export interface ChatFeed {
+  readonly mentionTargets?: readonly {
+    player_id: string;
+    display_name: string;
+    avatar_url?: string;
+  }[];
+  readonly mentionUser?: string | null;
   readonly supportsReplies?: boolean;
   readonly messages: readonly SharedMessage[];
   readonly error: string;
@@ -34,6 +41,25 @@ export interface ChatFeed {
 /** One visible surface owns a feed. Notifications only invalidate; rows come from
  * the permission-checked RPC, so blocked senders never enter the rendered log. */
 export class SharedChat implements ChatFeed {
+  get mentionUser() {
+    return this.#scope === 'community' ? this.#identity() : null;
+  }
+  get mentionTargets() {
+    if (this.#scope !== 'community') return undefined;
+    const people = new Map(
+      this.#messages.map((m) => [
+        m.sender_id,
+        { player_id: m.sender_id, display_name: m.display_name, avatar_url: m.avatar_url },
+      ]),
+    );
+    for (const p of this.#online)
+      people.set(p.player_id, {
+        player_id: p.player_id,
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+      });
+    return [...people.values()];
+  }
   #typing?: TypingSignal;
   get typing() {
     return this.#typing;
@@ -249,15 +275,22 @@ export class SharedChat implements ChatFeed {
     this.#flight = flight;
     return flight;
   }
-  get supportsReplies() { return this.#scope === 'community'; }
+  get supportsReplies() {
+    return this.#scope === 'community';
+  }
   async send(body: string, nonce: string, reply?: string) {
-    body = body.trim();
+    body = filterChat(body.trim());
     if (!this.writable) throw Error('Sign in with Discord to chat.');
     if (!body || body.length > 400) throw Error('Write a message of 1 to 400 characters.');
     const generation = this.#generation;
     await this.#rpc(
       'polycup_chat_send',
-      { channel_key: this.#scope, message_text: body, nonce_key: nonce, ...(reply ? { reply_key: reply } : {}) },
+      {
+        channel_key: this.#scope,
+        message_text: body,
+        nonce_key: nonce,
+        ...(reply ? { reply_key: reply } : {}),
+      },
       generation,
     );
     await this.refresh();

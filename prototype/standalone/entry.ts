@@ -2,6 +2,7 @@ import { pmlPlatform, standalonePlatform } from '../../src/client-platform.ts';
 import { configureClientAssets } from '../../src/client-assets.ts';
 import { configurePmlAccount } from '../../src/account-config.ts';
 import { protectTransientDisconnect } from './rtc-recovery.ts';
+import { protectGameContextMenu } from './game-context-menu.ts';
 // @ts-ignore JavaScript diagnostics have runtime validation.
 import { observeFetch, errorLocation, peerSnapshot, diagnosticErrorGate } from './client-diagnostics.mjs';
 // @ts-ignore Passive browser rendering diagnostics.
@@ -211,8 +212,19 @@ w.RTCPeerConnection = new Proxy(NativePeer, {
       sampledStates.add(state);
       void peerSnapshot(pc).then((detail: any) => report('peer_snapshot', {span:pc.polycupDiagnosticId,...detail})).catch(()=>{});
     });
+    const rankedLease = w.polycupPrototype?.rankedMatch?.lease;
     if (w.polycupNetwork && (!w.polycupCasual || w.polycupCasualNetwork))
-      protectTransientDisconnect(pc, phase => report('stage', { phase }));
+      protectTransientDisconnect(pc, phase => {
+        report('stage', { phase, span: pc.polycupDiagnosticId });
+        if (rankedLease && w.polycupPrototype?.rankedMatch?.lease === rankedLease && w.polycupPrototype.dedicated && phase === 'rtc_recovering')
+          w.polycupPrototype.controller.allowFinishRecovery();
+        if (rankedLease && w.polycupPrototype?.rankedMatch?.lease === rankedLease && !w.polycupPrototype.dedicated)
+          window.dispatchEvent(new CustomEvent('polycup-ranked-transport', {detail:{phase, peer:pc}}));
+      });
+    pc.addEventListener('connectionstatechange', () => {
+      if (pc.connectionState === 'failed' && rankedLease && w.polycupPrototype?.rankedMatch?.lease === rankedLease && !w.polycupPrototype.dedicated)
+        window.dispatchEvent(new CustomEvent('polycup-ranked-transport', {detail:{phase:'rtc_recovery_expired',peer:pc}}));
+    });
     const create = pc.createDataChannel.bind(pc);
     pc.createDataChannel = (...params: any[]) => {
       let channel;
@@ -301,6 +313,8 @@ const runtime: any = {
       w.polycupPrototype?.ui?.render();
     });
     w.polycupPrototype = { controller: c, runtime, launchNativeRace, Cup, standardPreset };
+    const isDrivingGame = runtime.getFromPolyTrack('(g)=>g instanceof Is && !Xa.get(g)?.isPaused');
+    protectGameContextMenu(() => !document.querySelector('dialog[open]') && !!isDrivingGame(runtime.menuGame()));
     w.polycupPrototype.visibleNativePlayers = (connection: any, players: any[]) =>
       rankedPlayerList(connection, players, c.connection,
         w.polycupPrototype?.rankedMatch ? c.nativeState?.roster.map(player => player.id) : null);

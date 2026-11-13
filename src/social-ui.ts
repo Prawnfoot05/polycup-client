@@ -1,3 +1,4 @@
+import { filterChat } from './chat-filter.ts';
 import { chooseAvatarPicture, avatarEditorCSS } from './avatar-editor.ts';
 import { playerReport } from './player-report.ts';
 import { installErrorDismissal } from './dismissible-errors.ts';
@@ -23,10 +24,17 @@ import {
 import { ratingNumber } from './ranked-format.ts';
 import { profileRatingHistory } from './profile-rating-history.ts';
 import { alignProfileCards } from './profile-layout.ts';
+import { profileDataView, profileDataCSS } from './profile-data-ui.ts';
 import { rewardRarity, rarityOrder } from './reward-rarity.ts';
 import { paintBanner, bannerURL, bannerMetadata } from './banner.ts';
 import { socialIcon } from './social-icons.ts';
-import { ReplyComposer, replyAction, replyQuote, messageReplyCSS, type MessageReply } from './message-reply.ts';
+import {
+  ReplyComposer,
+  replyAction,
+  replyQuote,
+  messageReplyCSS,
+  type MessageReply,
+} from './message-reply.ts';
 import { tracks as rankedTracks } from '../supabase/catalogs/polytrack-0.6.3.json';
 import type { Friends } from './friends.ts';
 import type { LibraryTrack } from './game-types.ts';
@@ -53,11 +61,14 @@ export class SocialUI {
   #new = h('button', 'New messages', 'dm-new quiet');
   #peer = '';
   #owner: string | null;
+  #profileSeason: string | null = null;
+  #profileSeasons: { id: string; name: string; active: boolean }[] = [];
   #profileGeneration = 0;
   #avatarPopup?: ReturnType<typeof chooseAvatarPicture>;
   #reportPopup?: ReturnType<typeof playerReport>;
   #profileData: PlayerProfile | null = null;
   #profileLayoutCleanup?: () => void;
+  #profileDataReturn?: () => void;
   #generation = 0;
   #fetching = 0;
   #refreshAgain = false;
@@ -69,7 +80,10 @@ export class SocialUI {
   #pending?: { peer: string; body: string; nonce: string; reply?: string };
   #replyDrafts = new Map<string, MessageReply>();
   #reply = new ReplyComposer(() => {
-    this.#replyDrafts.delete(this.#peer); this.#pending = undefined; this.#input.focus();
+    this.#replyDrafts.delete(this.#peer);
+    this.#pending = undefined;
+    this.#log.querySelectorAll('.is-replying').forEach((e) => e.classList.remove('is-replying'));
+    this.#input.focus();
   });
   #drafts = new Map<string, string>();
   #readThrough = new Map<string, string>();
@@ -82,7 +96,7 @@ export class SocialUI {
     private showFriends?: () => void,
     private updateName?: (name: string) => Promise<void>,
     private trackArt?: () => Pick<LibraryTrack, 'id' | 'thumbnail'>[],
-    private trackRecords?: (track: string, player?: string) => void,
+    private trackRecords?: (track: string, player?: string, season?: string) => void,
     private joinInvite?: (code: string) => Promise<void>,
   ) {
     this.#owner = api.user;
@@ -104,7 +118,9 @@ export class SocialUI {
           rewardEditorCSS +
           profileAccentCSS +
           avatarEditorCSS +
-          typingCSS + messageReplyCSS,
+          typingCSS +
+          messageReplyCSS +
+          profileDataCSS,
       ),
       this.#profile,
       this.#messages,
@@ -156,8 +172,15 @@ export class SocialUI {
     this.#input.onblur = () => this.#typingSignal?.input(false);
     this.#input.onkeydown = (event) => {
       if (event.key === 'Escape' && this.#reply.value) {
-        event.preventDefault(); event.stopPropagation();
-        this.#reply.value = undefined; this.#replyDrafts.delete(this.#peer); this.#pending = undefined; return;
+        event.preventDefault();
+        event.stopPropagation();
+        this.#reply.value = undefined;
+        this.#replyDrafts.delete(this.#peer);
+        this.#pending = undefined;
+        this.#log
+          .querySelectorAll('.is-replying')
+          .forEach((e) => e.classList.remove('is-replying'));
+        return;
       }
       if (
         event.key === 'Enter' &&
@@ -196,10 +219,17 @@ export class SocialUI {
       }
     });
     this.#profile.addEventListener('close', () => {
+      this.#profileDataReturn?.();
       this.#reportPopup?.dispose();
       this.#avatarPopup?.dispose();
       this.#profileLayoutCleanup?.();
       if (!this.#profile.open) ++this.#profileGeneration;
+    });
+    this.#profile.addEventListener('cancel', (event) => {
+      if (this.#profileDataReturn) {
+        event.preventDefault();
+        this.#profileDataReturn();
+      }
     });
     this.api.subscribe(() => {
       if (this.#owner !== this.api.user) {
@@ -217,7 +247,8 @@ export class SocialUI {
         playerLooks.undecorate(this.#threadHeader);
         this.#threadHeader.replaceChildren();
         this.#drafts.clear();
-      this.#replyDrafts.clear(); this.#reply.value = undefined;
+        this.#replyDrafts.clear();
+        this.#reply.value = undefined;
         this.#readThrough.clear();
         this.#input.value = '';
         this.#pending = undefined;
@@ -243,6 +274,11 @@ export class SocialUI {
     return this.#profile.open || this.#messages.open;
   }
   key(event: KeyboardEvent) {
+    if (event.key === 'Escape' && this.#profile.open && this.#profileDataReturn) {
+      event.preventDefault();
+      this.#profileDataReturn();
+      return;
+    }
     if (this.#reportPopup?.element.open && event.key === 'Escape') {
       event.preventDefault();
       this.#reportPopup.cancel();
@@ -254,6 +290,19 @@ export class SocialUI {
       return;
     }
     const active = (this.#profile.getRootNode() as ShadowRoot).activeElement as HTMLElement | null;
+    if (
+      this.#messages.open &&
+      active === this.#input &&
+      event.key === 'Escape' &&
+      this.#reply.value
+    ) {
+      event.preventDefault();
+      this.#reply.value = undefined;
+      this.#replyDrafts.delete(this.#peer);
+      this.#pending = undefined;
+      this.#log.querySelectorAll('.is-replying').forEach((e) => e.classList.remove('is-replying'));
+      return;
+    }
     // The game-level keyboard guard calls us during capture, before stopping
     // the event from reaching controls inside the social dialog.
     if (
@@ -309,6 +358,7 @@ export class SocialUI {
     return b;
   }
   async openProfile(id: string, editPicture = false) {
+    this.#profileDataReturn?.();
     this.#reportPopup?.dispose();
     this.#avatarPopup?.dispose();
     this.#profile.dataset.errorScope = 'profile:' + (this.api.user ?? 'guest') + ':' + id;
@@ -328,7 +378,12 @@ export class SocialUI {
         .forEach((button) => (button.disabled = true));
     if (!this.#profile.open) this.#profile.showModal();
     try {
-      const p = await this.api.profile(id);
+      const [p, seasons] = await Promise.all([
+        this.api.profile(id, this.#profileSeason),
+        this.api.seasons?.().catch(() => this.#profileSeasons) ?? Promise.resolve([]),
+      ]);
+      if (generation !== this.#profileGeneration || !this.#profile.open) return;
+      this.#profileSeasons = seasons;
       if (generation !== this.#profileGeneration || !this.#profile.open) return;
       if (!p) throw Error('This player profile is unavailable.');
       this.#drawProfile(p, header);
@@ -356,6 +411,7 @@ export class SocialUI {
     }
   }
   #drawProfile(p: PlayerProfile, header: HTMLElement) {
+    this.#profileDataReturn?.();
     const previousScroll =
       this.#profileData?.player_id === p.player_id
         ? (this.#profile.querySelector('.profile-content')?.scrollTop ?? 0)
@@ -460,7 +516,24 @@ export class SocialUI {
     rating.setAttribute('aria-label', 'Ranked summary');
     const summary = h('div', undefined, 'profile-summary');
     const seasonHeading = h('div', undefined, 'profile-season-heading');
-    seasonHeading.append(h('h4', highlights?.season?.name ?? 'Ranked'));
+    const seasonPicker = h('select');
+    seasonPicker.setAttribute('aria-label', 'Profile season');
+    for (const season of this.#profileSeasons) {
+      const option = h('option', season.name);
+      option.value = season.id;
+      seasonPicker.append(option);
+    }
+    if (!seasonPicker.options.length) {
+      const option = h('option', highlights?.season?.name ?? 'Ranked');
+      option.value = highlights?.season?.id ?? '';
+      seasonPicker.append(option);
+    }
+    seasonPicker.value = highlights?.season?.id ?? '';
+    seasonPicker.onchange = () => {
+      this.#profileSeason = seasonPicker.value;
+      void this.openProfile(p.player_id);
+    };
+    seasonHeading.append(seasonPicker);
     if (p.rank?.leaderboard_position)
       seasonHeading.append(h('span', 'Global #' + p.rank.leaderboard_position));
     const rankHeading = h('div', undefined, 'profile-rank-heading');
@@ -596,9 +669,9 @@ export class SocialUI {
     }
     const trackList = h('div', undefined, 'profile-track-list');
     trackList.dataset.collapsedCount = '5';
-    const drawTracks = (expanded: boolean) => {
+    const drawTracks = () => {
       trackList.replaceChildren();
-      for (const track of tracks.slice(0, expanded ? 20 : 5)) {
+      for (const track of tracks.slice(0, 5)) {
         const row = h(this.trackRecords ? 'button' : 'div', undefined, 'profile-performance-row');
         if (this.trackRecords) {
           row.setAttribute('type', 'button');
@@ -606,7 +679,8 @@ export class SocialUI {
             'aria-label',
             'Track records for ' + (trackNames.get(track.track_id) ?? 'track'),
           );
-          row.onclick = () => this.trackRecords!(track.track_id, p.player_id);
+          row.onclick = () =>
+            this.trackRecords!(track.track_id, p.player_id, p.highlights?.season?.id);
         }
         const art = h('div', undefined, 'profile-track-art');
         art.setAttribute('aria-hidden', 'true');
@@ -642,19 +716,12 @@ export class SocialUI {
         trackList.append(row);
       }
     };
-    drawTracks(false);
+    drawTracks();
     performance.append(trackList);
     if (!tracks.length) performance.append(h('p', '–', 'social-note'));
-    if (tracks.length > 5) {
-      let expanded = false;
-      const more = this.#button('Show more tracks', () => {
-        expanded = !expanded;
-        drawTracks(expanded);
-        more.textContent = expanded ? 'Show fewer tracks' : 'Show more tracks';
-        more.setAttribute('aria-expanded', String(expanded));
-      });
+    if (tracks.length) {
+      const more = this.#button('View all tracks', () => this.#openProfileData(p, 'tracks'));
       more.className = 'profile-show-more';
-      more.setAttribute('aria-expanded', 'false');
       performance.append(more);
     }
     const together = h('section', undefined, 'profile-block');
@@ -663,9 +730,9 @@ export class SocialUI {
     const peers = highlights?.recent_opponents ?? [];
     const peerList = h('div', undefined, 'profile-peer-list');
     peerList.dataset.collapsedCount = '3';
-    const drawPeers = (expanded: boolean) => {
+    const drawPeers = () => {
       peerList.replaceChildren();
-      for (const peer of peers.slice(0, expanded ? 10 : 3)) {
+      for (const peer of peers.slice(0, 3)) {
         const row = this.#button('', () => this.openProfile(peer.player_id));
         row.setAttribute('aria-label', 'View profile for ' + peer.display_name);
         row.className = 'profile-performance-row profile-peer';
@@ -687,19 +754,12 @@ export class SocialUI {
         peerList.append(row);
       }
     };
-    drawPeers(false);
+    drawPeers();
     together.append(peerList);
     if (!peers.length) together.append(h('p', '–', 'social-note'));
-    if (peers.length > 3) {
-      let expanded = false;
-      const more = this.#button('Show more players', () => {
-        expanded = !expanded;
-        drawPeers(expanded);
-        more.textContent = expanded ? 'Show fewer players' : 'Show more players';
-        more.setAttribute('aria-expanded', String(expanded));
-      });
+    if (peers.length) {
+      const more = this.#button('View all players', () => this.#openProfileData(p, 'players'));
       more.className = 'profile-show-more';
-      more.setAttribute('aria-expanded', 'false');
       together.append(more);
     }
     side.append(performance, together);
@@ -1140,6 +1200,46 @@ export class SocialUI {
         .forEach((chart) => chart.dispatchEvent(new Event('polycup-chart-dismiss')));
     };
   }
+  #openProfileData(p: PlayerProfile, kind: 'tracks' | 'players') {
+    this.#profileDataReturn?.();
+    const retained = [...this.#profile.childNodes];
+    this.#profile
+      .querySelectorAll('.profile-chart')
+      .forEach((chart) => chart.dispatchEvent(new Event('polycup-chart-dismiss')));
+    const body = this.#profile.querySelector('.profile-content');
+    const scroll = body?.scrollTop ?? 0;
+    const active = (this.#profile.getRootNode() as ShadowRoot).activeElement as HTMLElement | null;
+    const view = profileDataView({
+      profile: p,
+      kind,
+      load: (query) => this.api.profileData(p.player_id, query),
+      seasons: this.#profileSeasons,
+      season: p.highlights?.season?.id ?? this.#profileSeason,
+      back: () => this.#profileDataReturn?.(),
+      close: () => this.#profile.close(),
+      player: (id) => {
+        void this.openProfile(id);
+      },
+      track: this.trackRecords
+        ? (id) => {
+            this.#profile.close();
+            this.trackRecords!(id, p.player_id, p.highlights?.season?.id);
+          }
+        : undefined,
+      artwork: this.trackArt,
+    });
+    this.#profile.classList.add('profile-data-open');
+    this.#profile.replaceChildren(view.element);
+    this.#profileDataReturn = () => {
+      this.#profileDataReturn = undefined;
+      view.dispose();
+      this.#profile.classList.remove('profile-data-open');
+      this.#profile.replaceChildren(...retained);
+      if (body) body.scrollTop = scroll;
+      if (this.#profile.open && active?.isConnected) active.focus({ preventScroll: true });
+    };
+    view.element.querySelector<HTMLButtonElement>('button')?.focus();
+  }
   openMessages(peer = '') {
     if (!this.api.user) return;
     window.dispatchEvent(new Event('polycup-social-open'));
@@ -1199,7 +1299,7 @@ export class SocialUI {
         h('span', row.display_name, 'dm-peer-name'),
         h(
           'span',
-          row.blocked_by_me ? 'Blocked' : (row.sent_by_me ? 'You: ' : '') + row.preview,
+          row.blocked_by_me ? 'Blocked' : (row.sent_by_me ? 'You: ' : '') + filterChat(row.preview),
           'dm-preview',
         ),
       );
@@ -1290,8 +1390,10 @@ export class SocialUI {
       oldHeight = this.#log.scrollHeight,
       oldScroll = this.#log.scrollTop;
     try {
-      const after = !initial && !older && !this.#rows.some(row => row.invitation?.active)
-        ? (this.#rows.at(-1)?.id ?? null) : null;
+      const after =
+        !initial && !older && !this.#rows.some((row) => row.invitation?.active)
+          ? (this.#rows.at(-1)?.id ?? null)
+          : null;
       const page = await this.api.thread(peer, older ? (this.#rows[0]?.id ?? null) : null, after);
       if (generation !== this.#generation || peer !== this.#peer || !this.#messages.open) return;
       if (this.#loadError) {
@@ -1369,6 +1471,7 @@ export class SocialUI {
         'dm-message' + (row.sender_id === this.api.user ? ' mine' : ''),
       );
       message.dataset.messageId = row.id;
+      message.classList.toggle('is-replying', this.#reply.value?.id === row.id);
       const elapsed = previous ? Date.parse(row.created_at) - Date.parse(previous.created_at) : -1;
       if (!row.reply && previous?.sender_id === row.sender_id && elapsed >= 0 && elapsed < 300000)
         message.classList.add('is-continuation');
@@ -1380,27 +1483,52 @@ export class SocialUI {
       meta.append(h('span', row.sender_id === this.api.user ? 'You' : p.display_name), stamp);
       if (row.reply) message.append(replyQuote(row.reply, this.#log));
       message.append(meta);
-      if (p.can_message) message.append(replyAction(() => {
-        if (this.#sending) return;
-        const target = { id: row.id, display_name: row.sender_id === this.api.user ? 'You' : p.display_name, body: row.body };
-        this.#replyDrafts.set(this.#peer, target); this.#reply.value = target;
-        this.#pending = undefined; this.#input.focus({ preventScroll: true });
-      }));
+      if (p.can_message)
+        message.append(
+          replyAction(
+            () => {
+              if (this.#sending) return;
+              const target = {
+                id: row.id,
+                display_name: row.sender_id === this.api.user ? 'You' : p.display_name,
+                body: row.body,
+              };
+              this.#replyDrafts.set(this.#peer, target);
+              this.#reply.value = target;
+              this.#log
+                .querySelectorAll('.is-replying')
+                .forEach((e) => e.classList.remove('is-replying'));
+              message.classList.add('is-replying');
+              this.#pending = undefined;
+              this.#input.focus({ preventScroll: true });
+            },
+            row.sender_id === this.api.user ? 'your message' : p.display_name,
+          ),
+        );
       if (row.invitation) {
         const invite = row.invitation;
-        const card = h('div',undefined,'dm-invite-card');
-        card.append(h('strong',invite.title));
+        const card = h('div', undefined, 'dm-invite-card');
+        card.append(h('strong', invite.title));
         if (!invite.friendly || invite.title !== 'Friendly 1v1')
-          card.append(h('span',invite.friendly?'Friendly 1v1':'Lobby invitation','dm-invite-kind'));
-        const active = invite.active && !!invite.expires_at && Date.parse(invite.expires_at)>Date.now();
+          card.append(
+            h('span', invite.friendly ? 'Friendly 1v1' : 'Lobby invitation', 'dm-invite-kind'),
+          );
+        const active =
+          invite.active && !!invite.expires_at && Date.parse(invite.expires_at) > Date.now();
         const own = row.sender_id === this.api.user;
-        const join = this.#button(active ? own ? 'Invitation sent' : 'Join' : 'Invitation unavailable', async () => {
-          if (!invite.code || !this.joinInvite) throw Error('Open the lobby browser to join.');
-          await this.joinInvite(invite.code); this.close();
-        },active && !own);
+        const join = this.#button(
+          active ? (own ? 'Invitation sent' : 'Join') : 'Invitation unavailable',
+          async () => {
+            if (!invite.code || !this.joinInvite) throw Error('Open the lobby browser to join.');
+            await this.joinInvite(invite.code);
+            this.close();
+          },
+          active && !own,
+        );
         join.disabled = !active || own || !this.joinInvite;
-        card.append(join); message.append(card);
-      } else message.append(h('p', row.body));
+        card.append(join);
+        message.append(card);
+      } else message.append(h('p', filterChat(row.body)));
       this.#log.append(message);
       previous = row;
     }
@@ -1446,7 +1574,9 @@ export class SocialUI {
       body = this.#input.value,
       owner = this.api.user;
     const pending =
-      this.#pending?.peer === peer && this.#pending.body === body && this.#pending.reply === this.#reply.value?.id
+      this.#pending?.peer === peer &&
+      this.#pending.body === body &&
+      this.#pending.reply === this.#reply.value?.id
         ? this.#pending
         : { peer, body, nonce: crypto.randomUUID(), reply: this.#reply.value?.id };
     this.#pending = pending;

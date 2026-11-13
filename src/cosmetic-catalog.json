@@ -915,6 +915,69 @@
     ]
   },
   {
+    "id": "season1",
+    "kind": "achievement",
+    "name": "Season 1",
+    "family": "Season rewards",
+    "metric": "season1_rank",
+    "target": 1,
+    "color": "#c8d4e5",
+    "art": "achievements/season1-silver.png",
+    "enabled": true,
+    "rarity": "common",
+    "variants": [
+      {
+        "key": "bronze",
+        "name": "Bronze",
+        "art": "achievements/season1-bronze.png",
+        "rarity": "common",
+        "color": "#c8d4e5"
+      },
+      {
+        "key": "silver",
+        "name": "Silver",
+        "art": "achievements/season1-silver.png",
+        "rarity": "common",
+        "color": "#c8d4e5"
+      },
+      {
+        "key": "gold",
+        "name": "Gold",
+        "art": "achievements/season1-gold.png",
+        "rarity": "uncommon",
+        "color": "#85e0bc"
+      },
+      {
+        "key": "platinum",
+        "name": "Platinum",
+        "art": "achievements/season1-platinum.png",
+        "rarity": "rare",
+        "color": "#8ecbff"
+      },
+      {
+        "key": "diamond",
+        "name": "Diamond",
+        "art": "achievements/season1-diamond.png",
+        "rarity": "rare",
+        "color": "#8ecbff"
+      },
+      {
+        "key": "master",
+        "name": "Master",
+        "art": "achievements/season1-master.png",
+        "rarity": "epic",
+        "color": "#c6adff"
+      },
+      {
+        "key": "grandmaster",
+        "name": "Grandmaster",
+        "art": "achievements/season1-grandmaster.png",
+        "rarity": "legendary",
+        "color": "#ffb369"
+      }
+    ]
+  },
+  {
     "id": "global-rank",
     "kind": "title",
     "name": "GLOBAL RANK",

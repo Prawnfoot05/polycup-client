@@ -7,6 +7,7 @@ import { packageLoaderSource, removeApplicationSourceArtifacts } from '../../scr
 import { dependencyNotices } from '../../scripts/package-dependency-notices.mjs';
 import { startupShell } from './startup-shell.mjs';
 import { RANKED_CLIENT_PROTOCOL, CUP_WIRE_VERSION } from '../../src/client-platform.ts';
+import { registerNativePlayerList } from '../../src/native-player-list.ts';
 const pml = process.argv.includes('--pml');
 const hub = process.argv.includes('--hub');
 // A 0.6 client requires the coordinated replay/presence/progression host.
@@ -130,6 +131,12 @@ Promise.resolve().then(() => {
 ActivePolyModLoader.getFromPolyTrackGlobal = source => eval(source);
 ${body}
 `;
+  // Native game assets exist only at packaging time, not on a clean CI checkout.
+  // Keep the real hook compatibility check here; unit tests execute its behavior.
+  const playerListHooks=[];
+  registerNativePlayerList({polyVersion:'0.6.3',registerGlobalMixin:hook=>playerListHooks.push(hook)},0);
+  for(const hook of playerListHooks) if(bootstrap.split(hook.token).length!==2)
+    throw Error('Native player-list hook changed; refusing an unchecked build');
   await writeFile(path.join(root, 'pml-game-source.js'), bootstrap);
 }
 const browserBuild = await build({

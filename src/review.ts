@@ -89,6 +89,17 @@ export class ReviewLog {
   #identities: Record<number, string> = {};
   #dropped: number = 0;
   #revision: number = 0;
+  #replayPrefix = new WeakMap<ReviewRun, { through: number; events: number }>();
+
+  /** Viewing-only continuous prefixes. A later lost packet must not erase the
+   * received opening, or falsely mark the full evidence timeline complete. */
+  replayRuns() {
+    return this.#runs.filter((r) => r.finish === null).map((r) => {
+      const prefix = this.#replayPrefix.get(r);
+      const through = r.gap ? (prefix?.through ?? -1) : r.through;
+      return { ...r, through, gap: false, inputs: r.gap ? r.inputs.slice(0, prefix?.events ?? 0) : [...r.inputs] };
+    });
+  }
 
   constructor(cupId: string | null = null) {
     this.#cupId = cupId;
@@ -150,6 +161,7 @@ export class ReviewLog {
     const remaining = REVIEW_LIMITS.events - r.inputs.length;
     if (message.events.length > remaining) r.gap = true;
     r.inputs.push(...message.events.slice(0, remaining).map((e) => [...e] as InputEvent));
+    if (!r.gap) this.#replayPrefix.set(r, { through: message.through, events: r.inputs.length });
     this.#revision++;
     return true;
   }

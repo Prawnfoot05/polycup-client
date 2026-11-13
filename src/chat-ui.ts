@@ -150,6 +150,18 @@ export class ChatUI {
         type,
         (event) => {
           if (!this.#expanded) return;
+          if (
+            event
+              .composedPath()
+              .some(
+                (node) =>
+                  node instanceof HTMLElement &&
+                  (node.classList.contains('shared-chat') || node.classList.contains('dm-compose')),
+              )
+          ) {
+            this.close();
+            return;
+          }
           if (!this.#panel.contains(shadow.activeElement)) this.#input.focus();
           event.stopImmediatePropagation();
           if (type === 'keydown' && !event.isComposing) {
@@ -247,7 +259,8 @@ export class ChatUI {
     this.#hidePersonMenu();
     this.#expanded = false;
     this.#ui.c.setChatTyping(false);
-    (this.#shadow.activeElement as HTMLElement | null)?.blur();
+    const active = this.#shadow.activeElement as HTMLElement | null;
+    if (active && this.#panel.contains(active)) active.blur();
     this.render();
   }
   async send() {
@@ -435,4 +448,3 @@ export class ChatUI {
     button.focus();
   }
 }
-

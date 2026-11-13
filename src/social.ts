@@ -1,9 +1,11 @@
+import { filterChat } from './chat-filter.ts';
 import { playerLooks } from './player-looks.ts';
 import type { CosmeticCollection, EquippedCosmetics } from './cosmetics.ts';
 import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import type { RankedProfile, RankedStats, ProfileHighlights } from './ranked.ts';
 import type { PlayerProgression } from './banner.ts';
 import { TypingSignal } from './typing.ts';
+import type { ProfileDataQuery, ProfileDataPage } from './profile-data.ts';
 import type { ActivityPresence } from './activity.ts';
 export const profileAccents = {
   gold: '#ffd76b',
@@ -38,7 +40,14 @@ export interface PlayerProfile {
 }
 export interface DirectMessage {
   reply?: import('./message-reply.ts').MessageReply | null;
-  invitation?: {id: string;title: string;friendly: boolean;active: boolean;code: string | null;expires_at: string | null};
+  invitation?: {
+    id: string;
+    title: string;
+    friendly: boolean;
+    active: boolean;
+    code: string | null;
+    expires_at: string | null;
+  };
   id: string;
   sender_id: string;
   recipient_id: string;
@@ -231,9 +240,13 @@ export class Social {
     });
     return job;
   }
-  async profile(player: string) {
-    const profile = await this.#rpc<PlayerProfile | null>('polycup_player_profile_v3', {
+  seasons(): Promise<{ id: string; name: string; active: boolean }[]> {
+    return this.#rpc('polycup_seasons');
+  }
+  async profile(player: string, season: string | null = null) {
+    const profile = await this.#rpc<PlayerProfile | null>('polycup_player_profile_season', {
       player_key: player,
+      season_key: season,
     });
     if (profile)
       playerLooks.set({
@@ -244,6 +257,19 @@ export class Social {
       });
     if (profile?.progression) playerLooks.setProgression(player, profile.progression);
     return profile;
+  }
+  profileData(player: string, query: ProfileDataQuery) {
+    return this.#rpc<ProfileDataPage>('polycup_profile_data_season', {
+      player_key: player,
+      list_kind: query.kind,
+      season_key: query.season ?? null,
+      search_value: query.search,
+      sort_stat: query.sort,
+      sort_direction: query.direction,
+      minimum_matches: query.minimum,
+      page_size: 25,
+      page_offset: query.offset,
+    });
   }
   async updateCosmetics(selection: EquippedCosmetics) {
     await this.#rpc('polycup_update_cosmetics', {
@@ -340,7 +366,7 @@ export class Social {
   }
   async send(peer: string, body: string, nonce: string, reply?: string) {
     if (!this.#user) throw Error('Sign in to send messages.');
-    const text = body.trim();
+    const text = filterChat(body.trim());
     if (!text || Array.from(text).length > 1000)
       throw Error('Write a message of 1 to 1000 characters.');
     const message = await this.#rpc<DirectMessage>('polycup_send_dm', {

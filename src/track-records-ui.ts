@@ -1,6 +1,7 @@
 import { tracks as rankedTracks } from '../supabase/catalogs/polytrack-0.6.3.json';
 const trackNames = new Map(rankedTracks.map((t) => [t.id, t.name]));
 import { element as h } from './dom.ts';
+import { clickableRow } from './clickable-row.ts';
 import type { Ranked, TrackDirectoryEntry, TrackBoard, TrackRecordLeader } from './ranked.ts';
 import type { LibraryTrack } from './game-types.ts';
 import { formatTime, formatGap } from './time.ts';
@@ -295,6 +296,7 @@ export class TrackRecordsUI {
         );
         link.append(this.#art(t.track_id), label);
         cell.append(link);
+        clickableRow(row, link);
         row.append(
           cell,
           h('td', String(t.players)),
@@ -349,6 +351,7 @@ export class TrackRecordsUI {
         h('span', r.display_name),
       );
       name.append(link);
+      if (this.profile) clickableRow(row, link);
       row.classList.toggle('is-self', r.player_id === this.user());
       row.classList.toggle('is-focus', r.player_id === this.#focus);
       row.append(

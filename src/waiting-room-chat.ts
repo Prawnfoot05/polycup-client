@@ -1,3 +1,4 @@
+import { filterChat } from './chat-filter.ts';
 import type { WaitingRoom } from './waiting-room.ts';
 import { waitingRoomChatLines } from './waiting-room-countdown.ts';
 export class WaitingRoomChat {
@@ -9,7 +10,7 @@ export class WaitingRoomChat {
     return this.#room.state?.id ?? '';
   }
   get lines() {
-    return waitingRoomChatLines(this.#room.snapshot?.data.chat ?? []);
+    return waitingRoomChatLines(this.#room.snapshot?.data.chat ?? []).map(line => ({...line, text: filterChat(line.text), name: filterChat(line.name)}));
   }
   get revision() {
     return (this.#room.snapshot?.revision ?? 0) * 1024 + this.lines.length;

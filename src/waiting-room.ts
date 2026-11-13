@@ -528,7 +528,7 @@ export class WaitingRoom {
         } else if (launch?.stage === 'connecting' && Date.now() - launch.at >= 45000)
           cancelRoomStart(
             data,
-            'Could not connect every racer. Your picks are saved; try starting again.',
+            'Some racers could not connect.',
           );
         if (
           results.length ||

@@ -7,7 +7,15 @@ import { profilePicture, profilePictureCSS } from '../../src/profile-picture.ts'
 import { protectUITouches } from '../../src/touch-ui.ts';
 import { paintTrackBanner, trackBannerCSS } from '../../src/track-banner.ts';
 import { winStreak, winStreakCSS, streakLength } from '../../src/win-streak.ts';
+import { SharedChatUI, sharedChatCSS } from '../../src/shared-chat-ui.ts';
 export class RankedLoading {
+  private chat?: SharedChatUI;
+  setChat(chat: SharedChatUI | undefined) {
+    if (this.chat === chat) return;
+    this.chat?.stop();
+    this.chat?.element.remove();
+    this.chat = chat;
+  }
   root = document.createElement('div');
   shadow = this.root.attachShadow({ mode: 'open' });
   match = '';
@@ -34,6 +42,7 @@ export class RankedLoading {
       profilePictureCSS +
       trackBannerCSS +
       winStreakCSS +
+      sharedChatCSS +
       `
     :host{font:400 18px ForcedSquare,Arial,sans-serif;color:#fff}
     *{box-sizing:border-box} .veil{height:100%;overflow:auto;display:grid;place-items:safe center;background:#10162de0;backdrop-filter:blur(7px);padding:24px}
@@ -75,6 +84,11 @@ export class RankedLoading {
      .load-identity{grid-template-rows:19px 14px;gap:3px 6px}.load-identity>.player-title{font-size:14px}.load-identity>[data-player-achievements]{--medal-size:18px;gap:3px}
      .ranked-rating-badge{width:88px;height:26px}.ranked-rating-value{font-size:23px}
     }
+    .loading-stack{width:min(920px,100%)}.loading-stack>.banner{width:100%}
+    .loading-stack>.shared-chat{height:220px;border-top:1px solid var(--pc-section-line)}
+    .loading-stack>.shared-chat h2{font-size:20px;padding:8px 20px}
+    .loading-stack .shared-chat-log{min-height:40px}
+    @media(max-height:500px){.veil{padding:10px}.loading-stack>.shared-chat{height:180px}.loading-stack>.shared-chat h2{display:none}.loading-stack .shared-chat-compose{padding:6px 10px}.loading-stack .shared-chat-compose textarea{min-height:44px}}
     `;
     this.shadow.append(style);
     document.body.append(this.root);
@@ -100,6 +114,12 @@ export class RankedLoading {
       veil = document.createElement('div');
       veil.className = 'veil';
       this.shadow.append(veil);
+    }
+    let stack = veil.querySelector<HTMLElement>('.loading-stack');
+    if (!stack) {
+      stack = document.createElement('div');
+      stack.className = 'loading-stack';
+      veil.append(stack);
     }
     const banner = document.createElement('section');
     banner.className = 'banner';
@@ -195,10 +215,18 @@ export class RankedLoading {
     status.append(label, elapsed);
     footer.append(status, progress);
     banner.append(header, list, footer);
-    veil.replaceChildren(banner);
+    const previous = stack.querySelector('.banner');
+    if (previous) previous.replaceWith(banner);
+    else stack.prepend(banner);
+    if (this.chat) {
+      if (this.chat.element.parentElement !== stack) stack.append(this.chat.element);
+      this.chat.visible = true;
+      this.chat.start();
+    }
     this.updateElapsed();
   }
   hide() {
+    if (!this.root.hidden) this.chat?.stop();
     this.root.hidden = true;
     clearInterval(this.timer);
     this.timer = undefined;

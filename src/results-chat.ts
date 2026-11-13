@@ -8,16 +8,23 @@ export class RankedResultsChat implements ChatFeed {
   #listeners = new Set<() => void>();
   #unsubscribe?: () => void;
   #timer?: ReturnType<typeof setInterval>;
-  constructor(private feed: ChatFeed, private controller: Controller, private match: string) {
+  constructor(
+    private feed: ChatFeed,
+    private controller: Controller,
+    private match: string,
+    private presentation: (id: string) => { name?: string; avatar_url?: string } | undefined = () =>
+      undefined,
+  ) {
     this.#capture();
   }
   #capture() {
     const chat = this.controller.chat;
     if (chat.cupId !== this.match) return;
-    this.#race = chat.lines.slice(-100).map(line => ({
+    this.#race = chat.lines.slice(-100).map((line) => ({
       id: `race:${this.match}:${line.seq}`,
-      sender_id: `speaker:${line.speaker}`,
+      sender_id: line.account ?? `speaker:${line.speaker}`,
       display_name: line.system ? 'Lobby' : line.name,
+      avatar_url: line.account ? this.presentation(line.account)?.avatar_url : undefined,
       body: line.text,
       created_at: new Date(line.at).toISOString(),
     }));
@@ -25,16 +32,27 @@ export class RankedResultsChat implements ChatFeed {
   get messages() {
     this.#capture();
     return [...this.#race, ...this.feed.messages]
-      .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at)).slice(-200);
+      .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))
+      .slice(-200);
   }
-  get error() { return this.feed.error; }
-  get writable() { return this.feed.writable; }
-  get unavailable() { return this.feed.unavailable; }
+  get error() {
+    return this.feed.error;
+  }
+  get writable() {
+    return this.feed.writable;
+  }
+  get unavailable() {
+    return this.feed.unavailable;
+  }
   subscribe(fn: () => void) {
     this.#listeners.add(fn);
-    return () => { this.#listeners.delete(fn); };
+    return () => {
+      this.#listeners.delete(fn);
+    };
   }
-  #changed = () => { for (const fn of this.#listeners) fn(); };
+  #changed = () => {
+    for (const fn of this.#listeners) fn();
+  };
   start() {
     if (this.#timer) return;
     this.#unsubscribe = this.feed.subscribe(this.#changed);
@@ -49,7 +67,9 @@ export class RankedResultsChat implements ChatFeed {
     this.#unsubscribe = undefined;
     this.feed.stop();
   }
-  send(body: string, nonce: string) { return this.feed.send(body, nonce); }
+  send(body: string, nonce: string) {
+    return this.feed.send(body, nonce);
+  }
 }
 
 /** Casual results remain in the player-hosted lobby and share its existing chat,

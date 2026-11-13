@@ -30,3 +30,15 @@
 @keyframes message-reply-flash { from { background-color:#526795; } to { background-color:transparent; } }
 @media(hover:none),(pointer:coarse) { .message-reply-action { opacity:1; } .dm-message,.shared-chat-message { padding-right:36px; } }
 @media(prefers-reduced-motion:reduce) { .message-reply-target { animation:none; outline:1px solid var(--pc-muted,#aebbd9); } }
+/* Actions stay inside their own row, including grouped one-line messages. */
+.dm-message,.shared-chat-message{box-sizing:border-box;min-height:30px;padding-right:38px!important}
+.message-reply-action{top:3px;right:3px;height:24px;width:28px;min-width:28px!important;border:1px solid var(--pc-section-line,#52678e)!important}
+.dm-message:has(>.message-reply-action):hover,.shared-chat-message:has(>.message-reply-action):hover{background:rgba(100,130,190,.12)}
+@media(hover:none){.message-reply-action{opacity:.7}}
+.dm-message.is-replying,.shared-chat-message.is-replying{background:#344a7455;box-shadow:inset 2px 0 var(--pc-gold,#ffdc70)}
+.dm-message.is-replying{border-left-color:var(--pc-gold,#ffdc70);box-shadow:none}
+/* The message owns the highlight. Child author/quote controls never paint a
+   second moving plate over it. Selection and mentions retain one shared edge. */
+:is(.shared-chat,.social-dialog) :is(.message-reply-quote,.chat-author)::after{display:none!important}
+.shared-chat-message.mentions-you:is(:hover,.is-replying){background:#ffda701a;box-shadow:inset 2px 0 var(--pc-gold,#ffdc70)}
+.message-reply-quote:is(:hover,:focus-visible){background:transparent!important;box-shadow:none!important}

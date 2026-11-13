@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.6.5",
+    "date": "2026-11-14",
+    "entries": [
+      "Season 1: fresh placements, revised ranked progression and the community-voted 30-track pool, with Season 0 statistics preserved.",
+      "Expanded profile statistics, season navigation and new seasonal and Mythic rewards.",
+      "Community mentions and loading-screen chat, with improved replies and stronger shared chat filtering.",
+      "More reliable ranked connections, casual and friendly transitions, result delivery and replay recovery."
+    ],
+    "notes": []
+  },
+  {
     "version": "0.6.3",
     "date": "2026-11-10",
     "entries": [

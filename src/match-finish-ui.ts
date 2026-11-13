@@ -11,6 +11,7 @@ import type { RankedProfile } from './ranked.ts';
 import rankCSS from './ranked-queue.css';
 import { profilePictureCSS } from './profile-picture.ts';
 import { element as h } from './dom.ts';
+import { clickableRow } from './clickable-row.ts';
 import { placing, ratingNumber } from './ranked-format.ts';
 import { formatTime } from './time.ts';
 import css from './match-finish.css';
@@ -42,6 +43,7 @@ export interface FinishView {
   title: string;
   subtitle: string;
   track?: string;
+  trackArt?: string | Promise<string>;
   openTrackRecords?: () => void | Promise<void>;
   rows: FinishRow[];
   self?: string;
@@ -178,7 +180,24 @@ export class MatchFinishUI {
     const titleLine = h('div', undefined, 'finish-title-line');
     titleLine.append(h('h1', view.title));
     const trackRow = h('div', undefined, 'finish-track-row');
-    trackRow.append(h('p', view.track || view.subtitle, 'finish-subtitle'));
+    const trackLabel = h('p', undefined, 'finish-subtitle');
+    if (view.trackArt) {
+      const art = h('span', undefined, 'finish-track-art');
+      art.setAttribute('aria-hidden', 'true');
+      const image = h('img');
+      image.alt = '';
+      image.draggable = false;
+      image.decoding = 'async';
+      image.onerror = () => art.remove();
+      art.append(image);
+      trackLabel.append(art);
+      void Promise.resolve(view.trackArt).then(src => {
+        if (!src) art.remove();
+        else if (image.isConnected) image.src = src;
+      }).catch(() => art.remove());
+    }
+    trackLabel.append(h('span', view.track || view.subtitle));
+    trackRow.append(trackLabel);
     header.append(eyebrow, titleLine);
     if (view.openTrackRecords && !view.pending) {
       const link = h('button', 'Track records', 'finish-track-records');
@@ -263,6 +282,8 @@ export class MatchFinishUI {
       item.classList.toggle('is-winner', row.place === 1 && !row.abandoned && !row.dnf);
       const name = h('div', undefined, 'finish-player');
       name.append(row.name);
+      const profileAction = row.name instanceof HTMLButtonElement ? row.name : row.name.querySelector<HTMLButtonElement>('button');
+      if (profileAction && !profileAction.disabled) clickableRow(item, profileAction);
       if (row.team) {
         item.dataset.team = row.team;
         name.append(teamChip(row.team));
@@ -346,7 +367,7 @@ export class MatchFinishUI {
     }
     const status = h(
       'p',
-      view.pending ? 'Confirming ratings…' : (view.notice ?? ''),
+        view.pending ? (view.notice || 'Confirming ratings…') : (view.notice ?? ''),
       'finish-status',
     );
     status.setAttribute('role', 'status');

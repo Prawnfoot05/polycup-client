@@ -273,7 +273,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
         if (cancelled) throw new Error('Match start cancelled.');
         window.polycupStartupStage?.('native_world_start');
         J(metadata,trackData,'custom',[],{multiplayerConnection:connection,sessionId,gameMode:mode},false);
-        while (Za.get($)?.multiplayerConnection !== connection) {
+        while (Za.get($)?.multiplayerConnection !== connection || !Xa.get($) || o.isTransitioning) {
           if (cancelled || performance.now()>deadline) throw new Error('Race loading timed out.');
           await new Promise(resolve=>setTimeout(resolve,100));
         }

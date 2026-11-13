@@ -175,8 +175,10 @@ export class CupHub {
       this.#enter();
     });
     account.setFriendlyChallenge(async (person) => {
-      if (this.#rankedActive || options.rankedActive?.()) throw Error('Leave the ranked queue or match before challenging a friend.');
-      if (this.#room?.snapshot || controller.connection) throw Error('Leave your current lobby first.');
+      if (this.#rankedActive || options.rankedActive?.())
+        throw Error('Leave the ranked queue or match before challenging a friend.');
+      if (this.#room?.snapshot || controller.connection)
+        throw Error('Leave your current lobby first.');
       this.options.beforeCasual?.();
       const room = this.#ensure();
       try {
@@ -207,8 +209,26 @@ export class CupHub {
       );
       this.#communityView.append(this.#community.element);
       this.#community.chat.onUnread = (count) => {
+        if (!count) {
+          delete this.#communityUnread.dataset.mentioned;
+          this.#communityUnread.textContent = '';
+        }
         this.#communityUnread.hidden = count === 0;
-        this.#communityUnread.setAttribute('aria-label', count ? 'New community messages' : '');
+        this.#communityUnread.setAttribute(
+          'aria-label',
+          count
+            ? this.#communityUnread.dataset.mentioned
+              ? 'You were mentioned in community chat'
+              : 'New community messages'
+            : '',
+        );
+      };
+      this.#community.chat.onMention = () => {
+        if (this.#community?.chat.visible) return;
+        this.#communityUnread.dataset.mentioned = 'true';
+        this.#communityUnread.textContent = '@';
+        this.#communityUnread.hidden = false;
+        this.#communityUnread.setAttribute('aria-label', 'You were mentioned in community chat');
       };
       this.#communityUnread.hidden = true;
       const board = new LeaderboardUI(

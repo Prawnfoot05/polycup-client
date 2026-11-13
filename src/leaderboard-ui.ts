@@ -1,4 +1,5 @@
 import { TrackRecordsUI } from './track-records-ui.ts';
+import { clickableRow } from './clickable-row.ts';
 import type { LibraryTrack } from './game-types.ts';
 import { installErrorDismissal } from './dismissible-errors.ts';
 import { playerLooks } from './player-looks.ts';
@@ -396,6 +397,7 @@ export class LeaderboardUI {
             ),
           );
           const playerButton = name.querySelector('button')!;
+          clickableRow(tr, playerButton);
           playerButton.classList.add('player-with-portrait');
           playerButton.replaceChildren(
             profilePicture(row.display_name, row.avatar_url),

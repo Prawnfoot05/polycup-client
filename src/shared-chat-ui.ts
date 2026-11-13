@@ -1,3 +1,4 @@
+import { filterChat } from './chat-filter.ts';
 import { playerLooks } from './player-looks.ts';
 import { installErrorDismissal, retryDismissedErrors } from './dismissible-errors.ts';
 import { element as h } from './dom.ts';
@@ -5,7 +6,8 @@ import { profilePicture, profilePictureCSS } from './profile-picture.ts';
 import type { ChatFeed, SharedChat, SharedMessage } from './shared-chat.ts';
 import css from './shared-chat.css';
 import { drawTyping, typingCSS } from './typing-ui.ts';
-import { ReplyComposer, replyAction, replyQuote, messageReplyCSS } from './message-reply.ts';
+import { ReplyComposer, replyAction, replyQuote, messageReplyCSS, messageNotifies } from './message-reply.ts';
+import { protectUITouches } from './touch-ui.ts';
 export const sharedChatCSS = profilePictureCSS + css + typingCSS + messageReplyCSS;
 const editors = new WeakMap<EventTarget, (event: KeyboardEvent) => void>();
 /** The game shields its modal inputs at window capture. Route the focused
@@ -37,7 +39,11 @@ export class SharedChatUI {
   #unsubscribe?: () => void;
   #sending = false;
   #nonce = '';
-  #reply = new ReplyComposer(() => { this.#nonce = ''; this.#input.focus(); });
+  #reply = new ReplyComposer(() => {
+    this.#nonce = '';
+    this.#log.querySelectorAll('.is-replying').forEach((e) => e.classList.remove('is-replying'));
+    this.#input.focus();
+  });
   #signature = '';
   #bottom = true;
   #generation = 0;
@@ -49,6 +55,57 @@ export class SharedChatUI {
   #unread = 0;
   #visible = true;
   #feed: ChatFeed;
+  #mentions = h('div', undefined, 'chat-mention-picker');
+  #mentionRange?: { start: number; end: number };
+  #mentionChoices: { player_id: string; display_name: string; avatar_url?: string }[] = [];
+  #mentionIndex = 0;
+  #chosenMentions = new Map<string, string>();
+  #mentioned?: () => void;
+  set onMention(fn: (() => void) | undefined) {
+    this.#mentioned = fn;
+  }
+  #pickMention(index: number) {
+    const person = this.#mentionChoices[index],
+      range = this.#mentionRange;
+    if (!person || !range) return;
+    const duplicate =
+      (this.#feed.mentionTargets?.filter((p) => p.display_name === person.display_name).length ??
+        0) > 1;
+    const label = person.display_name + (duplicate ? '#' + person.player_id.slice(0, 4) : '');
+    this.#chosenMentions.set(label, person.player_id);
+    this.#input.setRangeText(`@${label} `, range.start, range.end, 'end');
+    this.#mentions.hidden = true;
+    this.#mentionRange = undefined;
+    this.#input.focus({ preventScroll: true });
+    this.#input.dispatchEvent(new Event('input'));
+  }
+  #suggestMentions() {
+    const people = this.#feed.mentionTargets,
+      at = this.#input.selectionStart;
+    const match = /(?:^|\s)@([^\s@<>]*)$/.exec(this.#input.value.slice(0, at));
+    this.#mentions.replaceChildren();
+    this.#mentions.hidden = true;
+    if (!people || !match) {
+      this.#mentionRange = undefined;
+      return;
+    }
+    this.#mentionRange = { start: at - match[1].length - 1, end: at };
+    this.#mentionChoices = people
+      .filter((p) => p.display_name.toLowerCase().includes(match[1].toLowerCase()))
+      .slice(0, 6);
+    this.#mentionIndex = Math.min(this.#mentionIndex, Math.max(0, this.#mentionChoices.length - 1));
+    this.#mentions.hidden = !this.#mentionChoices.length;
+    this.#mentionChoices.forEach((p, index) => {
+      const button = h('button', undefined, 'chat-mention-choice');
+      button.type = 'button';
+      button.dataset.mentionPlayer = p.player_id;
+      button.setAttribute('aria-selected', String(index === this.#mentionIndex));
+      button.append(profilePicture(p.display_name, p.avatar_url), h('span', p.display_name));
+      button.onpointerdown = (e) => e.preventDefault();
+      button.onclick = () => this.#pickMention(index);
+      this.#mentions.append(button);
+    });
+  }
   #profile?: (id: string) => void;
   #framesOnly: boolean;
   constructor(
@@ -58,6 +115,7 @@ export class SharedChatUI {
     appearance: 'full' | 'frames' = 'full',
   ) {
     this.#framesOnly = appearance === 'frames';
+    protectUITouches(this.#element);
     this.#feed = feed;
     this.#profile = profile;
     this.#element.setAttribute('aria-label', title);
@@ -74,7 +132,13 @@ export class SharedChatUI {
     this.#input.maxLength = 400;
     this.#input.placeholder = 'Write a message…';
     this.#input.setAttribute('aria-label', title + ' message');
+    this.#input.addEventListener('focus', () =>
+      window.dispatchEvent(new Event('polycup-social-open')),
+    );
     this.#input.addEventListener('input', () => {
+      for (const name of this.#chosenMentions.keys())
+        if (!this.#input.value.includes('@' + name)) this.#chosenMentions.delete(name);
+      this.#suggestMentions();
       this.#nonce = '';
       this.#updateSend();
       this.#feed.typing?.input(!!this.#input.value.trim());
@@ -82,8 +146,35 @@ export class SharedChatUI {
     this.#input.addEventListener('blur', () => this.#feed.typing?.input(false));
     editors.set(this.#input, (event) => {
       event.stopPropagation();
+      if (!this.#mentions.hidden && this.#mentionRange && !event.isComposing) {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          this.#mentionIndex =
+            (this.#mentionIndex +
+              (event.key === 'ArrowDown' ? 1 : -1) +
+              this.#mentionChoices.length) %
+            this.#mentionChoices.length;
+          this.#suggestMentions();
+          return;
+        }
+        if (event.key === 'Enter' || event.key === 'Tab') {
+          event.preventDefault();
+          this.#pickMention(this.#mentionIndex);
+          return;
+        }
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          this.#mentions.hidden = true;
+          this.#mentionRange = undefined;
+          return;
+        }
+      }
       if (event.key === 'Escape' && this.#reply.value) {
-        event.preventDefault(); this.#reply.value = undefined; this.#nonce = ''; return;
+        event.preventDefault();
+        this.#reply.value = undefined;
+        this.#log.querySelectorAll('.is-replying').forEach((e) => e.classList.remove('is-replying'));
+        this.#nonce = '';
+        return;
       }
       if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
         event.preventDefault();
@@ -96,7 +187,9 @@ export class SharedChatUI {
       event.preventDefault();
       void this.#post();
     });
-    form.append(this.#reply.element, this.#input, this.#send);
+    this.#mentions.hidden = true;
+    this.#mentions.setAttribute('aria-label', 'Mention a player');
+    form.append(this.#mentions, this.#reply.element, this.#input, this.#send);
     this.#latest.type = 'button';
     this.#latest.hidden = true;
     this.#latest.onclick = () => {
@@ -134,6 +227,9 @@ export class SharedChatUI {
     this.render();
   }
   stop() {
+    this.#chosenMentions.clear();
+    this.#mentions.hidden = true;
+    this.#mentionRange = undefined;
     this.#feed.typing?.stop();
     this.#typingUnsubscribe?.();
     this.#typingUnsubscribe = undefined;
@@ -164,8 +260,15 @@ export class SharedChatUI {
     if (this.#send.disabled) return;
     this.#feed.typing?.input(false);
     retryDismissedErrors(this.#element);
-    const body = this.#input.value.trim(),
-      generation = this.#generation;
+    let body = this.#input.value.trim();
+    for (const [name, id] of [...this.#chosenMentions].sort((a, b) => b[0].length - a[0].length)) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      body = body.replace(
+        new RegExp('(^|\\s)@' + escaped + '(?=$|[\\s.,!?;:])', 'g'),
+        (_match, before) => `${before}<@${id}|${encodeURIComponent(name)}>`,
+      );
+    }
+    const generation = this.#generation;
     this.#nonce ||= crypto.randomUUID();
     this.#sending = true;
     this.#input.readOnly = true;
@@ -176,6 +279,9 @@ export class SharedChatUI {
       await this.#feed.send(body, this.#nonce, this.#reply.value?.id);
       if (generation !== this.#generation) return;
       this.#input.value = '';
+      this.#chosenMentions.clear();
+      this.#mentions.hidden = true;
+      this.#mentionRange = undefined;
       this.#reply.value = undefined;
       this.#nonce = '';
       this.#status.textContent = '';
@@ -197,12 +303,30 @@ export class SharedChatUI {
     }
   }
   render() {
-    this.#element.classList.toggle('replies-enabled', !!this.#feed.supportsReplies && this.#feed.writable);
+    this.#element.classList.toggle(
+      'replies-enabled',
+      !!this.#feed.supportsReplies && this.#feed.writable,
+    );
     const messages = this.#feed.messages,
       signature = JSON.stringify([!!this.#feed.supportsReplies && this.#feed.writable, messages]);
     const last = messages.at(-1)?.id ?? '';
     if (signature !== this.#signature) {
       const firstLoad = !this.#signature;
+      const priorIds = new Set(
+        [...this.#log.querySelectorAll<HTMLElement>('[data-message-id]')].map(
+          (e) => e.dataset.messageId,
+        ),
+      );
+      if (
+        !firstLoad &&
+        this.#feed.mentionUser &&
+        messages.some(
+          (m) =>
+            !priorIds.has(m.id) &&
+            messageNotifies(m.body, m.reply, this.#feed.mentionUser, m.sender_id),
+        )
+      )
+        this.#mentioned?.();
       this.#signature = signature;
       const scroll = this.#log.scrollTop;
       this.#log.replaceChildren(
@@ -240,12 +364,21 @@ export class SharedChatUI {
       this.#status.setAttribute('role', this.#feed.error ? 'alert' : 'status');
     }
     this.#updateSend();
+    if (this.#mentionRange) this.#suggestMentions();
   }
   #row(row: SharedMessage, previous?: SharedMessage) {
     const item = h('article', undefined, 'shared-chat-message');
     item.dataset.messageId = row.id;
+    item.classList.toggle('mentions-you', messageNotifies(row.body, row.reply, this.#feed.mentionUser, row.sender_id));
+    item.classList.toggle('is-replying', this.#reply.value?.id === row.id);
     const elapsed = previous ? Date.parse(row.created_at) - Date.parse(previous.created_at) : -1;
-    if (!row.reply && row.sender_id && previous?.sender_id === row.sender_id && elapsed >= 0 && elapsed < 300000)
+    if (
+      !row.reply &&
+      row.sender_id &&
+      previous?.sender_id === row.sender_id &&
+      elapsed >= 0 &&
+      elapsed < 300000
+    )
       item.classList.add('is-continuation');
     item.title = new Date(row.created_at).toLocaleString();
     const portrait = profilePicture(row.display_name, row.avatar_url);
@@ -271,13 +404,47 @@ export class SharedChatUI {
     if (!this.#framesOnly) playerLooks.decorate(header, row.sender_id);
     if (row.reply) content.append(replyQuote(row.reply, this.#log));
     content.append(header);
-    content.append(h('p', row.body));
+    const body = h('p');
+    const filteredBody = filterChat(row.body);
+    if (this.#feed.mentionTargets) {
+      let offset = 0;
+      for (const match of filteredBody.matchAll(/<@([a-f0-9-]{36})(?:\|([^>]*))?>/gi)) {
+        body.append(document.createTextNode(filteredBody.slice(offset, match.index)));
+        const person = this.#feed.mentionTargets.find((p) => p.player_id === match[1]);
+        let label = 'Player';
+        try {
+          if (match[2]) label = decodeURIComponent(match[2]);
+        } catch {}
+        const mention = h('button', '@' + filterChat(person?.display_name ?? label), 'chat-mention');
+        mention.type = 'button';
+        mention.onclick = () => this.#profile?.(match[1]);
+        body.append(mention);
+        offset = match.index! + match[0].length;
+        if (match[1] === this.#feed.mentionUser) item.classList.add('mentions-you');
+      }
+      body.append(document.createTextNode(filteredBody.slice(offset)));
+    } else body.textContent = filteredBody;
+    content.append(body);
     item.append(portrait, content);
-    if (this.#feed.supportsReplies && this.#feed.writable) item.append(replyAction(() => {
-      if (this.#sending || !this.#feed.writable) return;
-      this.#reply.value = { id: row.id, display_name: row.display_name, avatar_url: row.avatar_url, body: row.body };
-      this.#nonce = ''; this.#input.focus({ preventScroll: true });
-    }));
+    if (this.#feed.supportsReplies && this.#feed.writable)
+      item.append(
+        replyAction(() => {
+          if (this.#sending || !this.#feed.writable) return;
+          this.#reply.value = {
+            id: row.id,
+            sender_id: row.sender_id,
+            display_name: row.display_name,
+            avatar_url: row.avatar_url,
+            body: row.body,
+          };
+          this.#log
+            .querySelectorAll('.is-replying')
+            .forEach((e) => e.classList.remove('is-replying'));
+          item.classList.add('is-replying');
+          this.#nonce = '';
+          this.#input.focus({ preventScroll: true });
+        }, row.display_name),
+      );
     item.dataset.playerBanner = 'off';
     playerLooks.decorate(item, row.sender_id);
     return item;

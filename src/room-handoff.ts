@@ -159,6 +159,8 @@ export class RoomHandoff {
       this.#room.snapshot?.data.launch?.id === attempt;
     this.#busy = true;
     try {
+      if (performance.now() - this.#startedAt >= 45000)
+        throw new Error('Race loading timed out.');
       if (!this.#room.fresh) return;
       if (!this.#connection) {
         if (this.#room.isHost) {
@@ -248,19 +250,14 @@ export class RoomHandoff {
       this.#bridge.returnToMenu();
       this.#room.resume();
       if (!this.#room.ranked)
-        this.#room.failedConnection?.(
-          `Could not connect: ${(error as Error).message} ${this.#room.isHost ? 'Your picks are saved; try starting again.' : 'Waiting for the host to retry.'}`,
-        );
+        this.#room.failedConnection?.((error as Error).message);
       if (this.#room.ranked && this.#room.snapshot?.data.launch?.stage === 'racing') {
         await this.#room.leave().catch(() => {});
       } else if (this.#room.isHost) {
         await this.#room
           .update((data) => {
             if (data.launch?.id === attempt)
-              cancelRoomStart(
-                data,
-                `${(error as Error).message} Your picks are saved; try starting again.`,
-              );
+              cancelRoomStart(data, (error as Error).message);
           })
           .catch(() => {});
       }
@@ -268,10 +265,7 @@ export class RoomHandoff {
       else if (this.#room.ranked) await this.#room.submit('failed', attempt).catch(() => {});
       else
         await this.#room
-          .submit(
-            'chat',
-            `Could not connect: ${(error as Error).message} Please cancel and retry the start.`,
-          )
+          .submit('chat', (error as Error).message)
           .catch(() => {});
       if (this.#attempt === attempt) this.#finished = true;
     } finally {
@@ -323,7 +317,7 @@ export function controllerRaceBridge(c: Controller): RaceBridge {
     progress: (phase, detail) => c.startupDiagnostic(phase, detail),
     peers: (connection) => c.native.peers(connection),
     ready: (ids) => c.connectedRacers(ids),
-    started: (_cupId) => c.nativeState !== null,
+    started: (cupId) => c.nativeState?.id === cupId,
     entered: () => c.finishWaitingRace(),
     rebind: (oldId, newId) => c.verifiedRankedReconnect(oldId, newId),
     async begin(data, ids, tracks) {
