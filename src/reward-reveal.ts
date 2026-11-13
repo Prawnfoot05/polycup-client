@@ -19,7 +19,7 @@ export class RewardReveal {
   constructor() {
     this.element.hidden = true;
   }
-  show(key: string, rewards: RewardUnlock[], done: () => void) {
+  show(key: string, rewards: RewardUnlock[], done: () => void, heading?: string) {
     rewards = rewards.filter((reward) => reward.kind !== 'frame' || !!cosmetic(reward.id, 'frame'));
     if (!rewards.length || seen.has(key)) return false;
     try {
@@ -29,7 +29,7 @@ export class RewardReveal {
     }
     this.#key = key;
     this.#done = done;
-    const title = h('h2', rewards.length === 1 ? 'Item unlocked' : 'Items unlocked'),
+    const title = h('h2', heading ?? (rewards.length === 1 ? 'Item unlocked' : 'Items unlocked')),
       grid = h('div', undefined, 'reward-reveal-grid'),
       close = h('button', '×', 'reward-reveal-close'),
       proceed = h('button', 'Continue', 'primary');

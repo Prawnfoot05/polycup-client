@@ -22,6 +22,7 @@ import { CupGuide } from './cup-guide.ts';
 import { CommunityUI, sharedChatCSS } from './shared-chat-ui.ts';
 import { PatchNotes, patchNotesCSS } from './patch-notes.ts';
 import { SeasonCountdown } from './season-countdown.ts';
+import { SeasonRewards } from './season-rewards.ts';
 
 export interface CupHubOptions {
   rankedActivity?: HTMLElement;
@@ -75,6 +76,7 @@ export class CupHub {
   #rankedEntered = '';
   #guide: CupGuide;
   #patchNotes: PatchNotes;
+  #seasonRewards: SeasonRewards;
   get #rankedActive() {
     return this.options.rankedActive?.() ?? this.#account.account?.queue.active;
   }
@@ -103,6 +105,9 @@ export class CupHub {
     this.#account = account;
     this.#guide = new CupGuide(shadow);
     this.#patchNotes = new PatchNotes(shadow);
+    this.#seasonRewards = new SeasonRewards(shadow, () => this.isOpen && !document.hidden &&
+      !this.#rankedActive && !this.#busy && !this.#resultUI?.isOpen && !controller.nativeState &&
+      !this.#room?.snapshot && !shadow.querySelector('dialog[open]:not(.cup-hub):not(.account-embedded)'), () => account.account?.user?.id ?? null);
     account.setSignOutAllowed(() => !this.#room?.requiresAccount && !this.#rankedActive);
     this.#controller = controller;
     this.#entered = entered;
@@ -775,6 +780,7 @@ export class CupHub {
       this.#error.hidden = false;
     } finally {
       this.#busy = false;
+      void this.#seasonRewards.check(this.#account.account?.user?.id ?? null, this.#account.account?.social);
       for (const [button, label] of labels) button.textContent = label;
       for (const button of this.#dialog.querySelectorAll<HTMLButtonElement>(
         '.hub-list-header button, .hub-host button, .hub-room button',
@@ -844,6 +850,7 @@ export class CupHub {
     }, 15000);
   }
   close() {
+    this.#seasonRewards.close();
     this.#seasonCountdown.stop();
     this.#community?.stop();
     this.#account.closeSocial();
@@ -862,6 +869,7 @@ export class CupHub {
     coverNativeMenu(false);
   }
   async refresh() {
+    void this.#seasonRewards.check(this.#account.account?.user?.id ?? null, this.#account.account?.social);
     if (this.#refreshing) return;
     if (this.#dialog.open && !this.#onlineBusy && Date.now() - this.#onlineAt >= 30000) {
       const api = this.#account.account?.ranked;
@@ -1004,3 +1012,4 @@ export class CupHub {
       button.disabled ||= !!this.#rankedActive;
   }
 }
+

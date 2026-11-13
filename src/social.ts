@@ -243,6 +243,12 @@ export class Social {
   seasons(): Promise<{ id: string; name: string; active: boolean }[]> {
     return this.#rpc('polycup_seasons');
   }
+  seasonRewards(): Promise<import('./season-rewards.ts').SeasonReward[]> {
+    return this.#rpc('polycup_season_rewards');
+  }
+  ackSeasonRewards(season: string) {
+    return this.#rpc('polycup_season_rewards', {action: 'ack', season_key: season});
+  }
   async profile(player: string, season: string | null = null) {
     const profile = await this.#rpc<PlayerProfile | null>('polycup_player_profile_season', {
       player_key: player,

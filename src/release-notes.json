@@ -3,10 +3,10 @@
     "version": "0.6.5",
     "date": "2026-11-14",
     "entries": [
-      "Season 1: fresh placements, revised ranked progression and the community-voted 30-track pool, with Season 0 statistics preserved.",
-      "Expanded profile statistics, season navigation and new seasonal and Mythic rewards.",
-      "Community mentions and loading-screen chat, with improved replies and stronger shared chat filtering.",
-      "More reliable ranked connections, casual and friendly transitions, result delivery and replay recovery."
+      "Season 1: fresh placements and revised ratings that separate skill estimates from visible progression, making isolated losses less punishing without penalizing repeat opponents. DNFs cannot gain rating.",
+      "A community-voted 30-track ranked pool: 15 Fullspeed and 15 Tech tracks.",
+      "Season 0 remains viewable through season selectors, with permanent rank badges revealed on your next hub visit. XP and existing unlocks carry over.",
+      "Expanded profile statistics and smoother chat, connections and casual/friendly match transitions."
     ],
     "notes": []
   },
