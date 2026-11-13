@@ -925,5 +925,53 @@
     "rarity": "common",
     "art": null,
     "enabled": true
+  },
+  {
+    "id": "fullspeed-6",
+    "kind": "achievement",
+    "name": "Fullspeed 6",
+    "family": "Fullspeed",
+    "metric": "fullspeed_wins",
+    "target": 750,
+    "color": "#ff414c",
+    "art": "achievements/fullspeed-6.png",
+    "enabled": true,
+    "rarity": "mythic"
+  },
+  {
+    "id": "tech-6",
+    "kind": "achievement",
+    "name": "Tech 6",
+    "family": "Tech",
+    "metric": "tech_wins",
+    "target": 750,
+    "color": "#ff414c",
+    "art": "achievements/tech-6.png",
+    "enabled": true,
+    "rarity": "mythic"
+  },
+  {
+    "id": "wins-1000",
+    "kind": "achievement",
+    "name": "1,000 wins",
+    "family": "Wins",
+    "metric": "wins",
+    "target": 1000,
+    "color": "#ff414c",
+    "art": "achievements/wins-1000.png",
+    "enabled": true,
+    "rarity": "mythic"
+  },
+  {
+    "id": "streak-25",
+    "kind": "achievement",
+    "name": "25-win streak",
+    "family": "Win streaks",
+    "metric": "best_streak",
+    "target": 25,
+    "color": "#ff414c",
+    "art": "achievements/streak-25.png",
+    "enabled": true,
+    "rarity": "mythic"
   }
 ]

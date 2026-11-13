@@ -5,6 +5,7 @@ export const rewardRarities = {
   rare: { name: 'Rare', color: '#8ecbff' },
   epic: { name: 'Epic', color: '#c6adff' },
   legendary: { name: 'Legendary', color: '#ffd76b' },
+  mythic: { name: 'Mythic', color: '#ff414c' },
 } as const;
 export type RewardRarity = keyof typeof rewardRarities;
 export function rarityOrder(key?: string) {

@@ -40,7 +40,7 @@
 .reward-family-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 .reward-family-heading strong{font-size:18px;font-weight:400}
 .reward-family-goal{font-size:15px;color:var(--pc-muted);white-space:nowrap}
-.reward-family-medals{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.reward-family-medals{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
 .player-profile .reward-family-medal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:72px;width:100%;margin:0;padding:4px;background:transparent;clip-path:none;--focus-cut:0px;color:var(--pc-text);border:0;outline-offset:-2px}
 .player-profile .reward-family-medal[aria-pressed=true]{outline:2px solid var(--profile-accent);background:var(--pc-raised)}
 .player-profile .reward-family-medal:hover,.player-profile .reward-family-medal:focus-visible{background:var(--pc-panel)}
