@@ -7,7 +7,7 @@ import type { ChatFeed, SharedChat, SharedMessage } from './shared-chat.ts';
 import css from './shared-chat.css';
 import { drawTyping, typingCSS } from './typing-ui.ts';
 import { ReplyComposer, replyAction, replyQuote, messageReplyCSS, messageNotifies } from './message-reply.ts';
-import { protectUITouches } from './touch-ui.ts';
+import { protectUITouches, enableTouchKeyboard } from './touch-ui.ts';
 export const sharedChatCSS = profilePictureCSS + css + typingCSS + messageReplyCSS;
 const editors = new WeakMap<EventTarget, (event: KeyboardEvent) => void>();
 /** The game shields its modal inputs at window capture. Route the focused
@@ -132,6 +132,7 @@ export class SharedChatUI {
     this.#input.maxLength = 400;
     this.#input.placeholder = 'Write a message…';
     this.#input.setAttribute('aria-label', title + ' message');
+    enableTouchKeyboard(this.#input);
     this.#input.addEventListener('focus', () =>
       window.dispatchEvent(new Event('polycup-social-open')),
     );
@@ -260,7 +261,9 @@ export class SharedChatUI {
     if (this.#send.disabled) return;
     this.#feed.typing?.input(false);
     retryDismissedErrors(this.#element);
-    let body = this.#input.value.trim();
+    const draft = this.#input.value;
+    const reply = this.#reply.value;
+    let body = draft.trim();
     for (const [name, id] of [...this.#chosenMentions].sort((a, b) => b[0].length - a[0].length)) {
       const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       body = body.replace(
@@ -270,20 +273,22 @@ export class SharedChatUI {
     }
     const generation = this.#generation;
     this.#nonce ||= crypto.randomUUID();
+    const nonce = this.#nonce;
     this.#sending = true;
-    this.#input.readOnly = true;
     this.#updateSend();
     this.#status.textContent = 'Sending…';
     this.#status.setAttribute('role', 'status');
     try {
-      await this.#feed.send(body, this.#nonce, this.#reply.value?.id);
+      await this.#feed.send(body, nonce, reply?.id);
       if (generation !== this.#generation) return;
-      this.#input.value = '';
-      this.#chosenMentions.clear();
-      this.#mentions.hidden = true;
-      this.#mentionRange = undefined;
-      this.#reply.value = undefined;
-      this.#nonce = '';
+      if (this.#input.value === draft && this.#nonce === nonce) {
+        this.#input.value = '';
+        this.#chosenMentions.clear();
+        this.#mentions.hidden = true;
+        this.#mentionRange = undefined;
+      }
+      if (this.#reply.value === reply) this.#reply.value = undefined;
+      if (this.#nonce === nonce) this.#nonce = '';
       this.#status.textContent = '';
       this.#bottom = true;
       this.render();
