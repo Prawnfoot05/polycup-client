@@ -167,7 +167,7 @@ export class SharedChat implements ChatFeed {
       });
     this.#timer = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      if (Date.now() - this.#lastRead >= (this.#connected ? 30000 : 8000)) void this.refresh();
+      if (Date.now() - this.#lastRead >= (this.#closed ? 8000 : this.#connected ? 30000 : 8000)) void this.refresh();
     }, 2000);
     void this.refresh();
     this.#changed();
@@ -236,15 +236,13 @@ export class SharedChat implements ChatFeed {
           .sort((a, b) => (BigInt(a.id) < BigInt(b.id) ? -1 : 1))
           .slice(-100);
         this.#error = '';
+        this.#closed = false;
       } catch (e) {
         if (generation === this.#generation) {
           this.#error = (e as Error).message;
           this.#closed = /Match chat has closed/.test(this.#error);
-          if (this.#closed) {
-            clearInterval(this.#timer);
-            if (this.#channel) void this.#client.removeChannel(this.#channel);
-            this.#channel = undefined;
-          }
+          // Access may change as an accepted match moves from loading to racing.
+          // A denied read is not a permanent closure; keep bounded polling alive.
         }
       }
       if (

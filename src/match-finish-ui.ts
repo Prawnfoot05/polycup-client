@@ -13,6 +13,7 @@ import { profilePictureCSS } from './profile-picture.ts';
 import { element as h } from './dom.ts';
 import { clickableRow } from './clickable-row.ts';
 import { placing, ratingNumber } from './ranked-format.ts';
+import { formatTime, formatGap } from './time.ts';
 import { officialLapTime } from './official-position.ts';
 import css from './match-finish.css';
 import themeCSS from './interface-theme.css';
@@ -40,6 +41,7 @@ export interface FinishView {
   teams?: HTMLElement;
   key: string;
   ranked: boolean;
+  lapComparison?: boolean;
   title: string;
   subtitle: string;
   track?: string;
@@ -154,6 +156,7 @@ export class MatchFinishUI {
     this.#settled = false;
   }
   show(view: FinishView) {
+    const lapComparison = !view.ranked && view.lapComparison === true;
     this.dialog.dataset.errorScope = 'result:' + view.key;
     if (this.#chat !== view.chat) {
       this.#chat?.stop();
@@ -164,6 +167,7 @@ export class MatchFinishUI {
     }
     this.dialog.classList.toggle('with-chat', !!this.#chat);
     this.dialog.classList.toggle('is-casual', !view.ranked);
+    this.dialog.classList.toggle('lap-comparison', lapComparison);
     this.dialog.classList.toggle(
       'has-winner',
       view.rows.some((row) => row.place === 1 && !row.abandoned && !row.dnf),
@@ -177,7 +181,7 @@ export class MatchFinishUI {
     this.#settled = !view.pending;
     cancelAnimationFrame(this.#frame);
     const header = h('header'),
-      eyebrow = h('p', view.ranked ? 'Ranked result' : 'Lobby results', 'finish-mode');
+      eyebrow = h('p', view.ranked ? 'Ranked result' : lapComparison ? 'Race result' : 'Lobby results', 'finish-mode');
     const titleLine = h('div', undefined, 'finish-title-line');
     titleLine.append(h('h1', view.title));
     const trackRow = h('div', undefined, 'finish-track-row');
@@ -260,7 +264,7 @@ export class MatchFinishUI {
     const board = h('div', undefined, 'finish-board');
     if (view.teams) board.append(view.teams);
     const columns = h('div', undefined, 'finish-columns');
-    for (const label of [
+    for (const label of lapComparison ? ['#', 'Player', 'Time', 'Gap'] : [
       '#',
       'Player',
       ...(view.ranked ? ['Time'] : []),
@@ -275,6 +279,10 @@ export class MatchFinishUI {
       columns.append(column);
     }
     board.append(columns);
+    const recordedTimes = view.rows
+      .filter((row) => !row.dnf && !row.abandoned && Number.isSafeInteger(row.time_ms) && row.time_ms! > 0)
+      .map((row) => row.time_ms!);
+    const bestTime = recordedTimes.length ? Math.min(...recordedTimes) : null;
     const counts: { rating: HTMLElement; delta: HTMLElement; from: number; to: number }[] = [];
     for (const row of view.rows) {
       const item = h('div', undefined, 'finish-row');
@@ -289,7 +297,7 @@ export class MatchFinishUI {
         item.dataset.team = row.team;
         name.append(teamChip(row.team));
       }
-      if (row.dnf && !row.abandoned && !view.ranked)
+      if (row.dnf && !row.abandoned && !view.ranked && !lapComparison)
         name.append(h('span', 'DNF', 'finish-departure'));
       if (row.abandoned) name.append(h('span', 'Conceded / left', 'finish-departure'));
       const rating = h(
@@ -345,7 +353,13 @@ export class MatchFinishUI {
         item.append(
           officialLapTime(view.trackId, row.time_ms, row.dnf ? 'DNF' : '–', 'finish-time'),
         );
-      item.append(rating, delta);
+      if (lapComparison) {
+        const finished = !row.dnf && !row.abandoned && Number.isSafeInteger(row.time_ms) && row.time_ms! > 0;
+        item.append(
+          h('span', finished ? formatTime(row.time_ms!) : row.dnf ? 'DNF' : '—', 'finish-time'),
+          h('span', finished && bestTime !== null && row.time_ms! > bestTime ? formatGap(row.time_ms! - bestTime) : '—', 'finish-gap'),
+        );
+      } else item.append(rating, delta);
       if (view.ranked) {
         // Level chip leads the name so long names truncate before it does.
         const label = name.querySelector('.player-account-label>span:first-child');

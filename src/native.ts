@@ -59,6 +59,38 @@ export function beforeGameRender(
   }
 }
 
+const frameErrors = new WeakMap<NativeGame, Set<string>>();
+const frameHealth = new WeakMap<NativeGame, { updates: number; completed: number; at: number }>();
+export function nativeFrameHealth(game: NativeGame) {
+  const health = frameHealth.get(game);
+  return health
+    ? {
+        nativeUpdates: health.updates,
+        nativeCompleted: health.completed,
+        nativeFrameAgeMs: Math.max(0, Math.round(performance.now() - health.at)),
+      }
+    : null;
+}
+/** A Cup presentation failure must not prevent the native game from drawing. */
+export function cupFrameStep(game: NativeGame, phase: string, action: () => void) {
+  try {
+    action();
+  } catch (error) {
+    let reported = frameErrors.get(game);
+    if (!reported) frameErrors.set(game, (reported = new Set()));
+    if (reported.has(phase)) return;
+    reported.add(phase);
+    globalThis.window?.dispatchEvent?.(
+      new CustomEvent('polycup-frame-error', {
+        detail: {
+          phase,
+          message: String(error instanceof Error ? error.message : error).slice(0, 300),
+        },
+      }),
+    );
+  }
+}
+
 const countdownControls = new WeakMap<object, () => void>();
 /** Keep native touch presentation separate from the countdown's physics lock. */
 export function prepareCountdownTouchControls(
@@ -156,6 +188,12 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
       down:settings.getKeyBindings(ge.A.VehicleBrake), left:settings.getKeyBindings(ge.A.VehicleTurnLeft) }; },
     applyDrivingInput: (g, controls) => { const input=qa.get(g);
       for(const key of ['up','right','down','left']) input[key]=controls[key]; },
+    prepareRaceStart: g => {
+      // Native update samples the car before clearing last frame's countdown lock.
+      // Release it at authoritative GO so the first physics update has held input.
+      const car=Xa.get(g); if(!car || bs.call(g)) return;
+      car.isPaused=false; car.isControlsDisabled=false;
+    },
     read: g => ({ connection: Za.get(g)?.multiplayerConnection, sessionId: Za.get(g)?.sessionId,
       trackData: Ta.get(g), metadata: Sa.get(g), car: Xa.get(g), spectator: fs.get(g),
       disposed: !!ss.get(g) || !Xa.get(g) || !fs.get(g), checkpointCount: ra.get(g)?.getTotalNumberOfCheckpointIndices() ?? 0 }),
@@ -331,22 +369,30 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
     // A failed native constructor can publish its session before creating a car.
     // Do not run car-dependent native updates or announce that world as ready.
     if (!api.read(this).car) return;
-    controller.observeGame(this);
-    if (controller.countdownTouchControls && api.countdownTouchControls) {
-      const { controls, allowed } = api.countdownTouchControls(this);
-      if (controls)
-        prepareCountdownTouchControls(
-          controls,
-          controller.countdownTouchControls(this) ? allowed : null,
-        );
-    }
+    cupFrameStep(this, 'cup_frame_observe', () => {
+      controller.observeGame(this);
+      if (controller.countdownTouchControls && api.countdownTouchControls) {
+        const { controls, allowed } = api.countdownTouchControls(this);
+        if (controls)
+          prepareCountdownTouchControls(
+            controls,
+            controller.countdownTouchControls(this) ? allowed : null,
+          );
+      }
+    });
     // Game.update draws the frame itself. Apply visibility and the buffered POV
     // after native car updates, but before that draw can consume their transforms.
-    return beforeGameRender(
+    let health = frameHealth.get(this);
+    if (!health) frameHealth.set(this, (health = { updates: 0, completed: 0, at: performance.now() }));
+    health.updates++;
+    const result = beforeGameRender(
       api.renderer(this),
-      () => controller.beforeRender(this),
+      () => cupFrameStep(this, 'cup_frame_prepare', () => controller.beforeRender(this)),
       () => original.apply(this, args),
     );
+    health.completed++;
+    health.at = performance.now();
+    return result;
   };
   const dispose = api.Game.prototype.dispose;
   api.Game.prototype.dispose = function (...args) {

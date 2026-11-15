@@ -813,6 +813,7 @@ export class Controller {
     this.#inputGame = null;
     this.#game = null;
     this.#info = null;
+    this.#onChange();
   }
   connectionDisposed(connection: NativeConnection) {
     this.#disposedConnections.add(connection);
@@ -1004,6 +1005,7 @@ export class Controller {
         this.#startedCar = this.gameInfo.car;
         this.#native.release?.(game);
         this.gameInfo.spectator.isEnabled = false;
+        this.#native.prepareRaceStart?.(game);
         this.restoreDrivingInput(game);
         // Background tabs may process GO late. Count that delay in every Cup time,
         // while keeping the native recording clock unchanged.

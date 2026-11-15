@@ -1,9 +1,10 @@
 import { formatTime } from './time.ts';
 import { rankedEndpoint, type ClientPlatform } from './client-platform.ts';
 
+type Comparison = { position: number | null; greater_than?: number };
 type Target = { track: string; frames: number; label: HTMLElement; node: HTMLElement; attempts: number; retryAt: number };
 const targets = new Map<HTMLElement, Target>();
-const cache = new Map<string, { until: number; position: number | null }>();
+const cache = new Map<string, Comparison & { until: number }>();
 const observedRoots = new WeakSet<Node>();
 const styledRoots = new WeakSet<Node>();
 let scheduled = false,
@@ -34,10 +35,11 @@ function pump() {
     });
   }
 }
-function paint(label: HTMLElement, position: number | null) {
-  if (position !== null && label.isConnected) {
-    label.textContent = `(PT #${position.toLocaleString('en-US')})`;
-    label.setAttribute('aria-label', `Current verified PolyTrack placement ${position}`);
+function paint(label: HTMLElement, comparison: Comparison) {
+  const { position, greater_than: boundary } = comparison;
+  if ((position !== null || boundary) && label.isConnected) {
+    label.textContent = boundary ? `(PT #>${boundary.toLocaleString('en-US')})` : `(PT #${position!.toLocaleString('en-US')})`;
+    label.setAttribute('aria-label', boundary ? `Outside the verified PolyTrack top ${boundary}` : `Current verified PolyTrack placement ${position}`);
   }
 }
 function flush() {
@@ -63,7 +65,7 @@ function flush() {
     const key = `${target.track}:${target.frames}`,
       old = cache.get(key);
     if (old && old.until > Date.now()) {
-      if (old.position !== null) { paint(target.label, old.position); continue; }
+      if (old.position !== null || old.greater_than) { paint(target.label, old); continue; }
       target.retryAt = old.until + 100;
       targets.set(node, target);
       retryLater(target.retryAt);
@@ -82,7 +84,7 @@ function flush() {
     for (let offset = 0; offset < times.length; offset += 8) {
       const frames = times.slice(offset, offset + 8);
       queue.push(async () => {
-        const positions = new Map<number, number>();
+        const positions = new Map<number, Comparison>();
         let retryable = true;
         try {
           if (
@@ -98,25 +100,26 @@ function flush() {
           retryable = ![400, 404].includes(response.status);
           if (response.ok) {
             const data = await response.json();
-            for (const row of data.positions ?? [])
-              if (
-                frames.includes(row.frames) &&
-                Number.isSafeInteger(row.position) &&
-                row.position > 0
-              )
-                positions.set(row.frames, row.position);
+            for (const row of data.positions ?? []) {
+              if (!frames.includes(row.frames)) continue;
+              if (row.position === null && row.greater_than === 10000)
+                positions.set(row.frames, { position: null, greater_than: 10000 });
+              else if (Number.isSafeInteger(row.position) && row.position > 0)
+                positions.set(row.frames, { position: row.position });
+            }
           }
         } catch {
           /* Optional decoration. Retry transient failures without blocking results. */
         } finally {
           for (const time of frames) {
             const key = `${track}:${time}`,
-              position = positions.get(time) ?? null;
+              comparison = positions.get(time) ?? { position: null },
+              missing = comparison.position === null && !comparison.greater_than;
             if (cache.size >= 512) cache.delete(cache.keys().next().value!);
-            cache.set(key, { until: Date.now() + (position === null ? 15000 : 120000), position });
+            cache.set(key, { until: Date.now() + (missing ? 15000 : 120000), ...comparison });
             for (const target of pending.get(key) ?? []) {
-              paint(target.label, position);
-              if (position === null && retryable && target.node.isConnected && target.attempts < 3) {
+              paint(target.label, comparison);
+              if (missing && retryable && target.node.isConnected && target.attempts < 3) {
                 target.retryAt = Date.now() + [16000, 45000, 120000][target.attempts++];
                 targets.set(target.node, target);
                 retryLater(target.retryAt);
@@ -143,7 +146,7 @@ if (typeof window !== 'undefined') {
     for (const target of targets.values()) {
       target.retryAt = 0;
       const key = `${target.track}:${target.frames}`;
-      if (cache.get(key)?.position === null) cache.delete(key);
+      if (cache.get(key)?.position === null && !cache.get(key)?.greater_than) cache.delete(key);
     }
     schedule();
   });

@@ -2,7 +2,7 @@
 // No GPU/device fingerprint, URLs, image contents, credentials or heap snapshots.
 export function observeClientGraphics(report, {
   document: doc = document, frame = requestAnimationFrame, cancel = cancelAnimationFrame,
-  room, active, now = () => performance.now(),
+  room, active, renderState = () => null, now = () => performance.now(),
 }) {
   let scope = '', count = 0, losses = 0, previous = 0, started = 0, pending;
   let frames = 0, samples = [];
@@ -38,8 +38,14 @@ export function observeClientGraphics(report, {
     const elapsed = at - started;
     const sorted = samples.sort((a, b) => a - b);
     const p95 = Math.round(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * .95))] ?? 0);
+    let native = {};
+    try {
+      const value = renderState();
+      for (const key of ['nativeUpdates', 'nativeCompleted', 'nativeFrameAgeMs'])
+        if (Number.isSafeInteger(value?.[key]) && value[key] >= 0) native[key] = value[key];
+    } catch {}
     emit('stage', { phase: 'client_frame_timing', durationMs: Math.min(120000, Math.round(elapsed)),
-      message: JSON.stringify({ browserFps: Math.round(frames * 1000 / elapsed), frameP95Ms: p95 }) });
+      message: JSON.stringify({ browserFps: Math.round(frames * 1000 / elapsed), frameP95Ms: p95, ...native }) });
     count++;
     reset();
   };

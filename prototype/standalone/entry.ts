@@ -12,7 +12,7 @@ import { timePeerOperations, timeSignalSocket, watchStartupStalls } from './star
 import { Controller } from '../../src/controller.ts';
 import { nativeRoute, casualSocket } from './native-routing.ts';
 import { CupUI } from '../../src/ui.ts';
-import { registerCarVisibility, CupTransport } from '../../src/native.ts';
+import { registerCarVisibility, CupTransport, nativeFrameHealth } from '../../src/native.ts';
 import { installRankedPanel } from './ranked-panel.ts';
 import { registerCupMenu, launchNativeRace } from '../../src/native-cup-menu.ts';
 import { registerLobbyNavigation } from '../../src/native-lobby.ts';
@@ -122,12 +122,20 @@ w.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) =>
   report('client_rejection', { message: String(e.reason?.message ?? e.reason), location:errorLocation(e.reason) }),
 );
 w.addEventListener('offline', () => report('network_offline'));
+w.addEventListener('polycup-frame-error', ((event: CustomEvent) => {
+  if (!['cup_frame_observe', 'cup_frame_prepare'].includes(event.detail?.phase)) return;
+  report('client_error', { phase: event.detail.phase, message: event.detail.message });
+}) as EventListener);
 w.addEventListener('online', () => report('network_online'));
 w.addEventListener('pagehide', () => report('page_hidden'));
 document.addEventListener('visibilitychange', () => report('visibility', { hidden: document.hidden }));
 if (!new URL(location.href).searchParams.has('host')) observeClientGraphics(report, {
   room: () => roomId,
   active: () => ['loading', 'warmup', 'countdown', 'racing'].includes(String(diagnosticContext().cupPhase)),
+  renderState: () => {
+    const game = w.polycupPrototype?.controller?.game;
+    return game ? nativeFrameHealth(game) : null;
+  },
 });
 const NativePeer = w.RTCPeerConnection;
 const NativeSocket = w.WebSocket;

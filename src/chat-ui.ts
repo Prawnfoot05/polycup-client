@@ -236,6 +236,7 @@ export class ChatUI {
       event.metaKey ||
       event.altKey ||
       isEditing(event) ||
+      this.#root.hidden ||
       !this.#ui.c.state ||
       document.querySelector('dialog[open],.settings-menu-ui') ||
       this.#shadow.querySelector('dialog[open]')
@@ -245,7 +246,7 @@ export class ChatUI {
     this.open();
   }
   open() {
-    if (!this.#ui.c.state) return;
+    if (!this.#ui.c.state || this.#root.hidden) return;
     this.#expanded = true;
     this.#read = this.#ui.c.chat.lines.length;
     this.#stickBottom = true;
@@ -322,8 +323,10 @@ export class ChatUI {
     const c = this.#ui.c,
       state = c.state,
       chat = c.chat;
-    this.#root.hidden = !state;
-    if (!state) {
+    const available = this.#root.classList.contains('chat-docked') ||
+      (!!c.game && !!c.info && !c.info.disposed);
+    this.#root.hidden = !state || !available;
+    if (!state || !available) {
       this.#expanded = false;
       c.setChatTyping(false);
       return;

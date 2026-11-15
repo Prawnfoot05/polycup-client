@@ -29,3 +29,5 @@
 /* Extend the mention plate into the log gutter; keep avatars and text aligned
    with ordinary messages, clear of the gold edge. */
 .shared-chat-message{margin-inline:-10px;padding-inline:10px;box-sizing:border-box}
+/* Preserve normal field focus and pinch zoom without double-tap magnification. */
+.shared-chat-compose textarea,.shared-chat-compose button{touch-action:manipulation}

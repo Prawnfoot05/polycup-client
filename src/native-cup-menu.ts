@@ -10,6 +10,13 @@ const PROFILE_EVENT = 'polycup-menu-profile';
 const RETURN_EVENT = 'polycup-return-menu';
 const PRACTICE_EVENT = 'polycup-practice-control';
 
+/** Cancel through native cleanup rather than removing an editor's DOM or saving it. */
+export function dismissNativeProfileEditor(doc: Pick<Document, 'querySelector'> = document) {
+  doc.querySelector?.<HTMLImageElement>(
+    '.profile-settings-ui > .container > .button-wrapper img[src$="cancel.svg"]',
+  )?.closest<HTMLButtonElement>('button')?.click();
+}
+
 export function practiceControl(action: 'state' | 'hold' | 'resume' | 'open' | 'complete') {
   const detail: { action: string; active?: boolean; driving?: boolean; ready?: Promise<void> } = {
     action,
@@ -63,6 +70,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
     token: 'ee = 0;',
     func: `
     const polycupHasLayoutBox = ${hasLayoutBox.toString()};
+    const polycupDismissProfileEditor = ${dismissNativeProfileEditor.toString()};
     let polycupRaceRequest = null;
     let polycupReturning = null;
     let polycupPracticeHold = false;
@@ -207,6 +215,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
         while(o.isTransitioning && performance.now()<until) await pause();
         if(o.isTransitioning) return false;
         const previous=$;
+        polycupDismissProfileEditor();
         K(false,null);
         while(($===previous || o.isTransitioning) && performance.now()<until) await pause();
         if(document.body.dataset.polycupNativeRace===returnedRace)delete document.body.dataset.polycupNativeRace;
@@ -272,6 +281,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
         }
         if (cancelled) throw new Error('Match start cancelled.');
         window.polycupStartupStage?.('native_world_start');
+        polycupDismissProfileEditor();
         J(metadata,trackData,'custom',[],{multiplayerConnection:connection,sessionId,gameMode:mode},false);
         while (Za.get($)?.multiplayerConnection !== connection || !Xa.get($) || o.isTransitioning) {
           if (cancelled || performance.now()>deadline) throw new Error('Race loading timed out.');

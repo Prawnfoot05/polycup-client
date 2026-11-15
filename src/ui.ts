@@ -678,6 +678,7 @@ export class CupUI {
   render() {
     const c = this.#c,
       s = c.state;
+    const liveGame = !!c.game && !!c.info && !c.info.disposed;
     const launch = c.room?.snapshot?.data.launch;
     const loading =
       (!!c.waitingRoom || c.waitingRaceLoading) &&
@@ -693,7 +694,7 @@ export class CupUI {
     this.expireNotice();
     this.#restartHint.update(
       c.game ? c.native.hudElement(c.game) : null,
-      s?.phase === 'racing' &&
+      liveGame && s?.phase === 'racing' &&
         c.localPlayerId !== null &&
         Cup.activeIds(s).includes(c.localPlayerId) &&
         !Cup.roundDone(s, c.localPlayerId),
@@ -719,7 +720,7 @@ export class CupUI {
     if (teamState?.phase === 'complete' && !this.#finishKey) this.#open = false;
     this.#teamHud.update(
       teamState,
-      !this.#open && !this.#finishScreen?.isOpen,
+      liveGame && !this.#open && !this.#finishScreen?.isOpen,
       c.game ? c.native.hudElement(c.game) : null,
       this.#hud,
     );
@@ -749,7 +750,7 @@ export class CupUI {
       }
     }
     this.#viewerBadge.hidden =
-      !c.viewerCount || this.#open || !s?.runtime || !Cup.racingIds(s).includes(c.selfId!);
+      !liveGame || !c.viewerCount || this.#open || !s?.runtime || !Cup.racingIds(s).includes(c.selfId!);
     this.#viewerBadge.querySelector('span')!.textContent = String(c.viewerCount);
     this.#viewerBadge.setAttribute('aria-label', `${c.viewerCount} spectators watching you`);
     this.#viewerBadge.title = `${c.viewerCount} spectators watching you`;
@@ -770,6 +771,7 @@ export class CupUI {
       ]),
       c.error,
       c.physicsWarnings,
+      liveGame,
       !!c.connection,
       c.auto,
       c.watchId,
@@ -1156,11 +1158,11 @@ export class CupUI {
       chatButton.textContent = this.#chatUI.unread ? `Chat (${this.#chatUI.unread})` : 'Chat';
     }
     this.updateInputOverlay();
-    const seconds = this.#open ? null : roundSeconds(s, c.now());
+    const seconds = this.#open || !liveGame ? null : roundSeconds(s, c.now());
     this.#roundTimer.classList.toggle('visible', seconds !== null);
     this.#roundTimer.setAttribute('aria-hidden', String(seconds === null));
     if (seconds !== null) this.#roundTimer.textContent = `${seconds}s`;
-    const label = this.#open
+    const label = this.#open || !liveGame
       ? ''
       : c.preparingRandom
         ? 'Choosing next track…'
@@ -1198,6 +1200,8 @@ export class CupUI {
     const c = this.#c,
       visible =
         !!this.#inputView &&
+        !!c.game &&
+        !!c.info &&
         !this.#open &&
         !!c.state &&
         !c.info?.disposed &&
@@ -2053,6 +2057,9 @@ export class CupUI {
     this.#povHud.hidden = true;
     this.#povRecordHud.hidden = true;
     this.#hud.hidden =
+      !this.#c.game ||
+      !this.#c.info ||
+      this.#c.info.disposed ||
       !this.#c.state ||
       (this.#c.state.phase === 'complete' && !this.#teamHud.presentingResult) ||
       !Cup.currentMatch(this.#c.state) ||
@@ -2312,12 +2319,21 @@ export class CupUI {
     this.#finishKey = key;
     this.#open = false;
     const rows = resultRows(s),
-      winner = rows.find((r) => r.winner);
+      winner = rows.find((r) => r.winner),
+      lapComparison = !!rulesFor(s).singleRound && !teamsEnabled(s),
+      trackId = lapComparison ? Cup.currentMatch(s).roundsLog.at(-1)?.trackId : undefined,
+      track = s.tracks.find((t) => t.id === trackId);
+    let trackArt: string | Promise<string> | undefined;
+    if (track) {
+      try { trackArt = this.#c.availableTracks().find((t) => t.id === track.id)?.thumbnail; }
+      catch { /* Optional artwork must not hold up the result. */ }
+    }
     this.#finishScreen ??= new MatchFinishUI();
     const close = () => this.#finishScreen!.close();
     this.#finishScreen.show({
       key,
       ranked: false,
+      lapComparison,
       title:
         teamsEnabled(s) && winner
           ? TEAM_NAMES[teamOf(s, winner.id)!] + ' team wins'
@@ -2326,6 +2342,8 @@ export class CupUI {
             : 'Match finished',
       teams: teamsEnabled(s) ? teamSummary(s) : undefined,
       subtitle: s.name,
+      track: track?.name,
+      trackArt,
       self: String(this.#c.localPlayerId),
       chat: new SharedChatUI(new CasualResultsChat(this.#c), 'Match chat'),
       rows: rows.map((r) => ({
@@ -2333,6 +2351,7 @@ export class CupUI {
         place: r.place,
         name: this.racerName(r.id, r.name, true),
         score: String(r.score),
+        ...(lapComparison ? { time_ms: r.time_ms, dnf: r.dnf } : {}),
         team: teamsEnabled(s) ? teamOf(s, r.id) : undefined,
       })),
       actions: [
