@@ -1161,7 +1161,10 @@ export class CupUI {
     const seconds = this.#open || !liveGame ? null : roundSeconds(s, c.now());
     this.#roundTimer.classList.toggle('visible', seconds !== null);
     this.#roundTimer.setAttribute('aria-hidden', String(seconds === null));
-    if (seconds !== null) this.#roundTimer.textContent = `${seconds}s`;
+    if (seconds !== null) this.#roundTimer.textContent =
+      s?.phase === 'racing' && s.runtime?.deadline !== null && c.now() >= s.runtime!.deadline!
+        ? 'Confirming…'
+        : `${seconds}s`;
     const label = this.#open || !liveGame
       ? ''
       : c.preparingRandom
@@ -1188,7 +1191,11 @@ export class CupUI {
     for (const e of this.#shadow.querySelectorAll('[data-clock]')) {
       const run = s?.runtime;
       const target = s?.phase === 'racing' ? run?.deadline : run?.startsAt;
-      e.textContent = target ? `${Math.max(0, Math.ceil((target - c.now()) / 1000))}s` : '';
+      e.textContent = target
+        ? s?.phase === 'racing' && c.now() >= target
+          ? 'Confirming…'
+          : `${Math.max(0, Math.ceil((target - c.now()) / 1000))}s`
+        : '';
     }
   }
   welcome() {

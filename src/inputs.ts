@@ -50,14 +50,15 @@ export class InputCapture {
     if (this.#journal[0]?.[0] !== 0) this.#journal.unshift([0, 0]);
     if (this.#events[0]?.[0] !== 0 && this.#seq === 0) this.#events.unshift([0, 0]);
   }
-  final(): import('./types.ts').InputFinalPacket | null {
+  final(through = this.#through): import('./types.ts').InputFinalPacket | null {
     if (this.#context.stage !== 'race' || this.#through < 0) return null;
+    if (!frameNumber(through)) return null;
     return {
       type: 'input-final',
       ...this.#context,
       id: crypto.randomUUID(),
-      through: this.#through,
-      events: this.#journal.map((e) => [...e]),
+      through,
+      events: this.#journal.filter(e => e[0] <= through).map((e) => [...e]),
       gap: this.#journalGap,
     };
   }

@@ -331,6 +331,7 @@ export class Controller {
   #hello: Set<number> = new Set();
   #offset: number = 0;
   #bestRtt: number = Infinity;
+  #clockSampleAt: number | null = null;
   #error: string = '';
   #resetKey: string = '';
   #startKey: string = '';
@@ -437,8 +438,8 @@ export class Controller {
       /* A recording failure cannot delay a race result. */
     }
   }
-  finishInputJournal() {
-    const message = this.#inputCapture?.final();
+  finishInputJournal(through?: number) {
+    const message = this.#inputCapture?.final(through);
     if (!message || this.#finalInputRounds.has(message.roundId)) return;
     this.#finalInputRounds.add(message.roundId);
     if (this.#finalInputRounds.size > 128)
@@ -929,6 +930,7 @@ export class Controller {
       this.#lastHello = 0;
       this.#offset = 0;
       this.#bestRtt = Infinity;
+      this.#clockSampleAt = null;
       this.#watchId = null;
       this.#needsRebind = new Set();
       this.#syncSequence = 0;
@@ -1013,6 +1015,8 @@ export class Controller {
           this.#raceTimeOffset,
           Math.floor(this.now() - run.startsAt!) - this.gameInfo.car.getTime().numberOfFrames,
         );
+        this.finishDiagnostic('race_clock_start', this.localPlayerId, this.#raceTimeOffset,
+          `rtt=${Number.isFinite(this.#bestRtt) ? Math.round(this.#bestRtt) : 'none'} offset=${Math.round(this.#offset)}`);
         this.gameInfo.car.start();
         const context = this.inputContext();
         if (context) {
@@ -1031,6 +1035,8 @@ export class Controller {
           if (held[direction] && !current[direction]) { current[direction] = true; changed = true; }
         if (changed) this.#native.applyDrivingInput?.(game, current);
       }
+      if (racing && phase === 'racing' && run.deadline !== null && this.now() >= run.deadline)
+        this.#native.pauseRaceClock?.(game);
     }
   }
   countdownTouchControls(game: NativeGame) {
@@ -1061,6 +1067,7 @@ export class Controller {
       ['racing', 'countdown'].includes(this.cup.phase) &&
       this.cup.runtime?.startsAt !== null &&
       this.now() >= this.round.startsAt! &&
+      (this.round.deadline === null || this.now() < this.round.deadline) &&
       !(this.localPlayerId in this.round.finishes) &&
       !this.round.dnfs.includes(this.localPlayerId)
     );
@@ -1256,6 +1263,9 @@ export class Controller {
       // Flush while the run is still active so its final input sample is kept.
       // Failure here leaves the queued finish intact and cannot block scoring.
       this.finishOptional('input_flush', () => this.flushInputs());
+      // Seal at the actual crossing, before awaiting a host acknowledgement.
+      // Later frozen/live timer samples must not corrupt a completed journal.
+      this.finishOptional('input_final', () => this.finishInputJournal(message.frames));
       this.finishOptional('input_final', () => {
         this.finishInputJournal();
         this.captureReplayRun(false);
@@ -1309,6 +1319,9 @@ export class Controller {
     const rejected = Cup.finishRejection(this.cup, id, m.frames, receivedAt, this.#finishDeliveryGraceMs);
     const before = standings(this.cup).map((r) => r.id);
     if (Cup.recordFinish(this.cup, id, m.frames, receivedAt, this.#finishDeliveryGraceMs)) {
+      // HTTP recovery must not depend on ICE reporting a disconnection. A stalled
+      // browser or delayed request can leave an otherwise healthy peer connected.
+      this.allowFinishRecovery();
       if (
         typeof m.checkpoint === 'number' &&
         Number.isSafeInteger(m.checkpoint) &&
@@ -1482,6 +1495,7 @@ export class Controller {
     this.syncInputScope(context);
     if (
       !context ||
+      this.#finalInputRounds.has(context.roundId) ||
       !Cup.racingIds(this.#state).includes(this.localPlayerId) ||
       Cup.roundDone(this.#state, this.localPlayerId) ||
       !this.#native?.readInputs
@@ -2859,6 +2873,7 @@ export class Controller {
           this.#finalInputs.delete(m.id);
       } else if (m.type === 'hello-ack' && Number.isFinite(m.sentAt) && Number.isFinite(m.hostAt)) {
         const rtt = Date.now() - m.sentAt;
+        if (rtt >= 0 && rtt <= 2000) this.#clockSampleAt = Date.now();
         if (rtt >= 0 && rtt < this.#bestRtt) {
           this.#bestRtt = rtt;
           this.#offset = m.hostAt + rtt / 2 - Date.now();
@@ -3378,6 +3393,11 @@ export class Controller {
   }
   sendReady() {
     if (this.localPlayerId === null || !this.#info || this.#info.disposed || !this.#info.car) return;
+    if (this.#native.readyForRace && this.#game && !this.#native.readyForRace(this.#game)) return;
+    // A delayed first hello can bias the clock by half its RTT. Do not start
+    // a fresh race from that estimate; keep probing within the loading window.
+    if (!this.#isHost && (!Number.isFinite(this.#bestRtt) || this.#bestRtt > 2000 ||
+      this.#clockSampleAt === null || Date.now() - this.#clockSampleAt > 5000)) return;
     const s = this.cup,
       run = s.runtime;
     if (s.phase !== 'loading' || !run || this.gameInfo.trackData.getId() !== run.trackId) return;

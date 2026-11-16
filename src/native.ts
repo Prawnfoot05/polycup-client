@@ -61,6 +61,11 @@ export function beforeGameRender(
 
 const frameErrors = new WeakMap<NativeGame, Set<string>>();
 const frameHealth = new WeakMap<NativeGame, { updates: number; completed: number; at: number }>();
+export function nativeRaceReady(game: NativeGame) {
+  const health = frameHealth.get(game);
+  return !!health && health.completed >= 2 && performance.now() - health.at < 1000 &&
+    !globalThis.document?.hidden;
+}
 export function nativeFrameHealth(game: NativeGame) {
   const health = frameHealth.get(game);
   return health
@@ -194,6 +199,7 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
       const car=Xa.get(g); if(!car || bs.call(g)) return;
       car.isPaused=false; car.isControlsDisabled=false;
     },
+    pauseRaceClock: g => { const car=Xa.get(g); if(car) car.isPaused=true; },
     read: g => ({ connection: Za.get(g)?.multiplayerConnection, sessionId: Za.get(g)?.sessionId,
       trackData: Ta.get(g), metadata: Sa.get(g), car: Xa.get(g), spectator: fs.get(g),
       disposed: !!ss.get(g) || !Xa.get(g) || !fs.get(g), checkpointCount: ra.get(g)?.getTotalNumberOfCheckpointIndices() ?? 0 }),
@@ -277,6 +283,7 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
     guard: fn => { const original=bs; bs=function(){ return fn(this) || original.call(this); }; },
     guardRestart: fn => { const original=Ss; Ss=function(){ if(!fn(this)) return original.call(this); }; }
   })`) as NativeApi;
+  api.readyForRace = nativeRaceReady;
   api.reconnectIdentity = (game, cupId) =>
     profileIdentity(api.records(game).profiles.getCurrentUserProfile().token, cupId);
   for (const key of [

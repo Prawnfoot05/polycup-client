@@ -539,6 +539,7 @@ const runtime: any = {
     };
     const normalRecord = c.native.worldRecord,
       normalBest = c.native.personalBest,
+      normalRaceReady = c.native.readyForRace,
       normalUploads = c.native.leaderboardUploads;
     proto.resetRankedConnection = () => {
       proto.rankedConnectAbort?.abort();
@@ -555,6 +556,7 @@ const runtime: any = {
       roomId = '';
       c.native.worldRecord = normalRecord;
       c.native.personalBest = normalBest;
+      c.native.readyForRace = normalRaceReady;
       c.native.leaderboardUploads = normalUploads;
       const connection = c.connection;
       if (connection) {
@@ -567,6 +569,9 @@ const runtime: any = {
     proto.setRoom = (id: string) => (roomId = id);
     proto.prepare = (fixture = false) => {
       proto.rankedUploadsEnabled = !fixture && shellMode.live === true;
+      // Dedicated spectators deliberately skip drawing; racer readiness waits
+      // for completed native frames and a foreground page instead.
+      c.native.readyForRace = proto.dedicated ? () => true : normalRaceReady;
       if (fixture) {
         const tracks = runtime.getFromPolyTrack(
           `(()=>{const Sun=i(7929).A;return Array.from({length:16},(_,index)=>{const t=new Ul.A(0,new Sun());const finish=-24-index*4;t.addPart(0,0,0,5,0,0,0,null,0);for(let z=-4;z>finish;z-=4)t.addPart(0,0,z,0,0,0,0,null,null);t.addPart(0,0,finish,6,0,0,0,null,null);return {trackData:t,trackMetadata:{name:'Local physics test '+index,author:'PolyCup QA',lastModified:null}};});})()`,

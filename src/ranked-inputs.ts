@@ -21,7 +21,8 @@ const KEY = 'polycup.ranked.inputs.pilot.v1';
 /** Independent of rating delivery. Each racer submits only their own native
  * recording. Persistence and retries survive closing the game mid-Cup. */
 export class RankedInputOutbox {
-  #busy = false;
+  #inFlight = new Map<string, string>();
+  #priorityMatch: string | null = null;
   #retryAfter = new Map<string, number>();
   #capacityAfter = new Map<string, number>();
   #key(item: PendingInput) {
@@ -63,6 +64,7 @@ export class RankedInputOutbox {
     }
   }
   enqueue(item: Omit<PendingInput, 'at'>) {
+    this.#priorityMatch = item.match;
     const rows = this.#read();
     if (
       rows.some(
@@ -84,20 +86,28 @@ export class RankedInputOutbox {
     }
   }
   async flush() {
-    if (this.#busy) return;
+    if (this.#inFlight.size >= 2) return;
     const player = this.user();
     if (player && (this.#capacityAfter.get(player) ?? 0) > Date.now()) return;
-    const item = this.#read().find(
-      (r) => r.player === player && (this.#retryAfter.get(this.#key(r)) ?? 0) <= Date.now(),
+    const busyMatches = new Set(this.#inFlight.values());
+    const eligible = this.#read().filter(
+      r => r.player === player && !busyMatches.has(r.match) &&
+        (this.#retryAfter.get(this.#key(r)) ?? 0) <= Date.now(),
     );
+    // A current finish has its own bounded lane when an older match's evidence
+    // request is stalled. Keep archival work serial and never duplicate a match.
+    const item = eligible.find(r => r.match === this.#priorityMatch) ??
+      (this.#inFlight.size === 0 ? eligible[0] : undefined);
     if (!player || !item) return;
-    this.#busy = true;
+    const flight = this.#key(item);
+    this.#inFlight.set(flight, item.match);
     try {
       if (!(await this.api.inputReviewEnabled()) || this.user() !== player) return;
       const accepted = await this.api.submitInputRun(item.match, item.instance, item.run);
       if (this.user() !== player) return;
       if (!accepted) {
-        this.#retryAfter.set(this.#key(item), Date.now() + (this.retryMs ?? 60000));
+        this.#retryAfter.set(this.#key(item), Date.now() +
+          (this.retryMs ?? (item.match === this.#priorityMatch ? 5000 : 60000)));
         return;
       }
       this.storage.setItem(
@@ -121,11 +131,12 @@ export class RankedInputOutbox {
         this.#capacityAfter.set(player, Date.now() + 300000);
       } else {
         this.#report(item, 'retrying');
-        this.#retryAfter.set(this.#key(item), Date.now() + (this.retryMs ?? 30000));
+        this.#retryAfter.set(this.#key(item), Date.now() +
+          (this.retryMs ?? (item.match === this.#priorityMatch ? 5000 : 30000)));
       }
       // A rejected or offline row cannot starve later rounds/Cups.
     } finally {
-      this.#busy = false;
+      this.#inFlight.delete(flight);
     }
   }
 }
