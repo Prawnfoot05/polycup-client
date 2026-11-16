@@ -922,3 +922,10 @@ button.track-card:focus-visible { background:var(--button-bg); text-decoration:n
 /* Hide racing overlays with the native HUD; menus and match prompts stay usable. */
 :host([data-native-hud-hidden]) :is(.hud,.pov-hud,.pov-record-hud,.team-race-header,.team-round-announcement,.mobile-cup-toggle,.notice,.start-countdown,.round-timer,.downtime,.practice-hud,.viewer-count,.cup-chat:not(.chat-docked)),
 :host([data-native-hud-hidden]) :is(.hud,.pov-hud,.pov-record-hud,.team-race-header,.team-round-announcement,.mobile-cup-toggle,.notice,.start-countdown,.round-timer,.downtime,.practice-hud,.viewer-count,.cup-chat:not(.chat-docked)) *{visibility:hidden!important;pointer-events:none!important;}
+
+/* Keep checkpoint progress inside the identity cell; the timing column stays fixed. */
+.score-identity.has-checkpoint{display:flex;align-items:center;gap:7px}
+.score-identity.has-checkpoint>.racer-name{flex:1;min-width:0}
+.score-checkpoint{flex:none;font-size:14px;line-height:1;white-space:nowrap;color:#bdc8e2;font-weight:400}
+.score-row.highlighted .score-checkpoint{color:#14243c}
+@media(max-width:650px),(max-height:500px){.score-checkpoint{font-size:11px}.score-identity.has-checkpoint{gap:4px}}

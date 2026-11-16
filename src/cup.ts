@@ -22,8 +22,9 @@ export const APPLICATION_VERSION =
     : LEGACY_VERSION;
 // Release patches must never change the transport identity. Native signalling,
 // PML metadata and Cup messages all use the same explicit protocol version.
-export const VERSION = /^0\.6\.\d+$/.test(APPLICATION_VERSION) &&
-  Number(APPLICATION_VERSION.split('.')[2]) >= 3
+export const VERSION = /^0\.7\.\d+$/.test(APPLICATION_VERSION) ||
+  (/^0\.6\.\d+$/.test(APPLICATION_VERSION) &&
+  Number(APPLICATION_VERSION.split('.')[2]) >= 3)
   ? CUP_WIRE_VERSION : APPLICATION_VERSION;
 export const RULES = Object.freeze({
   points: [10, 8, 6, 5, 4, 3, 2, 1],

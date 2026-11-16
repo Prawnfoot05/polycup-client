@@ -1,0 +1,40 @@
+// Local solo Practice recovery. Multiplayer and ordinary replay cars bypass it.
+const rollingCreates=new Map(),rollingCars=new Map();let rollingLastLive=null;
+const rollingPlaybackSources=new Map(),rollingPlaybacks=new Map(),rollingEnabled=new Set();
+const rollingNativeCreate=s,rollingNativeStep=n;
+s=function(...args){rollingCreates.set(args[0],args);rollingCars.delete(args[0]);return rollingNativeCreate(...args);};
+function rollingSend(car,core,force=false){
+ if(force||(core.elapsed%50===0&&core.sentElapsed!==core.elapsed)){core.sentElapsed=core.elapsed;postMessage({rollingProto:true,carId:car.id,...core.status()});}
+}
+function rollingCommand(data){
+ if(data.rollingEnable){if(e.some(c=>c.id===data.carId&&c.userControls))rollingEnabled.add(data.carId);return;}
+ const car=e.find(c=>c.id===(data.carId??rollingLastLive)&&c.userControls);
+ if(data.rollingRecording){postMessage({rollingProto:true,recording:true,request:data.request,trace:car?rollingCars.get(car.id)?.recording():null});return;}
+ if(data.rollingRespawn){const core=car&&rollingCars.get(car.id);if(core){const before=core.elapsed;if(data.mode==='standing')core.standingRespawn({upgrade:!!data.upgrade});else core.respawn();const charged=core.elapsed-before;car.frames+=charged;
+  // Reconstruction time was charged above. Do not accrue the same interval
+  // again in the realtime worker's next performance.now() delta.
+  a+=charged;rollingSend(car,core,true);}return;}
+
+}
+n=function(car,input){
+ if(!car.userControls){
+  const trace=rollingPlaybackSources.get(car.id);
+  if(!trace)return rollingNativeStep(car,input);
+  try{
+   let player=rollingPlaybacks.get(car.id);
+   if(!player){player=new PolyCupRolling.RespawnPlayback(trace,{step:controls=>rollingNativeStep(car,controls),reset:()=>{t.ccall('deleteCarModel','void',['number'],[car.id]);rollingNativeCreate(...rollingCreates.get(car.id));}});rollingPlaybacks.set(car.id,player);}
+   return player.next();
+  }catch(error){car.isPaused=true;postMessage({rollingProto:true,replayError:true,carId:car.id,error:String(error.message??error)});throw error;}
+ }
+ if(!rollingEnabled.has(car.id))return rollingNativeStep(car,input);
+ rollingLastLive=car.id;
+ let core=rollingCars.get(car.id);
+ if(!core){
+  core=new PolyCupRolling.RollingRespawn({
+   step:controls=>rollingNativeStep(car,controls),
+   reset:()=>{t.ccall('deleteCarModel','void',['number'],[car.id]);rollingNativeCreate(...rollingCreates.get(car.id));}
+  });rollingCars.set(car.id,core);
+ }
+ try{const wasFinished=core.finished,out=core.step(input);rollingSend(car,core,core.finished&&!wasFinished);return out;}
+ catch(error){car.isPaused=true;postMessage({rollingProto:true,carId:car.id,...core.status(),phase:'error',error:String(error.message??error)});return core.buffer;}
+};

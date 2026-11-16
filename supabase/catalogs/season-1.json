@@ -1,0 +1,401 @@
+{
+  "id": "ranked-season-1",
+  "name": "Season 1",
+  "gameVersion": "0.6.3",
+  "source": "Community voted Season 1 pool: 15 Fullspeed and 15 Tech tracks",
+  "ratingPolicy": "lp-300-1500-underdog-v1",
+  "entries": [
+    {
+      "id": "ddfe00045807e2786552d1e31e1363384c365487180f65d4eff1aa41e334a8e8",
+      "category": "community",
+      "digest": "b746e3a4876349f1ff30083723111ccb631cbb4ffbbb9887e11f17c7868e59a1"
+    },
+    {
+      "id": "7d134c939df80c676a258266201beedd3b93572d5603f3ff4339ff8679803715",
+      "category": "official",
+      "digest": "1d8fdabc91c39674cdf3cff1cca5f374d3c91ef87f3913535d4e0e07f3596231"
+    },
+    {
+      "id": "5159a8dac6a1f397407a7b5233ad570613531f6609f7dc897490c28c9f2c7a4e",
+      "category": "community",
+      "digest": "00c04375afae896fe2e1f2223187d1ecfb66310dee3cc990c77336ebf98cf0ac"
+    },
+    {
+      "id": "9acd9aef650c4ccc41bb01f72ed44dfaa13f2e4404d2e3466f09cc1adcd9a9c0",
+      "category": "community",
+      "digest": "c693541d7b80615ec485ac3dcb6f98bc64f2b5044a0a732db5cff40d083b9140"
+    },
+    {
+      "id": "c20b4ee3cd517ca6cae7e43f047548757287fbd08ba81b97892a3ef520159a34",
+      "category": "official",
+      "digest": "618d88414d8b02f32d386734554b85a95d3d343598b0635bb7df1652b58c3923"
+    },
+    {
+      "id": "4697ea67b18c3f49b30a3d8884602115536650bc5435c88e3732e64d21a72d33",
+      "category": "official",
+      "digest": "a21e6b3d4be690f541f5912c04772940340af1ac823face2ea8a4e4c7333f77f"
+    },
+    {
+      "id": "b430aad5e481caa4588e30f46352b876b62f1ba0cf7730a15efd026c91a8f32e",
+      "category": "community",
+      "digest": "d763731262f76ec5de3824eedfd9e48dbd1e3210fc1aa13cbb19720f03e2847d"
+    },
+    {
+      "id": "c117823cf6788e3247b9ee63a0c091c07352bbe352c650a7790dc6718148c2fa",
+      "category": "official",
+      "digest": "57ee5d4304fce569e78c362c6514fc81c03b0d93859d4207cd5816e977f52c60"
+    },
+    {
+      "id": "d9bc51ec180bc46558e079c7949ba10b9ade52078c4c145f217a6a8543df2377",
+      "category": "community",
+      "digest": "6cf28f35de15f73938157544a0b54e29b3b69b3f4cc78723c4221fd3f5a2ed40"
+    },
+    {
+      "id": "a680fa81e6a4b9dec06b4197833f0a96334a275faf387d495c9c674ffd6b8686",
+      "category": "community",
+      "digest": "d57ca1a9194e3891423ace1eca0b4d4e5c249cea0ddac27156dc2131a0e8a7db"
+    },
+    {
+      "id": "148826aa16ffaa23dbc453b32cff05e025ddbce1773fc7733cc13d218926515a",
+      "category": "official",
+      "digest": "95a0b9f0dddb1a29107459eb4ea1a00ee03a7ec61d0eb07fe360e8dd70e60a4c"
+    },
+    {
+      "id": "0338f449b9948f06c03ffc2ab3ab6cf551fd08a9f2c09a16156b93ef52dd4411",
+      "category": "community",
+      "digest": "e089057d979f49bccafbbe7bc2085c49122a73b08f6c1b24366afd870a8295e8"
+    },
+    {
+      "id": "a8913b96daceb5b615fe45aad2bb104e04eb7db140242934657111e1d1f55b89",
+      "category": "community",
+      "digest": "bbf2c2731b7fc6a0bb8eb68390362c522ca2cff1d33141b239bff77cf7f6b2a6"
+    },
+    {
+      "id": "9e53d03f4efe86834c49ce202b528d769d9aa7a6e17732d0fc56440463956a1b",
+      "category": "community",
+      "digest": "6d216660ef849402f96b95dda280925b814aeed600273008ad8bae06ec321dcb"
+    },
+    {
+      "id": "3125a5f98c3b43cf1e2604e25e8504bffd714ea5843200fa8ddf0b4c58842f16",
+      "category": "community",
+      "digest": "75594ae4bf2d00cc7cdd46deb77b1efb8617892ed2bb12bf3cf136f2d4afe645"
+    },
+    {
+      "id": "27c3384de80b1bed23f1ea15316abe62c8cca33e955805f23d461803f6dee8d4",
+      "category": "community",
+      "digest": "e95e234f25eb40fb57f4f3ef6196a81117bdcd0618c7709a378a1607b5c57502"
+    },
+    {
+      "id": "ab8e1c13ddf394102be1cb04adcff8411127f1e7140a216d27a94fc19b7d0428",
+      "category": "community",
+      "digest": "a34877e027cd36ba35cdde44ec4e7d1ffa4a3858ad5f65c02c98af85304d48c8"
+    },
+    {
+      "id": "d03b9f7c10c95f40eed389458be51bdf2437febd5673d028da134e59e503c10b",
+      "category": "community",
+      "digest": "d0f943e7e230cb5a0a2e0f6768c374bf0bf8a93dc115f027251c80fabb4ed017"
+    },
+    {
+      "id": "a5341fe706097cff2a3812a3fc0d87399254557328351ae8e5c882700fc1a196",
+      "category": "official",
+      "digest": "66522d0f79b8659c895bcd31cfdbba98d01bbd8ec027c7c8041ba68f2fde1ba1"
+    },
+    {
+      "id": "88647ea04145fbbbb19b55f1590e038fb0378acb2571110f02cb545cc46b0d57",
+      "category": "official",
+      "digest": "b2b465ba49e0f252ca3984749b25797402cbe04143ae4812093f5b2fee8cc978"
+    },
+    {
+      "id": "93c7363dfea7fb09ca1d23b72cad5df43a30841d41c8ff25fb544c85bb03c7ae",
+      "category": "official",
+      "digest": "39f629e34f5113c8a2fdef48e2eb6714657a1b2e92038a59c9148e712eaef0a8"
+    },
+    {
+      "id": "b3889905b6df31cbe302e58e975988385607771605bf6e8e8e8e31b3d2dc8aa1",
+      "category": "community",
+      "digest": "a80f9c9cf136d99c77a571ae9a6605bc1b4ca07cd36c24bd573e2006c908d9ff"
+    },
+    {
+      "id": "f9283607ecec9c89583205cf08715c8f504cc271eec51209bb6fc0cc37ddc915",
+      "category": "community",
+      "digest": "6ba0ce24a49e9e8d5bb2a6cfbbb29b5bb338ef50163de980459094b41085faec"
+    },
+    {
+      "id": "7603aaeffa1989a649dfaa8e1804bed4481b49df233e377687d0669899566e52",
+      "category": "official",
+      "digest": "8524bae8fd01a6b4607efbd987afb050a9300006ed02f78f454bce14211f6609"
+    },
+    {
+      "id": "4058e3616fbd79b848e70037adde4f12b4413011050aaf1c9d875cdbe2e33d68",
+      "category": "community",
+      "digest": "1f238ab93dd24e9712ffaa456c4baae9ceaa639b95a65582806afb95193f7127"
+    },
+    {
+      "id": "315c9e95c567cce4feca78f5ad6e8d08d0a22dac0d56061af567b43eea3d4fa8",
+      "category": "community",
+      "digest": "7fb79da46c6244756c93d0e1c137311cac0a63fed431857ae9b2ef20fcaa2a0e"
+    },
+    {
+      "id": "5803f9e963625804e3de3246d043dc7dde847aa32e991f7f7326b0453f1fa038",
+      "category": "official",
+      "digest": "0f76ea0f7aa2d1696a11bb5a88bc560f324ddfe7fb2a6f634b28bf1f5c66a011"
+    },
+    {
+      "id": "520c4f511821ced30b99bceafbb02e6b7531e867126b0756e68d5e157691ef2f",
+      "category": "community",
+      "digest": "ab6a78ea20852ca62f1e9601cc6ee4a29b8704e237b4880cec78df9403e7b51c"
+    },
+    {
+      "id": "81cede50724b1ee0c2ebcef973c37d620680766bd75771c5ae2728b8732c7a66",
+      "category": "community",
+      "digest": "865a8ebd7c2f2a0ab0c39b1a77fea980fc4871e1e59035c49905d152c1845b2b"
+    },
+    {
+      "id": "225fad12335dadc12b60bfa1b31369b1026d8a084fd4670583870fb3b71f7ec0",
+      "category": "community",
+      "digest": "abb858de02ae52649420fcb63b6bb136c2cb017da1b10de0ca60d70348646438"
+    }
+  ],
+  "tracks": [
+    {
+      "id": "ddfe00045807e2786552d1e31e1363384c365487180f65d4eff1aa41e334a8e8",
+      "name": "Overclocked",
+      "author": "CXKat",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Overclocked"
+    },
+    {
+      "id": "7d134c939df80c676a258266201beedd3b93572d5603f3ff4339ff8679803715",
+      "name": "Winter 4",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "fullspeed",
+      "label": "Winter 4"
+    },
+    {
+      "id": "5159a8dac6a1f397407a7b5233ad570613531f6609f7dc897490c28c9f2c7a4e",
+      "name": "Apostle",
+      "author": "BonnieBeans",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Apostle"
+    },
+    {
+      "id": "9acd9aef650c4ccc41bb01f72ed44dfaa13f2e4404d2e3466f09cc1adcd9a9c0",
+      "name": "⚙︎Cogware⚙︎",
+      "author": "AZiggy",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Cogware"
+    },
+    {
+      "id": "c20b4ee3cd517ca6cae7e43f047548757287fbd08ba81b97892a3ef520159a34",
+      "name": "Desert 1",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "fullspeed",
+      "label": "Desert 1"
+    },
+    {
+      "id": "4697ea67b18c3f49b30a3d8884602115536650bc5435c88e3732e64d21a72d33",
+      "name": "Desert 4",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "fullspeed",
+      "label": "Desert 4"
+    },
+    {
+      "id": "b430aad5e481caa4588e30f46352b876b62f1ba0cf7730a15efd026c91a8f32e",
+      "name": "Frosted Fjords 寒い",
+      "author": "CXKat",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Frosted Fjords"
+    },
+    {
+      "id": "c117823cf6788e3247b9ee63a0c091c07352bbe352c650a7790dc6718148c2fa",
+      "name": "Summer 6",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "fullspeed",
+      "label": "Summer 6"
+    },
+    {
+      "id": "d9bc51ec180bc46558e079c7949ba10b9ade52078c4c145f217a6a8543df2377",
+      "name": "Tucks Factory",
+      "author": "Tuck and Mask",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Tucks Factory"
+    },
+    {
+      "id": "a680fa81e6a4b9dec06b4197833f0a96334a275faf387d495c9c674ffd6b8686",
+      "name": "Oyasumi",
+      "author": "Karpin, Dice",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Oyasumi"
+    },
+    {
+      "id": "148826aa16ffaa23dbc453b32cff05e025ddbce1773fc7733cc13d218926515a",
+      "name": "Summer 3",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "fullspeed",
+      "label": "Summer 3"
+    },
+    {
+      "id": "0338f449b9948f06c03ffc2ab3ab6cf551fd08a9f2c09a16156b93ef52dd4411",
+      "name": "݁˖.˚ Evanescent Bliss. ݁₊˚ .",
+      "author": "Raylee & HummusHere",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Evanescent Bliss"
+    },
+    {
+      "id": "a8913b96daceb5b615fe45aad2bb104e04eb7db140242934657111e1d1f55b89",
+      "name": "Sky Bound",
+      "author": "CXKat",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Sky Bound"
+    },
+    {
+      "id": "9e53d03f4efe86834c49ce202b528d769d9aa7a6e17732d0fc56440463956a1b",
+      "name": "Sludge Pipe Circuit",
+      "author": "HummusHere imracer",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Sludge Pipe Circuit"
+    },
+    {
+      "id": "3125a5f98c3b43cf1e2604e25e8504bffd714ea5843200fa8ddf0b4c58842f16",
+      "name": "Magenta Mines",
+      "author": "CheeseWaffleBoy & BonnieBeans",
+      "category": "community",
+      "discipline": "fullspeed",
+      "label": "Magenta Mines"
+    },
+    {
+      "id": "27c3384de80b1bed23f1ea15316abe62c8cca33e955805f23d461803f6dee8d4",
+      "name": "𐌀𐌕𐌋𐌀𐌍𐌕𐌉𐌔",
+      "author": "Apex & Xander",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Atlantis"
+    },
+    {
+      "id": "ab8e1c13ddf394102be1cb04adcff8411127f1e7140a216d27a94fc19b7d0428",
+      "name": "Joenail Jones",
+      "author": "Tacopanda",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Joenail Jones"
+    },
+    {
+      "id": "d03b9f7c10c95f40eed389458be51bdf2437febd5673d028da134e59e503c10b",
+      "name": "Termite Terror",
+      "author": "Herny🇦🇺",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Termite Terror"
+    },
+    {
+      "id": "a5341fe706097cff2a3812a3fc0d87399254557328351ae8e5c882700fc1a196",
+      "name": "Winter 3",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "tech",
+      "label": "Winter 3"
+    },
+    {
+      "id": "88647ea04145fbbbb19b55f1590e038fb0378acb2571110f02cb545cc46b0d57",
+      "name": "Desert 2",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "tech",
+      "label": "Desert 2"
+    },
+    {
+      "id": "93c7363dfea7fb09ca1d23b72cad5df43a30841d41c8ff25fb544c85bb03c7ae",
+      "name": "Summer 4",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "tech",
+      "label": "Summer 4"
+    },
+    {
+      "id": "b3889905b6df31cbe302e58e975988385607771605bf6e8e8e8e31b3d2dc8aa1",
+      "name": "Sunken Glyphs",
+      "author": "2xi",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Sunken Glyphs"
+    },
+    {
+      "id": "f9283607ecec9c89583205cf08715c8f504cc271eec51209bb6fc0cc37ddc915",
+      "name": "Planet 97",
+      "author": "BonnieBeans",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Planet 97"
+    },
+    {
+      "id": "7603aaeffa1989a649dfaa8e1804bed4481b49df233e377687d0669899566e52",
+      "name": "Summer 5",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "tech",
+      "label": "Summer 5"
+    },
+    {
+      "id": "4058e3616fbd79b848e70037adde4f12b4413011050aaf1c9d875cdbe2e33d68",
+      "name": "Amberbound",
+      "author": "Hero <3",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Amberbound"
+    },
+    {
+      "id": "315c9e95c567cce4feca78f5ad6e8d08d0a22dac0d56061af567b43eea3d4fa8",
+      "name": "Koselig",
+      "author": "Flatbread & BonnieBeans",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Koselig"
+    },
+    {
+      "id": "5803f9e963625804e3de3246d043dc7dde847aa32e991f7f7326b0453f1fa038",
+      "name": "Summer 1",
+      "author": "Kodub",
+      "category": "official",
+      "discipline": "tech",
+      "label": "Summer 1"
+    },
+    {
+      "id": "520c4f511821ced30b99bceafbb02e6b7531e867126b0756e68d5e157691ef2f",
+      "name": "Arx Lucida",
+      "author": "Flatbread",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Arx Lucida"
+    },
+    {
+      "id": "81cede50724b1ee0c2ebcef973c37d620680766bd75771c5ae2728b8732c7a66",
+      "name": "Natsu",
+      "author": "ben, 10quo07, BLAK3",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Natsu"
+    },
+    {
+      "id": "225fad12335dadc12b60bfa1b31369b1026d8a084fd4670583870fb3b71f7ec0",
+      "name": "Solaris",
+      "author": "HummusHere & cheesebob",
+      "category": "community",
+      "discipline": "tech",
+      "label": "Solaris"
+    }
+  ]
+}

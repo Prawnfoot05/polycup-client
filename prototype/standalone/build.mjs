@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
+import { practiceWorkerPlugin,practiceWorkerSource,PRACTICE_WORKER_MARKER,PRACTICE_WORKER_HANDLER,PRACTICE_WORKER_MESSAGES } from '../../scripts/practice-worker.mjs';
 import { unpack } from '../../scripts/asar.mjs';
 import { packageLoaderSource, removeApplicationSourceArtifacts } from '../../scripts/package-loader-source.mjs';
 import { dependencyNotices } from '../../scripts/package-dependency-notices.mjs';
@@ -92,6 +93,12 @@ for (const [name, bytes] of files) {
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, bytes);
 }
+if(!pml){
+ let worker=await readFile(path.join(root,'simulation_worker.bundle.js'),'utf8');
+ for(const marker of [PRACTICE_WORKER_MARKER,PRACTICE_WORKER_HANDLER])if(worker.split(marker).length!==2)throw Error('Practice worker marker changed');
+ worker=worker.replace(PRACTICE_WORKER_HANDLER,PRACTICE_WORKER_HANDLER+PRACTICE_WORKER_MESSAGES).replace(PRACTICE_WORKER_MARKER,PRACTICE_WORKER_MARKER+await practiceWorkerSource());
+ await writeFile(path.join(root,'simulation_worker.bundle.js'),worker);
+}
 let game = files.get('main.bundle.js').toString();
 const from = game.indexOf('let globalFunc = () => {');
 const to = game.lastIndexOf('ActivePolyModLoader.preInitMods()');
@@ -140,6 +147,7 @@ ${body}
   await writeFile(path.join(root, 'pml-game-source.js'), bootstrap);
 }
 const browserBuild = await build({
+  plugins:[practiceWorkerPlugin],
   entryPoints: ['prototype/standalone/entry.ts'],
   outfile: path.join(root, 'polycup.js'),
   bundle: true,

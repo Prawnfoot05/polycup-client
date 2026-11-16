@@ -127,7 +127,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
           while(o.isTransitioning || !t.hasLoaded()){if(cancelled || performance.now()>until)throw Error('Replay loading timed out. Try again.');await pause();}
           if(cancelled || Za.get($)?.multiplayerConnection || polycupRaceRequest)throw Error('Replay cancelled.');
           polycupInstallReplayPhysics();
-          const ghosts=request.ghosts.map(ghost=>{const recording=new ie.A(ghost.inputs);if(ghost.dnf)recording.polycupDnfThrough=ghost.nativeFinish;
+          const ghosts=request.ghosts.map(ghost=>{if(ghost.fullRun&&!window.polycupRespawnReplay)throw Error('Respawn replay support is unavailable.');const recording=window.polycupRespawnReplay?.recording(ghost)??new ie.A(ghost.inputs);if(ghost.dnf)recording.polycupDnfThrough=ghost.nativeFinish;
             const saved=typeof ghost.style==='string'?Zt.A.deserializeSafe(ghost.style):null;return{recording,
             carStyle:saved&&saved.serialize()===ghost.style?saved:Zt.A.deserializeSafe('${REPLAY_NEUTRAL_STYLE}'),
             nickname:ghost.name,time:new xt.A(ghost.finish),isSelf:false,polycupDnf:ghost.dnf,polycupOffset:ghost.offset,polycupNativeEnd:ghost.nativeFinish};});
@@ -150,7 +150,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
               const dnf=ghost.settings.polycupDnf&&time>=end,finished=!ghost.settings.polycupDnf&&time>=end&&ghost.finishSpeed!==null;
               const checkpoint=state?.nextCheckpointIndex??0;
               return {index,name:request.ghosts[index].name.replace(/ · DNF$/,''),portrait:portraits.get(index),checkpoint,
-                crossing:checkpoint>0?(ghost.checkpointTimes[checkpoint-1]?.numberOfFrames??0)+offset:0,
+                crossing:checkpoint>0?(ghost.settings.recording.polycupFullRun?window.polycupRespawnReplay.crossing(ghost,time,checkpoint):(ghost.checkpointTimes[checkpoint-1]?.numberOfFrames??0)+offset):0,
                 speed:state&&!dnf?Math.abs(finished?ghost.finishSpeed:state.speedKmh):null,
                 finish:finished?end:null,status:dnf?'dnf':finished?'finished':state?'racing':'loading'};
             })};

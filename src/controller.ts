@@ -618,6 +618,11 @@ export class Controller {
     if (!this.#info) throw new Error('No game session is active.');
     return this.#info;
   }
+  get liveCheckpointCount(): number|null {
+    const run=this.#state?.runtime,info=this.#info;
+    if(!run||!info||info.disposed||info.sessionId!==run.sessionId||info.trackData?.getId?.()!==run.trackId)return null;
+    return Number.isSafeInteger(info.checkpointCount)&&info.checkpointCount>=0?info.checkpointCount:null;
+  }
   get activeGame(): NativeGame {
     if (!this.#game) throw new Error('No game is active.');
     return this.#game;

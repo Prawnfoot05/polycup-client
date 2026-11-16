@@ -322,3 +322,9 @@
     display: none;
   }
 }
+
+.team-race-identity{display:flex;align-items:center;gap:7px;min-width:0}
+.team-race-identity>.racer-name{flex:1;min-width:0}
+.team-race-identity .score-checkpoint{flex:none;font-size:13px;white-space:nowrap;color:var(--pc-muted)}
+.team-race-row.is-you .score-checkpoint{color:inherit}
+@media(max-width:650px),(max-height:500px){.team-race-identity{gap:4px}.team-race-identity .score-checkpoint{font-size:11px}}

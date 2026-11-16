@@ -15,6 +15,7 @@ import { CupUI } from '../../src/ui.ts';
 import { registerCarVisibility, CupTransport, nativeFrameHealth } from '../../src/native.ts';
 import { installRankedPanel } from './ranked-panel.ts';
 import { registerCupMenu, launchNativeRace } from '../../src/native-cup-menu.ts';
+import { registerPracticeRespawns } from '../../src/practice-respawn.ts';
 import { registerLobbyNavigation } from '../../src/native-lobby.ts';
 import { registerNativePlayerList, rankedPlayerList } from '../../src/native-player-list.ts';
 import { registerVersionCheck } from '../../src/version-check.ts';
@@ -25,7 +26,7 @@ import { configureStandaloneAccount } from '../../src/account-config.ts';
 import { startupRequest } from './startup-requests.ts';
 import { installNativeInstanceRecovery } from './native-instance.ts';
 import { rankedRoomIsActive } from './room-watch.ts';
-// This entry is built only by the local prototype builder, never the PML release.
+// Shared application entry for the standalone site and external PML distribution.
 const w = window as any;
 w.polycupBoot && (w.polycupBoot.entered = true);
 w.polycupBoot?.stage('configuration');
@@ -265,6 +266,7 @@ const runtime: any = {
           ),
         );
     for (const patch of globals) loader.registerGlobalMixin({ ...patch, type: insert });
+    for (const patch of runtime.practiceWorkerMixins??[]) loader.registerSimWorkerMixin({...patch,type:insert});
     loader.registerSettingCategory('PolyCup');
     loader.registerSetting('Show opponents', 'PolyCupShowOpponents', 'boolean', true);
     runtime.loader = loader;
@@ -817,6 +819,7 @@ registerCarVisibility(runtime, 0);
 registerLobbyNavigation(runtime, 0);
 registerNativePlayerList(runtime, 0);
 registerCupMenu(runtime, 0, !externalPml);
+registerPracticeRespawns(runtime, 0);
 if(!externalPml) registerStandaloneBranding(runtime, 0);
 runtime.registerGlobalMixin({
   type: 0,

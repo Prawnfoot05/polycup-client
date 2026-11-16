@@ -12,6 +12,7 @@ import { MatchFinishUI, type FinishRow, type FinishView } from '../../src/match-
 import { resultRows } from '../../src/results.ts';
 import panelCSS from './ranked-panel.css';
 import { RankedLoading } from './ranked-loading.ts';
+import { RankedTrackVoteUI } from '../../src/ranked-track-vote.ts';
 import { rankBadge } from '../../src/rank-badge.ts';
 import rankStyles from '../../src/ranked-queue.css';
 import { installClientUpdates } from './client-updates.ts';
@@ -38,6 +39,8 @@ export function installRankedPanel(
   configureOfficialPositions(platform);
   const tokenKey = 'polycup.prototype.account';
   const loading = new RankedLoading();
+  const trackVote = new RankedTrackVoteUI();
+  let votePicturesMatch='',votePictures:Record<string,string>={};
   const finish = new MatchFinishUI();
   finish.dialog.id = 'prototype-rating';
   const garageNames = new Map<string, { native: number; name: string }>();
@@ -328,6 +331,11 @@ export function installRankedPanel(
     const owner = live ? proto.ui.account?.user?.id : player;
     if (path === 'queue' && ['join', 'accept'].includes(body.action)) await requireNativeInstance();
     if (live && owner !== proto.ui.account?.user?.id) throw Error('Account changed. Please try again.');
+    if (live && path === 'track-vote') {
+      const value = await proto.ui.account.ranked.trackVote(body.match, instance, body.track);
+      if(owner !== proto.ui.account?.user?.id)throw Error('Account changed. Please try again.');
+      return value;
+    }
     if (live) token = (await proto.ui.account?.accessToken()) || '';
     const response = await fetch(rankedEndpoint(platform, path), {
       method: 'POST',
@@ -489,6 +497,7 @@ export function installRankedPanel(
     find.disabled = busy || !raceHosting;
     const previous = proto.queueState;
     proto.queueState = q;
+    if(q.state!=='matched'||q.match?.status!=='drafting'||!q.match.track_vote)trackVote.hide();
     // A cancelled loading attempt no longer owns a connection or loading UI.
     // Abort it before an outstanding admission/join response can revive it.
     if (active && !entered && !finish.isOpen &&
@@ -599,6 +608,14 @@ export function installRankedPanel(
       return;
     }
     active = q.match.id;
+    if(live&&votePicturesMatch!==active){
+      const expected=active;votePicturesMatch=expected;votePictures={};
+      void proto.ui.account?.ranked.pictures(q.match.players.map((p:any)=>p.id)).then((pictures:Record<string,string>)=>{
+        if(active!==expected)return;votePictures=pictures;
+        if(proto.queueState?.match?.id===expected)render(proto.queueState);
+      }).catch(()=>{});
+    }
+
     if (['drafting', 'racing'].includes(q.match.status)) loading.setChat(matchChat(active));
     if (q.match.abandoned && !resultOpen && proto.rankedMatch) endLostConnection();
     if (presentationMatch !== active) {
@@ -656,6 +673,18 @@ export function installRankedPanel(
           ?.focus();
     } else if (['drafting', 'racing'].includes(q.match.status)) {
       if (dialog.open) dialog.close();
+      const vote=q.match.track_vote;
+      if(q.match.status==='drafting'&&vote&&!trackVote.ready(active,vote)){
+        loading.hide();showMenu(false);proto.controller.requestPanel(false);
+        const expected=active;
+        trackVote.show(expected,vote,q.match.self,q.server_time,proto.controller.availableTracks(),q.match.players.map((p:any)=>({...p,avatar_url:p.avatar_url||votePictures[p.id]})),async track=>{
+          const response=await request('track-vote',{match:expected,track});
+          if(active!==expected||proto.queueState?.match?.id!==expected)return;
+          render({...proto.queueState,server_time:response.server_time,match:{...proto.queueState.match,track_vote:response.track_vote}});
+        },()=>{if(active===expected&&proto.queueState?.match?.id===expected)render(proto.queueState);});
+        return;
+      }
+      trackVote.hide();
       status.textContent = 'Preparing your match…';
       if (entered !== active) {
         showMenu(false);
@@ -781,6 +810,7 @@ export function installRankedPanel(
     });
   };
   const backToMenu = () => {
+    trackVote.hide();
     connectionNotice.hidden = true;
     if (active) {
       dismissedPendingResults.add(active);

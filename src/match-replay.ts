@@ -1,5 +1,6 @@
 import { launchNativeReplay } from './native-replay.ts';
 import { showReplayHUD } from './replay-hud.ts';
+import { validateRespawnRecording, type RespawnRecording } from './respawn-recording.ts';
 
 export interface MatchReplay {
   match_id: string;
@@ -19,6 +20,7 @@ export interface MatchReplay {
     native_finish: number | null;
     time_offset: number | null;
     recording?: string;
+    recording_format?: 'native-v1' | 'respawn-v1';
   }[];
 }
 export interface ReplayGhost {
@@ -29,6 +31,7 @@ export interface ReplayGhost {
   offset: number;
   dnf: boolean;
   inputs: Record<'up' | 'right' | 'down' | 'left' | 'reset', number[]>;
+  fullRun?: RespawnRecording;
 }
 
 /** Native 0.6.3 recordings have five delta-coded uint24 toggle lists. Keep
@@ -38,11 +41,11 @@ export async function replayGhost(player: MatchReplay['players'][number]): Promi
   const { recording, native_finish: finish, time_offset: offset } = player;
   if (
     !recording ||
-    recording.length > 131072 ||
+    recording.length > (player.recording_format==='respawn-v1'?524288:131072) ||
     !/^[A-Za-z0-9_-]+$/.test(recording) ||
     !Number.isSafeInteger(finish) ||
     finish! < 1 ||
-    finish! > 3600000 ||
+    finish! > (player.recording_format==='respawn-v1'?5999999:3600000) ||
     !Number.isSafeInteger(offset) ||
     offset! < 0 ||
     offset! > 3600000 ||
@@ -63,7 +66,7 @@ export async function replayGhost(player: MatchReplay['players'][number]): Promi
       const { done, value } = await reader.read();
       if (done) break;
       size += value.length;
-      if (size > 131072) throw Error('Replay recording is too large.');
+      if (size > (player.recording_format==='respawn-v1'?4194304:131072)) throw Error('Replay recording is too large.');
       chunks.push(value);
     }
   } finally {
@@ -75,6 +78,14 @@ export async function replayGhost(player: MatchReplay['players'][number]): Promi
     bytes.set(chunk, cursor);
     cursor += chunk.length;
   }
+  if(player.recording_format==='respawn-v1'){
+    const fullRun=validateRespawnRecording(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
+    if(offset!==0 || fullRun.elapsedMs!==finish || !!player.dnf!==(fullRun.finishMs===null))
+      throw Error('Respawn replay timing does not match its result.');
+    return {name:player.name+(player.dnf?' · DNF':''),style:player.style,finish:finish!,nativeFinish:finish!,offset:0,dnf:!!player.dnf,
+      inputs:{up:[],right:[],down:[],left:[],reset:[]},fullRun};
+  }
+  if(player.recording_format && player.recording_format!=='native-v1')throw Error('Replay recording format is unavailable.');
   cursor = 0;
   const read = () => {
     if (cursor + 3 > size) throw Error('Replay recording is incomplete.');

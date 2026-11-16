@@ -34,6 +34,7 @@ import { resultRows, resultsImage } from './results.ts';
 import { PlayerMenu } from './player-menu.ts';
 import { playerRecord, recordTrack, sessionRecord, standings } from './standings.ts';
 import { formatGap, formatTime as time } from './time.ts';
+import { checkpointLabel } from './checkpoint-label.ts';
 import { CupToolbar } from './toolbar.ts';
 import { ConnectionQuality } from './connection-quality.ts';
 import { DraftSlotMotion } from './draft-slot-motion.ts';
@@ -1966,6 +1967,10 @@ export class CupUI {
             : 'No checkpoint reached';
       const identity = h('div', undefined, 'score-identity');
       identity.append(name);
+      if(!personalBests&&s.phase==='racing'){
+        const checkpoint=checkpointLabel(r,this.#c.liveCheckpointCount);
+        if(checkpoint){identity.classList.add('has-checkpoint');identity.append(h('small',checkpoint,'score-checkpoint'));}
+      }
       if (personalBests) {
         row.classList.add('with-pb');
         const car = name.querySelector('.car-skin');
@@ -2085,6 +2090,7 @@ export class CupUI {
           s,
           (id) => this.racerName(id, this.name(id), true),
           this.#c.localPlayerId,
+          this.#c.liveCheckpointCount,
         ),
       );
     } else {

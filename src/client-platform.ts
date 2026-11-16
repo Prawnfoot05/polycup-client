@@ -24,7 +24,7 @@ export function pmlPlatform(environment: keyof typeof SERVICE_ORIGINS = 'product
   return Object.freeze({ distribution: 'pml', serviceOrigin });
 }
 const RANKED_ACTIONS = new Set([
-  'queue', 'identity', 'admission', 'room-status', 'concede', 'cooldown', 'result',
+  'track-vote', 'queue', 'identity', 'admission', 'room-status', 'concede', 'cooldown', 'result',
   'input-policy', 'input', 'input-review', 'replay-input', 'replay-issue', 'register',
 ]);
 export function rankedEndpoint(platform: ClientPlatform, action: string) {

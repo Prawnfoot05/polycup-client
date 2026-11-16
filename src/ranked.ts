@@ -251,10 +251,20 @@ export interface RankedQueueSnapshot extends RankedQueueInfo {
     is_host?: boolean;
     can_reconnect?: boolean;
     result_submitted?: boolean;
+    track_vote?: RankedTrackVote;
     players: { id: string; name: string; accepted: boolean; online: boolean }[];
   };
 }
 export type QueueAction = 'join' | 'poll' | 'cancel' | 'accept' | 'decline' | 'leave-match';
+export interface RankedTrackVote {
+  phase: 'open' | 'closed';
+  candidates: { id: string; category: 'official' | 'community'; digest: string }[];
+  ballots: Record<string, string>;
+  ends_at: string;
+  winner: string | null;
+  closed_at?: string;
+  eligible?: string[];
+}
 export interface RankedDraft {
   bans: { player_id: string; track_id: string }[];
   picks: { player_id: string; track_id: string }[];
@@ -646,6 +656,9 @@ export class Ranked {
   }
   queueInfo(): Promise<RankedQueueInfo> {
     return this.rpc('polycup_queue_info');
+  }
+  trackVote(match: string, instance: string, track: string): Promise<{track_vote:RankedTrackVote;server_time:string}> {
+    return this.rpc('polycup_ranked_track_vote',{match_key:match,instance_key:instance,track_key:track});
   }
   queue(action: QueueAction, instance: string, version: string): Promise<RankedQueueSnapshot> {
     return this.rpc('polycup_queue', { action, instance_key: instance, client_version: version });

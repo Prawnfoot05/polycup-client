@@ -5,6 +5,7 @@ import { teamOf, teamMvp, TEAM_IDS, TEAM_NAMES, teamsEnabled, type TeamId } from
 import { formatTime as time } from './time.ts';
 import { edgeClearance, visibleHudRect } from './hud-layout.ts';
 import type { CupState } from './types.ts';
+import { checkpointLabel } from './checkpoint-label.ts';
 
 /** Persistent score cells keep one round's award animation alive across snapshots. */
 export class TeamRaceHud {
@@ -253,6 +254,7 @@ export function teamRaceStandings(
   state: CupState,
   name: (id: number) => HTMLElement,
   self: number | null,
+  checkpointCount?:number|null,
 ) {
   const board = h('section', undefined, 'team-live-standings');
   board.setAttribute('aria-label', 'Team race standings');
@@ -277,9 +279,15 @@ export function teamRaceStandings(
           ? rows.indexOf(racer) + 1
           : '—'
         : rows.findIndex((other) => other.frames === racer.frames) + 1;
+    const identity=h('div',undefined,'team-race-identity');
+    identity.append(name(racer.id));
+    if(state.phase==='racing'){
+      const checkpoint=checkpointLabel(racer,checkpointCount);
+      if(checkpoint)identity.append(h('small',checkpoint,'score-checkpoint'));
+    }
     row.append(
       h('span', String(place), 'team-race-place'),
-      name(racer.id),
+      identity,
       h('strong', racer.gain ? `+${racer.gain}` : '', 'team-race-points'),
       h(
         'span',
