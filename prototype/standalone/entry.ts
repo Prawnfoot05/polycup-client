@@ -566,6 +566,7 @@ const runtime: any = {
     };
     proto.setRoom = (id: string) => (roomId = id);
     proto.prepare = (fixture = false) => {
+      proto.rankedUploadsEnabled = !fixture && shellMode.live === true;
       if (fixture) {
         const tracks = runtime.getFromPolyTrack(
           `(()=>{const Sun=i(7929).A;return Array.from({length:16},(_,index)=>{const t=new Ul.A(0,new Sun());const finish=-24-index*4;t.addPart(0,0,0,5,0,0,0,null,0);for(let z=-4;z>finish;z-=4)t.addPart(0,0,z,0,0,0,0,null,null);t.addPart(0,0,finish,6,0,0,0,null,null);return {trackData:t,trackMetadata:{name:'Local physics test '+index,author:'PolyCup QA',lastModified:null}};});})()`,
@@ -624,14 +625,14 @@ const runtime: any = {
         warmupSeconds: fixture ? 10 : 30,
         roundBreakSeconds: fixture ? 3 : 5,
         finishTimeoutSeconds: 10,
-        uploadLeaderboardTimes: false,
+        uploadLeaderboardTimes: proto.rankedUploadsEnabled,
       });
       c.setPreset(preset);
       if (assignment) {
         for (const key of Object.keys(preset.rules))
           if (assignment.match.rules[key] !== undefined)
             (preset.rules as any)[key] = assignment.match.rules[key];
-        preset.rules.uploadLeaderboardTimes = false;
+        preset.rules.uploadLeaderboardTimes = proto.rankedUploadsEnabled;
         c.setPreset(preset);
       }
       // Freeze this room's track. The host is never added to the roster.
@@ -655,7 +656,9 @@ const runtime: any = {
       for (const key of Object.keys(preset.rules))
         if (assignment.match.rules[key] !== undefined)
           (preset.rules as any)[key] = assignment.match.rules[key];
-      preset.rules.uploadLeaderboardTimes = false;
+      // Publish the same eligibility to racers, including the reused first session.
+      // The dedicated host still disables its own native record saving in prepare().
+      preset.rules.uploadLeaderboardTimes = proto.rankedUploadsEnabled === true;
       const state = Cup.newCup('Ranked · Season 0', preset);
       state.id = assignment.match.id;
       state.roster = members.map((m) => ({

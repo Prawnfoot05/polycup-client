@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.6.9",
+    "date": "2026-11-16",
+    "entries": [
+      "Ranked personal bests now save and submit through the native PolyTrack leaderboard path, with official replay validation and no delay to match results."
+    ],
+    "notes": []
+  },
+  {
     "version": "0.6.8",
     "date": "2026-11-15",
     "entries": [
