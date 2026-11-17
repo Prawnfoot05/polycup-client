@@ -135,12 +135,15 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
     leaderboardUploads: (() => {
       const defaults = new WeakMap();
       return (game, enabled) => {
+        const recovery = globalThis.window?.polycupPracticeRespawns;
+        const recovered = recovery?.used(Xa.get(game)) === true;
         if (enabled === undefined) {
-          if (defaults.has(game)) { ya.set(game, defaults.get(game)); defaults.delete(game); }
+          if (defaults.has(game)) { ya.set(game, defaults.get(game) && !recovered); defaults.delete(game); }
           return;
         }
-        if (!defaults.has(game)) defaults.set(game, ya.get(game));
-        ya.set(game, defaults.get(game) && enabled);
+        if (!defaults.has(game)) defaults.set(game, recovery?.uploadBaseline(game) ?? ya.get(game));
+        recovery?.rememberUploadBaseline(game, defaults.get(game));
+        ya.set(game, defaults.get(game) && enabled && !recovered);
       };
     })(),
     pruneClosedPeers: c => {

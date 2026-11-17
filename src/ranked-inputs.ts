@@ -8,6 +8,7 @@ export interface InputRun {
   timeOffset: number;
   captureScope?: 'attempt' | 'after_reset';
   recording: string;
+  recordingFormat?: 'native-v1' | 'respawn-v1';
   dnf?: boolean;
 }
 export interface PendingInput {

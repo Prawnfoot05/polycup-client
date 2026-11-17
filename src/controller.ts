@@ -22,6 +22,7 @@ import type {
   PolyModLoader,
 } from './game-types.ts';
 import { frameNumber, InputCapture, inputMask, InputTimeline, validInputEvents } from './inputs.ts';
+import { respawnReplayRun } from './respawn-evidence.ts';
 import { connectNative, CupTransport, watchGameSessions } from './native.ts';
 import { CheckpointProgress } from './progress.ts';
 import type {
@@ -340,6 +341,7 @@ export class Controller {
   #startedCar: NativeCar | null = null;
   #raceTimeOffset = 0;
   #inputAttemptReset = false;
+  #replayAttemptReset = false;
   #raceClockRound: string | null = null;
   #readyKey: string = '';
   #lastBroadcast: number = 0;
@@ -416,6 +418,19 @@ export class Controller {
       this.#isHost
     )
       return;
+    const recovery = typeof window === 'undefined' ? null : (window as any).polycupPracticeRespawns;
+    if (recovery?.used(car)) {
+      // A full car replacement/reconnect lost the earlier attempt. Do not
+      // advertise the remaining segment as a complete chronological replay.
+      if (this.#replayAttemptReset) return;
+      const handler = this.#replayRunHandler, offset = this.#raceTimeOffset;
+      this.#replayCaptured.add(run.id);
+      void recovery.recording(car)
+        .then((trace: unknown) => respawnReplayRun(trace, run.round, run.trackId, offset, dnf))
+        .then(handler)
+        .catch(() => { this.#replayCaptured.delete(run.id); });
+      return;
+    }
     try {
       const nativeFinish = dnf ? car.getTime().numberOfFrames : car.getFinishTime()?.numberOfFrames;
       const recording = car.getRecording?.()?.serialize();
@@ -696,6 +711,11 @@ export class Controller {
   init(pml: PolyModLoader) {
     if (this.#timer !== undefined) return;
     this.#native = connectNative(pml, this);
+    window.addEventListener('polycup-respawn', (event) => {
+      if ((event as CustomEvent).detail?.car !== this.#info?.car || !this.#state?.runtime) return;
+      this.#inputAttemptReset = true;
+      this.#inputCapture?.markGap();
+    });
     window.addEventListener(
       'keydown',
       (event) => {
@@ -976,6 +996,7 @@ export class Controller {
         this.#raceTimeOffset = 0;
         // Joining an already-racing round cannot establish earlier coverage.
         this.#inputAttemptReset = phase === 'racing';
+        this.#replayAttemptReset = this.#inputAttemptReset;
         this.#raceClockRound = run.id;
         const view =
           this.#followingGame === game ? this.#drivingView : this.#native.drivingView?.(game);
@@ -1006,8 +1027,10 @@ export class Controller {
         startDue &&
         (this.#startKey !== run.id || this.#startedCar !== this.gameInfo.car)
       ) {
-        if (this.#startKey === run.id && this.#startedCar !== this.gameInfo.car)
+        if (this.#startKey === run.id && this.#startedCar !== this.gameInfo.car) {
           this.#inputAttemptReset = true;
+          this.#replayAttemptReset = true;
+        }
         this.#startKey = run.id;
         this.#startedCar = this.gameInfo.car;
         this.#native.release?.(game);
@@ -1157,6 +1180,17 @@ export class Controller {
     if (event.repeat) return true;
     return this.#respawnAtStart();
   }
+  canRecoverAtCheckpoint(game: NativeGame) {
+    const state = this.#state, run = state?.runtime, id = this.localPlayerId;
+    if (!state) return true;
+    return this.#game === game && !this.#info?.disposed && !this.#chatTyping &&
+      ['warmup','racing'].includes(state.phase) && !!run && this.#info?.sessionId === run.sessionId &&
+      (state.phase === 'warmup' || (run.startsAt !== null && this.now() >= run.startsAt)) && id !== null &&
+      Cup.racingIds(state).includes(id) && !Cup.roundDone(state, id);
+  }
+  get cleanUploadsAllowed() {
+    return !this.#state || rulesFor(this.#state).uploadLeaderboardTimes === true;
+  }
   #respawnAtStart() {
     const state = this.#state,
       run = state?.runtime,
@@ -1178,6 +1212,7 @@ export class Controller {
     this.captureInputs();
     // Keep time spent on earlier attempts, including the car replacement interval.
     this.#inputAttemptReset = true;
+    this.#replayAttemptReset = true;
     this.#inputCapture?.markGap(); // A full car replacement is not a native checkpoint-reset input.
     this.#raceTimeOffset = Math.max(
       this.lapFrames(this.gameInfo.car.getTime().numberOfFrames),

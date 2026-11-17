@@ -13,14 +13,14 @@ export function registerPracticeRespawns(runtime: any, insert: unknown) {
     type: insert,
     token: 'get cameraOrbit() {',
     func: `
- window.polycupPracticeCarAccess?.(this,{id:ee.get(this),reset:()=>Q.get(this).reset(this.getPosition(),this.getQuaternion(),this.getSpeedKmh()),opacity:()=>{let opacity=1;me.get(this).traverse(object=>{if(object.material)for(const material of(Array.isArray(object.material)?object.material:[object.material]))opacity=Math.min(opacity,material.opacity);});return opacity;}});
+ window.polycupPracticeCarAccess?.(this,{id:ee.get(this),reset:()=>Q.get(this).reset(this.getPosition(),this.getQuaternion(),this.getSpeedKmh()),visible:()=>me.get(this).visible,opacity:()=>{let opacity=1;me.get(this).traverse(object=>{if(object.material)for(const material of(Array.isArray(object.material)?object.material:[object.material]))opacity=Math.min(opacity,material.opacity);});return opacity;}});
  `,
   });
   runtime.registerGlobalMixin({
     type: insert,
     token: 's.addFinishCallback((e) => {',
     func: `
- if(window.polycupPracticeRespawns?.used(e)){window.polycupPracticeRespawns.finished(this,e);return;}
+ if(window.polycupPracticeRespawns?.used(e)){window.polycupPracticeRespawns.finished(this,e);if(!window.polycupPracticeRespawns.context(this)?.multiplayer)return;}
  `,
   });
   installPracticeRespawns(runtime);

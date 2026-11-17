@@ -6,18 +6,21 @@ export function installPracticeRespawns(runtime) {
     statuses = new Map(),
     access = new WeakMap(),
     used = new WeakSet(),
-    requests = new Map();
+    requests = new Map(),
+    originals = new WeakMap();
   const NativeWorker = window.Worker;
   let api = null,
     current = null,
     liveCar = null,
     lastTap = -Infinity,
     held = {};
+  const multiplayerAllowed = game => manager.allowMultiplayer?.(game) !== false;
   window.polycupPracticeCarAccess = (car, info) => {
     if (access.has(car)) return;
     access.set(car, info);
     car.resetRollingCamera = info.reset;
     car.getRollingOpacity = info.opacity;
+    car.getRollingVisible = info.visible;
   };
   window.Worker = class extends NativeWorker {
     constructor(...args) {
@@ -66,7 +69,13 @@ export function installPracticeRespawns(runtime) {
       if (data?.messageType === 0 && data.version === '0.6.3' && Array.isArray(data.trackParts))
         workers.add(this);
       if (data?.messageType === 3 && typeof data.trackData === 'string' && 'carRecording' in data)
-        workers.add(this);
+        {
+          workers.add(this);
+          // Enrol driving cars at creation, before their first physics tick.
+          // Late main-thread enrolment loses a short stationary prefix in races.
+          if (data.carRecording == null && !window.polycupDedicatedNoRender)
+            data = { ...data, polycupRollingDriver: true };
+        }
       return super.postMessage(data, ...args);
     }
     terminate() {
@@ -86,8 +95,12 @@ export function installPracticeRespawns(runtime) {
   const manager = {
     context,
     used: (car) => !!car && used.has(car),
+    uploadBaseline: game => originals.get(game),
+    rememberUploadBaseline(game, enabled) {
+      if (!originals.has(game)) originals.set(game, enabled);
+    },
     finished(game, car) {
-      api?.watch(game);
+      if (!api?.read(game)?.multiplayer) api?.watch(game);
     },
     snapshot: () => current?.state ?? null,
     respawn(mode = 'flying', upgrade = false) {
@@ -96,24 +109,29 @@ export function installPracticeRespawns(runtime) {
         !info ||
         info.car !== liveCar ||
         !current ||
+        ['finished','error'].includes(current.state.phase) ||
         !api.ready(info.game) ||
+        (info.multiplayer && !multiplayerAllowed(info.game)) ||
         info.car.hasFinished() ||
         !info.car.hasStarted()
       )
         return false;
       used.add(liveCar);
       api.uploads(info.game, false);
-      return send({ rollingRespawn: true, mode, upgrade });
+      const sent = send({ rollingRespawn: true, mode, upgrade });
+      if (sent) window.dispatchEvent(new CustomEvent('polycup-respawn', { detail: { car: liveCar } }));
+      return sent;
     },
     tap() {
       const at = performance.now(),
         double = at - lastTap <= 300;
-      lastTap = double ? -Infinity : at;
-      return this.respawn(double ? 'standing' : 'flying', double);
+      const accepted = this.respawn(double ? 'standing' : 'flying', double);
+      if (accepted) lastTap = double ? -Infinity : at;
+      return accepted;
     },
-    recording() {
+    recording(car = liveCar) {
       return new Promise((resolve, reject) => {
-        const id = access.get(liveCar)?.id;
+        const id = access.get(car)?.id;
         if (!current || id === undefined) return reject(Error('No practice recording.'));
         const request = crypto.randomUUID(),
           timer = setTimeout(() => {
@@ -193,6 +211,7 @@ export function installPracticeRespawns(runtime) {
         info = api?.read(game);
       if (
         !info ||
+        event.isComposing || event.ctrlKey || event.metaKey || event.altKey ||
         !api.ready(game) ||
         info.car.hasFinished() ||
         event
@@ -221,7 +240,7 @@ export function installPracticeRespawns(runtime) {
     if (!runtime.menuDebug?.().loaded) return;
     clearInterval(setup);
     api = runtime.getFromPolyTrack(`({
-   read:g=>g instanceof Is&&!Za.get(g)?.multiplayerConnection&&!ss.get(g)&&!window.polycupDedicatedNoRender?{game:g,car:Xa.get(g),resetButton:It.get(Ha.get(g))}:null,
+   read:g=>g instanceof Is&&!ss.get(g)&&!window.polycupDedicatedNoRender&&Xa.get(g)?{game:g,car:Xa.get(g),multiplayer:!!Za.get(g)?.multiplayerConnection,resetButton:It.get(Ha.get(g))}:null,
    ready:g=>!bs.call(g)&&!fs.get(g).isEnabled,
    key:(g,event)=>ua.get(g).checkKeyBinding(event,ge.A.VehicleCheckpointReset),
    watch:g=>Na.get(g).setWatchButtonEnabled(true),
@@ -229,10 +248,9 @@ export function installPracticeRespawns(runtime) {
    held:(g,keys)=>{const input=qa.get(g);for(const key of Object.keys(keys))input[key]=true;},
    hook:prepare=>{const update=Is.prototype.update;Is.prototype.update=function(...args){prepare(this);return update.apply(this,args);};}
   })`);
-    const originals = new WeakMap();
     api.hook((game) => {
       const info = api.read(game);
-      if (!info) {
+      if (!info || (info.multiplayer && !multiplayerAllowed(game))) {
         liveCar = null;
         current = null;
         return;
@@ -245,7 +263,7 @@ export function installPracticeRespawns(runtime) {
         liveCar = car;
         current = null;
         lastTap = -Infinity;
-        api.uploads(game, originals.get(game));
+        api.uploads(game, originals.get(game) && (!info.multiplayer || manager.uploadsAllowed?.(game) !== false));
         window.dispatchEvent(
           new CustomEvent('rolling-status', {
             detail: { phase: 'waiting', elapsed: 0, copium: 0, respawns: 0 },

@@ -80,9 +80,9 @@ export async function replayGhost(player: MatchReplay['players'][number]): Promi
   }
   if(player.recording_format==='respawn-v1'){
     const fullRun=validateRespawnRecording(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
-    if(offset!==0 || fullRun.elapsedMs!==finish || !!player.dnf!==(fullRun.finishMs===null))
+    if(fullRun.elapsedMs!==finish || !!player.dnf!==(fullRun.finishMs===null))
       throw Error('Respawn replay timing does not match its result.');
-    return {name:player.name+(player.dnf?' · DNF':''),style:player.style,finish:finish!,nativeFinish:finish!,offset:0,dnf:!!player.dnf,
+    return {name:player.name+(player.dnf?' · DNF':''),style:player.style,finish:player.finish!,nativeFinish:finish!,offset:offset!,dnf:!!player.dnf,
       inputs:{up:[],right:[],down:[],left:[],reset:[]},fullRun};
   }
   if(player.recording_format && player.recording_format!=='native-v1')throw Error('Replay recording format is unavailable.');

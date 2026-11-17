@@ -1,5 +1,16 @@
 [
   {
+    "version": "0.7.1",
+    "date": "2026-11-17",
+    "entries": [
+      "Flying and double-tap standing respawns now work in ranked and casual races as well as solo Practice. Use R or your checkpoint-reset binding.",
+      "Clean runs keep native personal bests and official leaderboard uploads; using a respawn disables them for that attempt, and a fresh run restores eligibility.",
+      "Ranked replays preserve the complete elapsed run, failed attempts and both respawn types while retaining older replay support.",
+      "Reset the chase camera after start-line recovery and preserve cockpit view and car visibility after respawns."
+    ],
+    "notes": []
+  },
+  {
     "version": "0.7.0",
     "date": "2026-11-16",
     "entries": [

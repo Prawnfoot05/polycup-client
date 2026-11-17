@@ -2,7 +2,7 @@
 import { copiumSplit, formatCopiumSplit } from './copium-split.mjs';
 export function installRollingPresentation(runtime) {
   const api = runtime.getFromPolyTrack(`({
-  read:g=>{if(!(g instanceof Is)||Za.get(g)?.multiplayerConnection||!Xa.get(g))return null;
+  read:g=>{if(!(g instanceof Is)||!Xa.get(g)||fs.get(g)?.isEnabled)return null;
    const reference=_s.call(g);
    return{car:Xa.get(g),renderer:la.get(g),timer:_a.get(g)?.element.querySelector('.timer-ui'),
     reference:reference?{name:reference.settings.nickname,finish:reference.settings.time.numberOfFrames,
@@ -74,10 +74,21 @@ export function installRollingPresentation(runtime) {
     let view = views.get(game);
     if (!view || view.car !== car) {
       view?.hud?.root.remove();
-      view = { car, locked: false, previousCamera: null, hud: null, reference: null };
+      view = { car, locked: false, previousCamera: null, hud: null, reference: null,
+        recoveryKey: '', rearUntil: car.getTime().numberOfFrames + 200 };
       views.set(game, view);
     }
     const frames = car.getTime().numberOfFrames;
+    const recoveryKey = state?.respawns > 0
+      ? `${state.carId}:${state.respawns}:${state.lastRespawn?.mode}` : '';
+    if (recoveryKey !== view.recoveryKey) {
+      view.recoveryKey = recoveryKey;
+      view.rearUntil = frames + 200;
+    }
+    // A standing/start-line reset has no replay lock. Re-seed native camera
+    // history after the new pose arrives too, rather than retaining its old
+    // position in front of the teleported car. Respect cockpit selection.
+    if (frames < view.rearUntil) car.resetRollingCamera();
     const locked = !!recovery && state?.phase !== 'error' && frames < recovery.end;
     if (locked) {
       if (!view.locked) view.previousCamera = renderer.camera;
@@ -88,7 +99,7 @@ export function installRollingPresentation(runtime) {
     } else if (view.locked) {
       car.setOpacity(1);
       if (view.previousCamera) renderer.setCamera(view.previousCamera);
-      car.setVisible(renderer.camera !== car.cameraCockpit);
+      car.setVisible(true);
       view.previousCamera = null;
     }
     view.locked = locked;

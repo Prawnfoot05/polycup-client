@@ -323,6 +323,8 @@ const runtime: any = {
       w.polycupPrototype?.ui?.render();
     });
     w.polycupPrototype = { controller: c, runtime, launchNativeRace, Cup, standardPreset };
+    w.polycupPracticeRespawns.allowMultiplayer = (game: any) => c.canRecoverAtCheckpoint(game);
+    w.polycupPracticeRespawns.uploadsAllowed = (game: any) => c.game !== game || c.cleanUploadsAllowed;
     const isDrivingGame = runtime.getFromPolyTrack('(g)=>g instanceof Is && !Xa.get(g)?.isPaused');
     protectGameContextMenu(() => !document.querySelector('dialog[open]') && !!isDrivingGame(runtime.menuGame()));
     w.polycupPrototype.visibleNativePlayers = (connection: any, players: any[]) =>

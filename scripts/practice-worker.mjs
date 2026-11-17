@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 export const PRACTICE_WORKER_MARKER = '(($o.length = 0), (onmessage = r));';
 export const PRACTICE_WORKER_HANDLER = 'const r = i.data;';
 export const PRACTICE_WORKER_MESSAGES = `
+if(r.messageType===Ki.CreateCar && r.polycupRollingDriver && r.carRecording==null)rollingEnabled.add(r.carId);
 if(r.messageType===Ki.CreateCar && r.carRecording?.polycupRespawn){rollingPlaybackSources.set(r.carId,r.carRecording.polycupRespawn);r.carRecording=r.carRecording.native;}
 if(r.rollingEnable||r.rollingRespawn||r.rollingRecording){rollingCommand(r);return;}
 if(r.messageType===Ki.DeleteCar){rollingEnabled.delete(r.carId);rollingCars.delete(r.carId);rollingCreates.delete(r.carId);rollingPlaybackSources.delete(r.carId);rollingPlaybacks.delete(r.carId);postMessage({rollingProto:true,removed:true,carId:r.carId});}

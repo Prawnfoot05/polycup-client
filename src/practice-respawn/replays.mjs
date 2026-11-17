@@ -224,7 +224,7 @@ export function installPracticeReplays(runtime) {
       for (const [index, ghost] of view.ghosts.entries()) {
         const trace = ghost.settings.recording.polycupFullRun;
         if (!trace) continue;
-        const phase = respawnPresentation(trace, view.at),
+        const phase = respawnPresentation(trace, Math.max(0, view.at - (ghost.settings.polycupOffset ?? 0))),
           car = ghost.car;
         car.setOpacity(phase.locked ? 0.3 : 1);
         let state = viewStates.get(car);
@@ -240,7 +240,7 @@ export function installPracticeReplays(runtime) {
             car.setVisible(true);
           } else if (state.locked) {
             if (state.camera) view.renderer.setCamera(state.camera);
-            car.setVisible(view.renderer.camera !== car.cameraCockpit);
+            car.setVisible(true);
           }
           state.locked = phase.locked;
         } else state.locked = false;
@@ -255,7 +255,7 @@ export function installPracticeReplays(runtime) {
           crossings.set(ghost, cache);
         }
         const through = Math.min(
-          ghost.settings.polycupNativeEnd,
+          ghost.settings.polycupNativeEnd + (ghost.settings.polycupOffset ?? 0),
           ghost.replay.getLastFrame().numberOfFrames,
         );
         for (let at = cache.through + 1; at <= through; at++) {

@@ -1,4 +1,4 @@
-// Local solo Practice recovery. Multiplayer and ordinary replay cars bypass it.
+// Local driving-car recovery. Remote cars, dedicated hosts and ordinary replays bypass it.
 const rollingCreates=new Map(),rollingCars=new Map();let rollingLastLive=null;
 const rollingPlaybackSources=new Map(),rollingPlaybacks=new Map(),rollingEnabled=new Set();
 const rollingNativeCreate=s,rollingNativeStep=n;
