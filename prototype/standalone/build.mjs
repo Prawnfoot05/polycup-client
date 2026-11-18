@@ -9,6 +9,7 @@ import { dependencyNotices } from '../../scripts/package-dependency-notices.mjs'
 import { startupShell } from './startup-shell.mjs';
 import { RANKED_CLIENT_PROTOCOL, CUP_WIRE_VERSION } from '../../src/client-platform.ts';
 import { registerNativePlayerList } from '../../src/native-player-list.ts';
+import { registerRankedPractice } from '../../src/ranked-practice.ts';
 const pml = process.argv.includes('--pml');
 const hub = process.argv.includes('--hub');
 // A 0.6 client requires the coordinated replay/presence/progression host.
@@ -144,6 +145,10 @@ ${body}
   registerNativePlayerList({polyVersion:'0.6.3',registerGlobalMixin:hook=>playerListHooks.push(hook)},0);
   for(const hook of playerListHooks) if(bootstrap.split(hook.token).length!==2)
     throw Error('Native player-list hook changed; refusing an unchecked build');
+  const rankedPracticeHooks=[];
+  registerRankedPractice({polyVersion:'0.6.3',registerGlobalMixin:hook=>rankedPracticeHooks.push(hook)},0);
+  for(const hook of rankedPracticeHooks) if(bootstrap.split(hook.token).length!==2)
+    throw Error('Native ranked practice hook changed: '+hook.token);
   await writeFile(path.join(root, 'pml-game-source.js'), bootstrap);
 }
 const browserBuild = await build({

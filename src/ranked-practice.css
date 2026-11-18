@@ -1,0 +1,21 @@
+/* Four native tabs share the original row and its touch target height. */
+.track-selection-ui.has-ranked-tracks > .image-button-container > .button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 5px;
+  font-size: clamp(17px, calc(2.15vw / var(--ui-scale-factor)), 40px);
+}
+
+.track-selection-ui.has-ranked-tracks .polycup-ranked-tracks [hidden] {
+  display: none;
+}
+
+.track-selection-ui.has-ranked-tracks > .bar .search-bar-container,
+.track-selection-ui.has-ranked-tracks > .bar .search-bar-container input { min-width: 0; }
+.track-selection-ui.has-ranked-tracks > .bar > .polycup-ranked-practice-button {
+  margin-inline-end: 0;
+  white-space: nowrap;
+}
+.track-selection-ui.has-ranked-tracks > .bar > .polycup-ranked-practice-button + .button {
+  margin-inline-start: 2px;
+}

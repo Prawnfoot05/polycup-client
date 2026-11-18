@@ -497,6 +497,7 @@ export function installRankedPanel(
     find.disabled = busy || !raceHosting;
     const previous = proto.queueState;
     proto.queueState = q;
+    if (q.state === 'matched') practiceControl('hold');
     if(q.state!=='matched'||q.match?.status!=='drafting'||!q.match.track_vote)trackVote.hide();
     // A cancelled loading attempt no longer owns a connection or loading UI.
     // Abort it before an outstanding admission/join response can revive it.
@@ -559,7 +560,7 @@ export function installRankedPanel(
       acceptHadHub = postgameQueued || !!(panel.closest('dialog') as HTMLDialogElement | null)?.open || hasLayoutBox(panel);
     if (q.state === 'matched' && (previous?.match?.id !== q.match.id ||
         (previous.match.status === 'reserved' && q.match.status !== 'reserved')))
-      proto.ui.prepareMatchHandoff?.();
+      proto.ui.prepareMatchHandoff?.(q.match.status !== 'reserved');
     if (q.state === 'matched') proto.ui.closeResultRecords?.();
     if (postgameQueued) {
       if (q.state === 'queued') {
@@ -632,7 +633,6 @@ export function installRankedPanel(
       return;
     }
     if (q.match.status === 'reserved') {
-      practiceControl('hold');
       status.textContent = 'Match found';
       const self = q.match.players.find((p: any) => p.id === player),
         count = q.match.players.filter((p: any) => p.accepted).length;
@@ -689,12 +689,14 @@ export function installRankedPanel(
       if (entered !== active) {
         showMenu(false);
         proto.controller.requestPanel(false);
-        if (loading.root.hidden)
+        if (loading.root.hidden) {
+          proto.ui.prepareMatchHandoff?.();
           loading.show(
             active,
             q.match.players.map((p: any) => ({ account: p.id, name: p.name })),
             '',
           );
+        }
         void refreshLoading();
       }
       void connect();

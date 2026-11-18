@@ -478,6 +478,9 @@ export class Ranked {
   trackDirectory(season: string | null = null, friends = false): Promise<TrackDirectoryEntry[]> {
     return this.rpc('polycup_track_directory', { season_key: season, friends_only: friends });
   }
+  practicePool(): Promise<import('./ranked-practice.ts').PracticeTrack[]> {
+    return this.rpc('polycup_ranked_practice_pool');
+  }
   trackRecordLeaders(season: string | null = null): Promise<TrackRecordLeader[]> {
     return this.rpc('polycup_track_record_leaders', { season_key: season });
   }
@@ -497,8 +500,14 @@ export class Ranked {
       page_offset: offset,
     });
   }
-  seasons(): Promise<{ id: string; name: string; active: boolean }[]> {
+  seasons(): Promise<{ id: string; name: string; active: boolean; ends_at?: string | null; scheduled_end_at?: string | null }[]> {
     return this.rpc('polycup_seasons');
+  }
+  hallOfFame(): Promise<import('./hall-of-fame.ts').HallOfFameData> {
+    return this.rpc('polycup_hall_of_fame');
+  }
+  hallOfFamePreview(): Promise<import('./hall-of-fame.ts').HallOfFamePreview | null> {
+    return this.rpc('polycup_hall_of_fame_preview');
   }
   onlineCount(): Promise<number> {
     return this.rpc('polycup_online_count');

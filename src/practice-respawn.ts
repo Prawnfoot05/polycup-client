@@ -20,6 +20,7 @@ export function registerPracticeRespawns(runtime: any, insert: unknown) {
     type: insert,
     token: 's.addFinishCallback((e) => {',
     func: `
+ window.polycupRuntime?.rankedPracticeRun?.finish(this);
  if(window.polycupPracticeRespawns?.used(e)){window.polycupPracticeRespawns.finished(this,e);if(!window.polycupPracticeRespawns.context(this)?.multiplayer)return;}
  `,
   });

@@ -10,7 +10,7 @@ import { SharedChatUI, sharedChatKey } from './shared-chat-ui.ts';
 import { CasualResultsChat } from './results-chat.ts';
 import { rankBadge } from './rank-badge.ts';
 import type { RaceRecord, RecordAward, SessionRecord } from './types.ts';
-import { coverNativeMenu } from './native-cup-menu.ts';
+import { closeNativeMatchMenus, coverNativeMenu } from './native-cup-menu.ts';
 import type { InputVisualizer, LibraryTrack } from './game-types.ts';
 import type { Controller } from './controller.ts';
 import { downtimeLabel, roundSeconds } from './race-status.ts';
@@ -156,6 +156,7 @@ export class CupUI {
   #finishKey: string | null = null;
   #finishScreen?: MatchFinishUI;
   #resultRecords?: LeaderboardUI;
+  #matchMenuBoundary: string | null = null;
   openResultTrackRecords(track: string, player?: string, season?: string) {
     const account=this.account;
     if (!account) return false;
@@ -167,7 +168,7 @@ export class CupUI {
     return true;
   }
   closeResultRecords() { this.#resultRecords?.close(); }
-  prepareMatchHandoff() {
+  prepareMatchHandoff(closeNative = true) {
     // Profile/DM dialogs live outside the hub. Close them even when the hub's
     // panel was already hidden; late profile reads are invalidated by close().
     this.#accountUI.closeSocial();
@@ -176,9 +177,19 @@ export class CupUI {
     this.closeResultRecords();
     this.#rulesDialog.close();
     this.#chatUI.close();
+    this.#playerMenu.close();
+    this.#finishScreen?.close();
+    this.#peekCup = null;
+    this.#open = false;
+    (this.#shadow.activeElement as HTMLElement | null)?.blur();
+    if (closeNative) closeNativeMatchMenus();
   }
 
-  constructor(controller: Controller, hubOptions: CupHubOptions = {}) {
+  constructor(
+    controller: Controller,
+    hubOptions: CupHubOptions = {},
+    private readonly practiceStartCue?: () => string,
+  ) {
     this.#c = controller;
 
     const root = h('div');
@@ -687,6 +698,13 @@ export class CupUI {
       !c.error &&
       !c.waitingRoom?.connectionFailure &&
       (launch.stage !== 'grace' || Date.now() >= launch.at);
+    const matchMenuBoundary = loading ? `waiting:${launch.id}` : s?.runtime &&
+      ['loading', 'warmup', 'countdown', 'racing'].includes(s.phase)
+      ? `${s.id}:${s.runtime.id}:${s.phase === 'loading' ? 'loading' : 'entered'}` : null;
+    if (matchMenuBoundary !== this.#matchMenuBoundary) {
+      this.#matchMenuBoundary = matchMenuBoundary;
+      if (matchMenuBoundary) this.prepareMatchHandoff();
+    }
     this.#draftSlots.sync(s);
     if (this.#noticeCupId !== (s?.id ?? null)) {
       this.dismissNotice();
@@ -1238,7 +1256,7 @@ export class CupUI {
         c.state,
         c.info?.disposed ? null : (c.info?.sessionId ?? null),
         c.now(),
-      );
+      ) || this.practiceStartCue?.() || '';
     this.#startCue.hidden = !value || this.#open;
     if (value === this.#startCueValue) return;
     this.#startCueValue = value;

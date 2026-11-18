@@ -9,12 +9,23 @@ const RACE_EVENT = 'polycup-start-native-race';
 const PROFILE_EVENT = 'polycup-menu-profile';
 const RETURN_EVENT = 'polycup-return-menu';
 const PRACTICE_EVENT = 'polycup-practice-control';
+const DISMISS_MENUS_EVENT = 'polycup-dismiss-match-menus';
 
-/** Cancel through native cleanup rather than removing an editor's DOM or saving it. */
-export function dismissNativeProfileEditor(doc: Pick<Document, 'querySelector'> = document) {
-  doc.querySelector?.<HTMLImageElement>(
-    '.profile-settings-ui > .container > .button-wrapper img[src$="cancel.svg"]',
-  )?.closest<HTMLButtonElement>('button')?.click();
+export function closeNativeMatchMenus() {
+  window.dispatchEvent(new Event(DISMISS_MENUS_EVENT));
+}
+
+/** Use the native cancel handlers to release focus, listeners and nested editors. */
+export function dismissNativeMatchMenus(doc: Pick<Document, 'querySelector'> = document) {
+  for (const [menu, icon] of [
+    ['user-export-ui', 'back'],
+    ['profile-settings-ui', 'cancel'], // Disposes its country picker too.
+    ['profile-selection-ui', 'cancel'],
+    ['settings-menu-ui', 'cancel'],
+  ]) {
+    doc.querySelector<HTMLImageElement>(`#ui .${menu} img[src$="/${icon}.svg"]`)
+      ?.closest<HTMLButtonElement>('button')?.click();
+  }
 }
 
 export function practiceControl(action: 'state' | 'hold' | 'resume' | 'open' | 'complete') {
@@ -70,7 +81,12 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
     token: 'ee = 0;',
     func: `
     const polycupHasLayoutBox = ${hasLayoutBox.toString()};
-    const polycupDismissProfileEditor = ${dismissNativeProfileEditor.toString()};
+    const polycupCancelMenuEditors = ${dismissNativeMatchMenus.toString()};
+    const polycupDismissMatchMenus = () => {
+      polycupCancelMenuEditors();
+      R.hide();
+    };
+    window.addEventListener('${DISMISS_MENUS_EVENT}', polycupDismissMatchMenus);
     let polycupRaceRequest = null;
     let polycupReturning = null;
     let polycupPracticeHold = false;
@@ -181,9 +197,10 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
       if(polycupHasLayoutBox(menu) && !o.isTransitioning && performance.now()-Number(document.body.dataset.polycupPracticeOpenedAt??0)>1500) delete document.body.dataset.polycupPractice;
       d.active=!!document.body.dataset.polycupPractice && !Za.get($)?.multiplayerConnection;
       d.driving=solo && d.active;
+      if(d.action==='hold'||d.action==='resume')window.polycupRuntime?.rankedPracticeRun?.setHeld(d.action==='hold');
       const clear=()=>{if(solo){const input=qa.get($);if(input)for(const k of ['up','right','down','left','reset'])input[k]=false;}};
       if(d.action==='hold'&&!polycupPracticeHold){polycupPracticeHold=true;clear();if(solo&&d.active)Xa.get($).isPaused=true;if($ instanceof Sg && document.body.dataset.polycupReplay){polycupReplayPause={game:$,paused:og.get($),simulationPaused:ug.get($).isPaused};og.set($,true);ug.get($).isPaused=true;}}
-      if(d.action==='resume'&&polycupPracticeHold){polycupPracticeHold=false;clear();if(polycupReplayPause?.game===$){og.set($,polycupReplayPause.paused);ug.get($).isPaused=polycupReplayPause.simulationPaused;}polycupReplayPause=null;}
+      if(d.action==='resume'&&polycupPracticeHold){polycupPracticeHold=false;if(solo&&d.active)window.polycupPrototype?.controller?.restoreDrivingInput($);if(polycupReplayPause?.game===$){og.set($,polycupReplayPause.paused);ug.get($).isPaused=polycupReplayPause.simulationPaused;}polycupReplayPause=null;}
       if(d.action==='complete'){polycupPracticeHold=false;polycupReplayPause=null;delete document.body.dataset.polycupPractice;}
       if(d.action==='open') d.ready=(async()=>{
         if(d.active)return;
@@ -215,7 +232,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
         while(o.isTransitioning && performance.now()<until) await pause();
         if(o.isTransitioning) return false;
         const previous=$;
-        polycupDismissProfileEditor();
+        polycupDismissMatchMenus();
         K(false,null);
         while(($===previous || o.isTransitioning) && performance.now()<until) await pause();
         if(document.body.dataset.polycupNativeRace===returnedRace)delete document.body.dataset.polycupNativeRace;
@@ -242,6 +259,7 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
       request.cancel = cancel;
       const deadline = performance.now()+60000;
       try {
+        polycupDismissMatchMenus();
         while (o.isTransitioning || !t.hasLoaded()) {
           if (cancelled || performance.now()>deadline) throw new Error('Game loading timed out.');
           await new Promise(resolve=>setTimeout(resolve,100));
@@ -281,12 +299,13 @@ export function registerCupMenu(pml: PolyModLoader, insert: unknown, exclusive =
         }
         if (cancelled) throw new Error('Match start cancelled.');
         window.polycupStartupStage?.('native_world_start');
-        polycupDismissProfileEditor();
+        polycupDismissMatchMenus();
         J(metadata,trackData,'custom',[],{multiplayerConnection:connection,sessionId,gameMode:mode},false);
         while (Za.get($)?.multiplayerConnection !== connection || !Xa.get($) || o.isTransitioning) {
           if (cancelled || performance.now()>deadline) throw new Error('Race loading timed out.');
           await new Promise(resolve=>setTimeout(resolve,100));
         }
+        polycupDismissMatchMenus();
         window.polycupStartupStage?.('native_world_ready');
         request.complete(null,connection);
       } catch(error) { request.cancel(); request.complete(error?.message || 'Could not connect to the race.'); }

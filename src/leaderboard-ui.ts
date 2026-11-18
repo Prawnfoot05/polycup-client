@@ -29,6 +29,7 @@ export class LeaderboardUI {
   #generation = 0;
   #cache = new Map<string, { at: number; rows: Entry[] }>();
   #season = h('select');
+  #hallOfFameButton?: HTMLButtonElement;
   #seasonKey = '';
   #seasonsLoaded = false;
   #embedded = false;
@@ -55,7 +56,9 @@ export class LeaderboardUI {
     const controls = h('div', undefined, 'leaderboard-toolbar');
     this.#tabs.before(controls);
     this.#types.hidden = true;
-    controls.append(this.#tabs, this.#tracks.recordLeadersControl, this.#tracks.searchControl, this.#season);
+    controls.append(this.#tabs, this.#tracks.recordLeadersControl, this.#tracks.searchControl);
+    if (this.#hallOfFameButton) controls.append(this.#hallOfFameButton);
+    controls.append(this.#season);
     container.append(this.#dialog);
   }
   close() {
@@ -70,6 +73,7 @@ export class LeaderboardUI {
     private history: (id: string, name: string) => void,
     private profile?: (id: string) => void,
     artwork?: () => Pick<LibraryTrack, 'id' | 'thumbnail'>[],
+    openHallOfFame?: () => void,
   ) {
     this.#tracks = new TrackRecordsUI(api, user, profile, artwork, () => void this.#load());
     this.#types.setAttribute('aria-label', 'Leaderboard type');
@@ -94,6 +98,10 @@ export class LeaderboardUI {
     installErrorDismissal(shadow);
     this.#season.setAttribute('aria-label', 'Ranked season');
     this.#season.hidden = true;
+    if (openHallOfFame) {
+      this.#hallOfFameButton = this.#button('Hall of Fame', openHallOfFame);
+      this.#hallOfFameButton.classList.add('leaderboard-hall-of-fame');
+    }
     this.#season.onchange = () => {
       this.#seasonKey = this.#season.value;
       this.#page = 0;
@@ -227,6 +235,7 @@ export class LeaderboardUI {
   }
   async #load() {
     const tracks = this.#mode === 'tracks';
+    if (this.#hallOfFameButton) this.#hallOfFameButton.hidden = tracks;
     this.#tabs.hidden = tracks && !this.#tracks.hasTrack;
     this.#body.hidden = this.#footer.hidden = tracks;
     this.#dialog.querySelector<HTMLElement>('.leaderboard-scroll-hint')!.hidden = tracks;

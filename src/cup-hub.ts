@@ -15,6 +15,8 @@ import { VERSION } from './cup.ts';
 import type { Controller } from './controller.ts';
 import type { AccountUI } from './account-ui.ts';
 import css from './cup-hub.css';
+import hallOfFameCSS from './hall-of-fame.css';
+import { HallOfFame } from './hall-of-fame.ts';
 import { RankedRoom } from './ranked-room.ts';
 import { RankedQueueUI } from './ranked-queue-ui.ts';
 import { RankedReconnectUI } from './ranked-reconnect-ui.ts';
@@ -60,7 +62,9 @@ export class CupHub {
   #inputOutbox?: RankedInputOutbox;
   #leaderboard?: LeaderboardUI;
   #history?: RankedHistoryUI;
-  #view: 'browser' | 'leaderboards' | 'tracks' | 'history' | 'community' = 'browser';
+  #view: 'browser' | 'leaderboards' | 'tracks' | 'history' | 'hall-of-fame' | 'community' = 'browser';
+  #hallOfFame?: HallOfFame;
+  #hallOfFameView = h('section', undefined, 'hub-data-view hall-of-fame');
   #community?: CommunityUI;
   #communityView = h('section', undefined, 'hub-data-view hub-community-view');
   #communityUnread = h('span', undefined, 'hub-community-unread');
@@ -198,7 +202,7 @@ export class CupHub {
         throw error;
       }
     });
-    shadow.append(h('style', css + sharedChatCSS + patchNotesCSS), this.#dialog);
+    shadow.append(h('style', css + hallOfFameCSS + sharedChatCSS + patchNotesCSS), this.#dialog);
     this.#dialog.setAttribute('aria-label', 'PolyCup');
     const header = h('header', undefined, 'hub-header');
     const brand = h('div', undefined, 'hub-brand');
@@ -243,11 +247,22 @@ export class CupHub {
         (id, name) => account.openHistory(id, name),
         (id) => account.openProfile(id),
         () => account.trackArt?.() ?? [],
+        options.rankedActivity ? () => {
+          this.#selectView('hall-of-fame');
+          this.#hallOfFameView.querySelector('h2')?.focus();
+        } : undefined,
       );
       this.#leaderboard = board;
       window.addEventListener('polycup-ranked-result', () => board.invalidate());
       if (options.rankedActivity) {
         board.mount(this.#boardView);
+        this.#hallOfFameView.hidden = true;
+        this.#boardView.append(this.#hallOfFameView);
+        this.#hallOfFame = new HallOfFame(this.#hallOfFameView, account.account.ranked,
+          id => account.openProfile(id), () => {
+            this.#selectView('leaderboards');
+            this.#boardView.querySelector<HTMLButtonElement>('.leaderboard-hall-of-fame')?.focus();
+          });
         this.#history = new RankedHistoryUI(
           shadow,
           (id) => account.openProfile(id),
@@ -390,7 +405,7 @@ export class CupHub {
     listHeader.append(h('h2', 'Public lobbies'), listActions);
     const activities = h('div', undefined, 'hub-activities');
     activities.setAttribute('aria-label', 'Play options');
-    activities.append(footer);
+    activities.append(this.#seasonCountdown.element, footer);
     if (options.rankedActivity) {
       this.#dialog.classList.add('hub-tabbed');
       this.#viewTabs.setAttribute('role', 'tablist');
@@ -430,7 +445,7 @@ export class CupHub {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
         const buttons = [...this.#viewTabs.querySelectorAll<HTMLButtonElement>('button')];
-        const i = buttons.findIndex((b) => b.dataset.view === this.#view);
+        const i = buttons.findIndex((b) => b.getAttribute('aria-selected') === 'true');
         const next =
           event.key === 'Home'
             ? 0
@@ -440,7 +455,7 @@ export class CupHub {
         buttons[next].click();
         buttons[next].focus();
       });
-      this.#browserView.append(this.#error, listHeader, this.#list, this.#seasonCountdown.element);
+      this.#browserView.append(this.#error, listHeader, this.#list);
       const views = h('div', undefined, 'hub-views');
       views.append(
         this.#browserView,
@@ -454,7 +469,7 @@ export class CupHub {
       notes.classList.add('hub-patch-notes');
       header.append(notes);
       main.append(views, activities);
-    } else main.append(this.#error, listHeader, this.#list, this.#seasonCountdown.element, activities);
+    } else main.append(this.#error, listHeader, this.#list, activities);
     if (options.rankedActivity) {
       options.rankedActivity.addEventListener('polycup-leaderboards', () =>
         this.#selectView('leaderboards'),
@@ -588,7 +603,7 @@ export class CupHub {
     window.addEventListener(CUP_MENU_EVENT, () => this.open());
   }
   #selectView(
-    view: 'browser' | 'leaderboards' | 'tracks' | 'history' | 'community',
+    view: 'browser' | 'leaderboards' | 'tracks' | 'history' | 'hall-of-fame' | 'community',
     player?: { id: string; name: string; match?: string },
   ) {
     this.#view = view;
@@ -602,13 +617,14 @@ export class CupHub {
     this.#leaderboard?.close();
     this.#history?.close();
     this.#browserView.hidden = view !== 'browser';
-    this.#boardView.hidden = view !== 'leaderboards';
+    this.#boardView.hidden = view !== 'leaderboards' && view !== 'hall-of-fame';
     this.#trackView.hidden = view !== 'tracks';
     this.#historyView.hidden = view !== 'history';
+    this.#hallOfFameView.hidden = view !== 'hall-of-fame';
     this.#communityView.hidden = view !== 'community';
     if (this.#community) this.#community.chat.visible = view === 'community';
     for (const button of this.#viewTabs.querySelectorAll<HTMLButtonElement>('button')) {
-      const selected = button.dataset.view === view;
+      const selected = button.dataset.view === (view === 'hall-of-fame' ? 'leaderboards' : view);
       button.setAttribute('aria-selected', String(selected));
       button.tabIndex = selected ? 0 : -1;
     }
@@ -618,6 +634,7 @@ export class CupHub {
       this.#leaderboard?.mount(view === 'tracks' ? this.#trackView : this.#boardView);
       this.#leaderboard?.open(view === 'tracks' ? 'tracks' : 'players');
     }
+    if (view === 'hall-of-fame') this.#hallOfFame?.open();
     this.#viewTabs
       .querySelector<HTMLButtonElement>('[aria-selected=true]')
       ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -799,7 +816,7 @@ export class CupHub {
       this.#entered();
       return;
     }
-    this.#seasonCountdown.start();
+    this.#seasonCountdown.start(this.#account.account?.ranked);
     if (!this.#dialog.open) this.#dialog.showModal();
     if (this.options.rankedActivity) this.#community?.start();
     if (this.options.rankedActivity) this.#selectView(this.#view);

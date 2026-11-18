@@ -58,6 +58,10 @@
 
 /* Players and track records share one compact toolbar. */
 .cup-leaderboard .leaderboard-toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 18px;border-bottom:1px solid var(--pc-line)}
+.cup-leaderboard .leaderboard-toolbar .leaderboard-hall-of-fame{margin:0 0 0 auto;min-height:36px;padding:6px 12px;background:var(--pc-action);color:var(--pc-gold);clip-path:var(--cut)}
+.cup-leaderboard .leaderboard-toolbar .leaderboard-hall-of-fame:is(:hover,:focus-visible){background:var(--pc-action-hover)}
+.cup-leaderboard .leaderboard-toolbar .leaderboard-hall-of-fame:not([hidden])+select{margin-left:0}
+@media(max-width:620px){.cup-leaderboard .leaderboard-toolbar .leaderboard-hall-of-fame{font-size:15px;padding-inline:8px}}
 .cup-leaderboard :is(.leaderboard-types,.leaderboard-tabs){display:flex;gap:2px;flex:none;margin:0;padding:0;border:0}
 .cup-leaderboard .leaderboard-types button{padding:8px 14px;background:transparent;border:0;color:var(--pc-muted)}
 .cup-leaderboard .leaderboard-types [aria-pressed=true]{color:var(--gold);background:var(--pc-panel);box-shadow:inset 0 -3px var(--gold)}

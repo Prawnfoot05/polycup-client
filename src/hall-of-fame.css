@@ -1,0 +1,38 @@
+.hub-data-view.hall-of-fame:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+}
+.hall-of-fame > .hof-header { position: relative; background: var(--pc-panel); }
+.hof-header h2 { margin: 0; font: inherit; }
+.hall-of-fame .hof-header .hof-back { position: absolute; inset-block: 0; inset-inline-end: 20px; margin: auto 0; height: 36px; min-height: 0; padding: 5px 12px; font-size: 15px; }
+.hof-status, .hof-qualifier { color: var(--pc-muted); font-size: 14px; }
+.hof-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; flex: 1; min-height: 0; gap: 14px; padding: 14px 20px 18px; overflow: auto; overscroll-behavior: contain; }
+.hof-board { min-width: 0; display: flex; flex-direction: column; background: var(--pc-canvas); }
+.hof-board h3 { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin: 0; padding: 8px 11px; background: var(--pc-action); color: var(--pc-text); font: italic 400 17px/1.2 ForcedSquare, Arial, sans-serif; }
+.hof-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 6px; min-height: 38px; padding: 3px 11px; border-bottom: 1px solid var(--pc-line); font-size: 14px; }
+.hof-row.hof-first { background: var(--pc-raised); border-left: 2px solid var(--pc-gold); padding-left: 9px; }
+.hof-first .hof-position, .hof-first .hof-value { color: var(--pc-gold); }
+.hof-value { color: var(--pc-text); font-size: 15px; white-space: nowrap; }
+.hof-position { color: var(--pc-muted); font-size: 12px; }
+.hall-of-fame .hof-racer { min-height: 28px; min-width: 0; margin: 0; padding: 0; gap: 5px; background: transparent; clip-path: none; text-align: left; font: inherit; }
+.hall-of-fame .hof-racer::after { content: none; }
+.hall-of-fame .hof-racer:hover { background: transparent; }
+.hof-racer .player-portrait { flex-basis: 22px; width: 22px; height: 22px; }
+.hof-identity { display: grid; min-width: 0; line-height: 1.24; }
+.hof-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hof-detail { color: var(--pc-muted); font-size: 11px; overflow-wrap: anywhere; }
+.hof-qualifier { font-size: 11px; white-space: nowrap; }
+.hof-status { margin: 10px; }
+.hof-runners-up { flex: 1 0 114px; max-height: 114px; min-height: 0; overflow: auto; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+.hof-runners-up .hof-row { scroll-snap-align: start; scroll-snap-stop: always; }
+.hof-grid, .hof-runners-up { scrollbar-width: none; }
+.hof-grid::-webkit-scrollbar, .hof-runners-up::-webkit-scrollbar { display: none; }
+.hof-runners-up:focus-visible, .hof-header h2:focus-visible { outline: 2px solid var(--pc-gold); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .hof-runners-up { scroll-behavior: auto; } }
+@media (max-width:700px), (max-height:500px) {
+  .hof-grid { padding-inline: 12px; }
+  .hall-of-fame .hof-header .hof-back { inset-inline-end: 12px; }
+}
+@container (max-width: 720px) { .hof-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 415px) { .hof-grid { grid-template-columns: minmax(0, 1fr); } }

@@ -393,6 +393,7 @@ export class Controller {
   #inputGame: NativeGame | null = null;
   #heldDrivingInputs = new HeldDrivingInputs();
   #heldTouchInputs = new HeldTouchInputs();
+  #drivingGame: NativeGame | null = null;
   #inputRestoredGame: NativeGame | null = null;
   #inputCapture: InputCapture | null = null;
   #inputRunHandler?: (run: import('./ranked-inputs.ts').InputRun) => void;
@@ -719,14 +720,14 @@ export class Controller {
     window.addEventListener(
       'keydown',
       (event) => {
-        if (!this.#state || this.#chatTyping) return;
+        if (this.#chatTyping) return;
+        this.#heldDrivingInputs.press(event);
+        if (!this.#state) return;
         if (this.#game && !isEditing(event) && this.#native.finishedUIHotkey?.(this.#game, event)) {
           event.preventDefault();
           event.stopImmediatePropagation();
           return;
         }
-        if (this.#game) this.#heldDrivingInputs.bind(this.#native.drivingBindings(this.#game));
-        this.#heldDrivingInputs.press(event);
         if (this.freecamHotkey(event) || this.checkpointHotkey(event)) {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -737,23 +738,32 @@ export class Controller {
     window.addEventListener('keyup', (event) => this.#heldDrivingInputs.release(event.code), {
       capture: true,
     });
+    const touchTargets = new WeakSet<Node>();
+    const restoreTouch = () => {
+      if (this.#drivingGame && !this.#chatTyping) this.restoreDrivingInput(this.#drivingGame);
+    };
+    const trackDetachedTouch = (event: TouchEvent) => {
+      if ((event.currentTarget as Node).isConnected) return;
+      this.#heldTouchInputs.update(event.touches);
+      restoreTouch();
+    };
+    const touchOptions = { capture: true, passive: true };
     for (const type of ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const)
       window.addEventListener(
         type,
         (event) => {
           this.#heldTouchInputs.update(event.touches);
-          // Native PolyTrack has no touchcancel listener. Release only the fingers
-          // that went away, while preserving a second finger and held keyboard keys.
-          if (
-            type === 'touchcancel' &&
-            this.#state &&
-            this.#game &&
-            !this.#info?.disposed &&
-            !this.#chatTyping
-          )
-            this.restoreDrivingInput(this.#game);
+          if (type === 'touchcancel') restoreTouch();
+          // The browser still targets the original control after a track swap.
+          // Its events no longer reach window once the old control is detached.
+          const target = event.target;
+          if (type === 'touchstart' && target instanceof Node && !touchTargets.has(target)) {
+            touchTargets.add(target);
+            for (const followup of ['touchmove', 'touchend', 'touchcancel'] as const)
+              target.addEventListener(followup, trackDetachedTouch as EventListener, touchOptions);
+          }
         },
-        { capture: true, passive: true },
+        touchOptions,
       );
     window.addEventListener(
       'touchstart',
@@ -797,9 +807,20 @@ export class Controller {
   clearDrivingInput() {
     this.#heldDrivingInputs.clear();
     this.#heldTouchInputs.clear();
-    if (this.#state && this.#game) this.#native.clearInput?.(this.#game);
+    const game = this.#drivingGame ?? this.#game;
+    if (game) this.#native.clearInput?.(game);
+  }
+  initializeDrivingInput(game: NativeGame, solo: boolean) {
+    if (this.#drivingGame === game) {
+      if (solo) this.#restoreHeldTouch(game);
+      return;
+    }
+    this.#drivingGame = game;
+    if (solo) this.restoreDrivingInput(game);
   }
   restoreDrivingInput(game: NativeGame) {
+    const bindings = this.#native.drivingBindings?.(game);
+    if (bindings) this.#heldDrivingInputs.bind(bindings);
     const keys = this.#heldDrivingInputs.controls(),
       touch = this.#chatTyping
         ? { up: false, right: false, down: false, left: false }
@@ -807,6 +828,14 @@ export class Controller {
     for (const direction of ['up', 'right', 'down', 'left'] as const)
       keys[direction] ||= touch[direction];
     this.#native.applyDrivingInput?.(game, keys);
+  }
+  #restoreHeldTouch(game: NativeGame) {
+    if (this.#chatTyping || !this.#heldTouchInputs.active) return;
+    const held = this.#heldTouchInputs.controls(), current = this.#native.readInputs(game).controls;
+    let changed = false;
+    for (const direction of ['up', 'right', 'down', 'left'] as const)
+      if (held[direction] && !current[direction]) { current[direction] = true; changed = true; }
+    if (changed) this.#native.applyDrivingInput?.(game, current);
   }
   rememberDrivingView(game: NativeGame) {
     if (
@@ -833,6 +862,7 @@ export class Controller {
     this.#drivingView = this.#native.drivingView?.(game);
   }
   gameDisposed(game: NativeGame) {
+    if (this.#drivingGame === game) this.#drivingGame = null;
     if (this.#game !== game) return;
     this.#unwatchInputs?.();
     this.#unwatchInputs = undefined;
@@ -933,11 +963,13 @@ export class Controller {
       // A finger may already be down while the first connection is loading.
       // Keep that physical touch through initial admission; replacement of an
       // existing connection still clears the previous match's input state.
-      if (this.#connection) this.#heldTouchInputs.clear();
+      if (this.#connection) {
+        this.#heldTouchInputs.clear();
+        this.#heldDrivingInputs.clear();
+      }
       this.#connection = info.connection;
       this.#drivingView = undefined;
       this.#cameraRestoredGame = null;
-      this.#heldDrivingInputs.clear();
       this.#inputRestoredGame = null;
       this.#identity = null;
       this.#identityCup = '';
@@ -976,8 +1008,6 @@ export class Controller {
       this.#cameraRestoredGame = game;
     }
     if (racing && this.#inputRestoredGame !== game) {
-      const bindings = this.#native.drivingBindings?.(game);
-      if (bindings) this.#heldDrivingInputs.bind(bindings);
       this.restoreDrivingInput(game);
       this.#inputRestoredGame = game;
     }
@@ -1056,13 +1086,7 @@ export class Controller {
       }
       // Controls can mount after GO without another touch event. Retry only held
       // touch directions, merging rather than replacing keyboard/gamepad input.
-      if (racing && (phase === 'warmup' || startDue) && !this.#chatTyping && this.#heldTouchInputs.active) {
-        const held = this.#heldTouchInputs.controls(), current = this.#native.readInputs(game).controls;
-        let changed = false;
-        for (const direction of ['up', 'right', 'down', 'left'] as const)
-          if (held[direction] && !current[direction]) { current[direction] = true; changed = true; }
-        if (changed) this.#native.applyDrivingInput?.(game, current);
-      }
+      if (racing && (phase === 'warmup' || startDue)) this.#restoreHeldTouch(game);
       if (racing && phase === 'racing' && run.deadline !== null && this.now() >= run.deadline)
         this.#native.pauseRaceClock?.(game);
     }

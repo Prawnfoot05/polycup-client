@@ -12,8 +12,7 @@ export function installPracticeRespawns(runtime) {
   let api = null,
     current = null,
     liveCar = null,
-    lastTap = -Infinity,
-    held = {};
+    lastTap = -Infinity;
   const multiplayerAllowed = game => manager.allowMultiplayer?.(game) !== false;
   window.polycupPracticeCarAccess = (car, info) => {
     if (access.has(car)) return;
@@ -182,21 +181,6 @@ export function installPracticeRespawns(runtime) {
     window.addEventListener(
       type,
       (event) => {
-        held = {};
-        if (!api?.read(runtime.menuGame?.())) return;
-        for (const touch of event.touches)
-          for (const img of document.querySelectorAll('.touch-controls-ui img')) {
-            const match = /arrow_(up|right|down|left)\.svg$/.exec(img.getAttribute('src') ?? '');
-            if (!match) continue;
-            const r = img.parentElement.getBoundingClientRect();
-            if (
-              touch.clientX >= r.left &&
-              touch.clientX <= r.right &&
-              touch.clientY >= r.top &&
-              touch.clientY <= r.bottom
-            )
-              held[match[1]] = true;
-          }
         if (resetEvent(event)) {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -227,12 +211,10 @@ export function installPracticeRespawns(runtime) {
     true,
   );
   window.addEventListener('blur', () => {
-    held = {};
     lastTap = -Infinity;
   });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-      held = {};
       lastTap = -Infinity;
     }
   });
@@ -245,7 +227,6 @@ export function installPracticeRespawns(runtime) {
    key:(g,event)=>ua.get(g).checkKeyBinding(event,ge.A.VehicleCheckpointReset),
    watch:g=>Na.get(g).setWatchButtonEnabled(true),
    uploads:(g,enabled)=>ya.set(g,enabled),
-   held:(g,keys)=>{const input=qa.get(g);for(const key of Object.keys(keys))input[key]=true;},
    hook:prepare=>{const update=Is.prototype.update;Is.prototype.update=function(...args){prepare(this);return update.apply(this,args);};}
   })`);
     api.hook((game) => {
@@ -272,7 +253,6 @@ export function installPracticeRespawns(runtime) {
         send({ rollingEnable: true });
       }
       if (used.has(car)) api.uploads(game, false);
-      if (api.ready(game) && Object.keys(held).length) api.held(game, held);
     });
     installRollingPresentation(runtime);
     manager.ready = true;

@@ -23,13 +23,14 @@ export class HeldDrivingInputs {
     for (const direction of ['up', 'right', 'down', 'left'] as const)
       for (const code of bindings[direction])
         if (code && !this.#bindings.has(code)) this.#bindings.set(code, direction);
-    for (const code of this.#held) if (!this.#bindings.has(code)) this.#held.delete(code);
   }
 
   press(event: KeyboardEvent) {
-    if (event.isComposing || event.ctrlKey || event.altKey || event.metaKey || isEditing(event))
+    if (event.isComposing || event.ctrlKey || event.altKey || event.metaKey ||
+        isEditing(event, event.code === 'Space' || event.code === 'Enter' || event.code === 'NumpadEnter'))
       return;
-    if (this.#bindings.has(event.code)) this.#held.add(event.code);
+    // The next scene may not have registered its driving bindings yet.
+    this.#held.add(event.code);
   }
 
   release(code: string) {

@@ -1,44 +1,63 @@
 import { element as h } from './dom.ts';
+import type { Ranked } from './ranked.ts';
 
-// 14 November 2026, 00:00 Europe/Bucharest (UTC+02:00).
-export const SEASON_ZERO_END = Date.parse('2026-11-14T00:00:00+02:00');
-
-export function seasonCountdown(now: number) {
-  const seconds = Math.max(0, Math.ceil((SEASON_ZERO_END - now) / 1000));
+export function seasonTimeLeft(deadline: number, now: number) {
+  if (!Number.isFinite(deadline) || deadline <= now) return '';
+  const seconds = Math.ceil((deadline - now) / 1000);
+  const days = Math.floor(seconds / 86400);
+  if (days) return `${days}d`;
   const hours = Math.floor(seconds / 3600);
-  return {
-    ended: seconds === 0,
-    text: [hours, Math.floor(seconds / 60) % 60, seconds % 60]
-      .map((value) => String(value).padStart(2, '0')).join(':'),
-  };
+  const minutes = Math.floor(seconds / 60) % 60;
+  if (hours) return `${hours}h ${minutes}m`;
+  return minutes ? `${minutes}m ${seconds % 60}s` : `${seconds}s`;
 }
 
 export class SeasonCountdown {
-  #element = h('aside', undefined, 'hub-season-countdown');
-  get element() { return this.#element; }
+  #element = h('span', undefined, 'hub-season-countdown');
+  #name = h('span', undefined, 'hub-season-name');
   #value = h('span', undefined, 'hub-season-clock');
-  #label = h('span', 'Season 0 ends in', 'hub-season-label');
+  #deadline = NaN;
   #timer?: ReturnType<typeof setInterval>;
+  #generation = 0;
+
+  get element() { return this.#element; }
+
   constructor() {
-    const heading = h('div', undefined, 'hub-season-heading');
-    heading.append(h('strong', 'Season 1'), this.#label);
-    this.#value.setAttribute('role', 'timer');
-    this.element.setAttribute('aria-label', 'Season 1 countdown');
-    this.element.append(heading, this.#value);
-    this.update();
+    this.element.hidden = true;
+    this.element.setAttribute('role', 'timer');
+    this.element.append(this.#name, this.#value);
   }
-  update(now = Date.now()) {
-    const state = seasonCountdown(now);
-    this.element.hidden = state.ended;
-    this.#value.textContent = state.text;
-    this.#value.hidden = state.ended;
+
+  #update() {
+    const time = seasonTimeLeft(this.#deadline, Date.now());
+    this.element.hidden = !time;
+    const text = time ? `${time} left` : '';
+    if (this.#value.textContent !== text) this.#value.textContent = text;
   }
-  start() {
+
+  start(api?: Pick<Ranked, 'seasons'>) {
     this.stop();
-    this.update();
-    this.#timer = setInterval(() => this.update(), 1000);
+    if (!api) return;
+    const generation = this.#generation;
+    let nextRefresh = 0;
+    const tick = () => {
+      this.#update();
+      if (Date.now() < nextRefresh) return;
+      nextRefresh = Date.now() + 60_000;
+      void api.seasons().then(seasons => {
+        if (generation !== this.#generation) return;
+        const active = seasons.find(season => season.active && !season.ends_at);
+        this.#deadline = Date.parse(active?.scheduled_end_at ?? '');
+        this.#name.textContent = active ? `${active.name}: ` : '';
+        this.#update();
+      }).catch(() => {});
+    };
+    tick();
+    this.#timer = setInterval(tick, 1000);
   }
+
   stop() {
+    ++this.#generation;
     clearInterval(this.#timer);
     this.#timer = undefined;
   }

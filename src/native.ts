@@ -378,8 +378,10 @@ export function connectNative(pml: PolyModLoader, controller: Controller) {
   api.Game.prototype.update = function (...args) {
     // A failed native constructor can publish its session before creating a car.
     // Do not run car-dependent native updates or announce that world as ready.
-    if (!api.read(this).car) return;
+    const game = api.read(this);
+    if (!game.car) return;
     cupFrameStep(this, 'cup_frame_observe', () => {
+      if (!game.disposed) controller.initializeDrivingInput(this, !game.connection);
       controller.observeGame(this);
       if (controller.countdownTouchControls && api.countdownTouchControls) {
         const { controls, allowed } = api.countdownTouchControls(this);

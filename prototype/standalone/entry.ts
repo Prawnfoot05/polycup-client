@@ -15,6 +15,10 @@ import { CupUI } from '../../src/ui.ts';
 import { registerCarVisibility, CupTransport, nativeFrameHealth } from '../../src/native.ts';
 import { installRankedPanel } from './ranked-panel.ts';
 import { registerCupMenu, launchNativeRace } from '../../src/native-cup-menu.ts';
+import { rankedPracticeBridge, registerRankedPractice } from '../../src/ranked-practice.ts';
+import { RankedPracticeRun } from '../../src/ranked-practice-run.ts';
+import rankedPracticeCSS from '../../src/ranked-practice.css';
+import rankedPracticeBanner from '../../assets/ranked-practice-banner.png';
 import { registerPracticeRespawns } from '../../src/practice-respawn.ts';
 import { registerLobbyNavigation } from '../../src/native-lobby.ts';
 import { registerNativePlayerList, rankedPlayerList } from '../../src/native-player-list.ts';
@@ -395,7 +399,7 @@ const runtime: any = {
           },
         }
       : {};
-    w.polycupPrototype.ui = new CupUI(c, hubOptions);
+    w.polycupPrototype.ui = new CupUI(c, hubOptions, () => rankedPracticeRun.countdownCue());
     window.addEventListener('keydown', (event: KeyboardEvent) => {
       if (event.code === 'KeyY') w.polycupPrototype.ui.chatHotkey(event);
       if (event.code === 'KeyG') w.polycupPrototype.ui.ghostHotkey(event);
@@ -816,6 +820,19 @@ const runtime: any = {
   },
 };
 w.polycupRuntime = runtime;
+const rankedPracticeRun = new RankedPracticeRun(
+  message => w.polycupPrototype?.ui?.showNotice(message, 3500),
+  () => w.polycupPrototype?.ui?.renderStartCue(),
+);
+runtime.rankedPracticeRun = rankedPracticeRun;
+runtime.rankedPractice = rankedPracticeBridge(rankedPracticeBanner, () => {
+  const ranked = w.polycupPrototype?.ui?.account?.ranked;
+  return ranked ? ranked.practicePool() : Promise.reject(new Error('Ranked connection unavailable'));
+}, (ids, pickerOpen) => rankedPracticeRun.start(ids, pickerOpen));
+const rankedPracticeStyle = document.createElement('style');
+rankedPracticeStyle.textContent = rankedPracticeCSS;
+document.head.append(rankedPracticeStyle);
+registerRankedPractice(runtime, 0);
 installNativeInstanceRecovery(runtime, 0, report);
 registerCarVisibility(runtime, 0);
 registerLobbyNavigation(runtime, 0);
