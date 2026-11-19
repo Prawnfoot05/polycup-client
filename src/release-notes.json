@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.7.3",
+    "date": "2026-11-19",
+    "entries": [
+      "The Hall of Fame has an Overall view and a season selector. The current season updates while you browse.",
+      "Ranked results recover when a late loading response interrupts the match handoff. The ranked controls return when you reopen the hub."
+    ],
+    "notes": []
+  },
+  {
     "version": "0.7.2",
     "date": "2026-11-18",
     "entries": [

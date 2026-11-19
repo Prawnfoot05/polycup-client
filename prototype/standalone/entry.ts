@@ -691,7 +691,7 @@ const runtime: any = {
       proto.resetRankedConnection();
       w.polycupCasual = false;
       w.polycupNetwork = admission.network;
-      proto.rankedMatch = { lease: admission.launch };
+      proto.rankedMatch = { id: admission.match, lease: admission.launch };
       proto.rankedTicket = admission.ticket;
       roomId = admission.match;
       proto.failedShown = false;
@@ -704,7 +704,6 @@ const runtime: any = {
       try { await launchNativeRace('join', abort.signal, undefined, admission.code); }
       finally { if (proto.rankedConnectAbort === abort) proto.rankedConnectAbort = null; }
       report('native_connected');
-      document.getElementById('prototype-menu')?.setAttribute('hidden', '');
     };
     proto.join = async (id: string, code: string) => {
       roomId = id;

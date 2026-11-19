@@ -3,9 +3,11 @@
   flex-direction: column;
   container-type: inline-size;
 }
-.hall-of-fame > .hof-header { position: relative; background: var(--pc-panel); }
+.hall-of-fame > .hof-header { background: var(--pc-panel); flex-wrap: wrap; gap: 8px 18px; }
 .hof-header h2 { margin: 0; font: inherit; }
-.hall-of-fame .hof-header .hof-back { position: absolute; inset-block: 0; inset-inline-end: 20px; margin: auto 0; height: 36px; min-height: 0; padding: 5px 12px; font-size: 15px; }
+.hof-header-actions { display: flex; align-items: center; gap: 12px; max-width: 100%; margin-inline-start: auto; }
+.hof-header .hof-season { min-width: 0; max-width: 100%; width: auto; min-height: 32px; color: var(--pc-text); background: var(--pc-action); font: 400 14px ForcedSquare, Arial, sans-serif; }
+.hall-of-fame .hof-header .hof-back { flex: none; margin: 0; height: 36px; min-height: 0; padding: 5px 12px; font-size: 15px; }
 .hof-status, .hof-qualifier { color: var(--pc-muted); font-size: 14px; }
 .hof-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; flex: 1; min-height: 0; gap: 14px; padding: 14px 20px 18px; overflow: auto; overscroll-behavior: contain; }
 .hof-board { min-width: 0; display: flex; flex-direction: column; background: var(--pc-canvas); }
@@ -32,7 +34,6 @@
 @media (prefers-reduced-motion: reduce) { .hof-runners-up { scroll-behavior: auto; } }
 @media (max-width:700px), (max-height:500px) {
   .hof-grid { padding-inline: 12px; }
-  .hall-of-fame .hof-header .hof-back { inset-inline-end: 12px; }
 }
 @container (max-width: 720px) { .hof-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container (max-width: 415px) { .hof-grid { grid-template-columns: minmax(0, 1fr); } }

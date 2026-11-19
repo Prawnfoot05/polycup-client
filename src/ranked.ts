@@ -503,11 +503,8 @@ export class Ranked {
   seasons(): Promise<{ id: string; name: string; active: boolean; ends_at?: string | null; scheduled_end_at?: string | null }[]> {
     return this.rpc('polycup_seasons');
   }
-  hallOfFame(): Promise<import('./hall-of-fame.ts').HallOfFameData> {
-    return this.rpc('polycup_hall_of_fame');
-  }
-  hallOfFamePreview(): Promise<import('./hall-of-fame.ts').HallOfFamePreview | null> {
-    return this.rpc('polycup_hall_of_fame_preview');
+  hallOfFameView(season: string | null): Promise<import('./hall-of-fame.ts').HallOfFameData> {
+    return this.rpc('polycup_hall_of_fame_view', { season_key: season });
   }
   onlineCount(): Promise<number> {
     return this.rpc('polycup_online_count');

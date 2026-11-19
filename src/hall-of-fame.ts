@@ -25,15 +25,16 @@ interface Entry {
   champion_seasons: string[] | null;
 }
 export type HallOfFameData = Partial<Record<Metric, Entry[]>>;
-export interface HallOfFamePreview {
-  captured_at: string;
-  views: { label: string; finalized?: boolean; boards: HallOfFameData }[];
-}
-
 export class HallOfFame {
   #grid = h('div', undefined, 'hof-grid');
+  #season = h('select', undefined, 'hof-season');
+  #seasons: Awaited<ReturnType<Ranked['seasons']>> = [];
   #data?: HallOfFameData;
-  #request?: Promise<void>;
+  #scope = '';
+  #generation = 0;
+  #timer?: ReturnType<typeof setInterval>;
+  #refreshing = false;
+  #active = false;
 
   constructor(
     pane: HTMLElement,
@@ -48,33 +49,69 @@ export class HallOfFame {
     button.type = 'button';
     button.setAttribute('aria-label', 'Back to Player Leaderboard');
     button.onclick = back;
-    header.append(heading, button);
+    this.#season.setAttribute('aria-label', 'Hall of Fame season');
+    this.#season.append(new Option('Overall', ''));
+    this.#season.onchange = () => {
+      this.#scope = this.#season.value;
+      this.#data = undefined;
+      this.#grid.scrollTop = 0;
+      void this.#load(true);
+    };
+    const actions = h('div', undefined, 'hof-header-actions');
+    actions.append(this.#season, button);
+    header.append(heading, actions);
     pane.append(header, this.#grid);
   }
 
   open() {
-    if (this.#request) return;
-    if (!this.#data) this.#status('Loading Hall of Fame…');
-    this.#request = this.#load().then(data => {
-      this.#data = data;
-      this.#render(data);
-    }, () => {
-      if (this.#data) return;
+    if (this.#timer !== undefined) return;
+    void this.#load(!this.#data);
+    this.#timer = setInterval(() => {
+      if (!document.hidden && !this.#refreshing && (!this.#scope || this.#active))
+        void this.#load(false);
+    }, 30_000);
+  }
+
+  close() {
+    clearInterval(this.#timer);
+    this.#timer = undefined;
+    ++this.#generation;
+    this.#refreshing = false;
+  }
+
+  async #load(showLoading: boolean) {
+    const generation = ++this.#generation;
+    const scope = this.#scope;
+    this.#refreshing = true;
+    if (showLoading) this.#status('Loading Hall of Fame…');
+    try {
+      const [seasons, data] = await Promise.all([
+        this.api.seasons(),
+        this.api.hallOfFameView(scope || null),
+      ]);
+      if (generation !== this.#generation) return;
+      const active = seasons.some(season => season.id === scope && season.active && !season.ends_at);
+      if (JSON.stringify(this.#seasons) !== JSON.stringify(seasons)) {
+        this.#seasons = seasons;
+        this.#season.replaceChildren(new Option('Overall', ''), ...seasons.map(season =>
+          new Option(season.active && !season.ends_at ? `${season.name} · Live` : season.name, season.id)));
+        this.#season.value = scope;
+      }
+      if (active !== this.#active || JSON.stringify(this.#data) !== JSON.stringify(data)) {
+        this.#active = active;
+        this.#data = data;
+        this.#render(data);
+      }
+    } catch {
+      if (generation !== this.#generation || this.#data) return;
       this.#status('Could not load the Hall of Fame.');
       const retry = h('button', 'Retry');
       retry.type = 'button';
-      retry.onclick = () => this.open();
+      retry.onclick = () => void this.#load(true);
       this.#grid.append(retry);
-    }).finally(() => { this.#request = undefined; });
-  }
-
-  async #load() {
-    if (window.location.hostname === 'pilot.polycup.online') {
-      const preview = await this.api.hallOfFamePreview().catch(() => null);
-      const archive = preview?.views.find(view => view.finalized === true);
-      if (archive) return archive.boards;
+    } finally {
+      if (generation === this.#generation) this.#refreshing = false;
     }
-    return this.api.hallOfFame();
   }
 
   #status(message: string) {
@@ -94,7 +131,8 @@ export class HallOfFame {
       (entry.seasons ? `${entry.seasons} ${entry.seasons === 1 ? 'season' : 'seasons'}` : '');
     if (detail) name.append(h('small', detail, 'hof-detail'));
     action.append(profilePicture(entry.display_name, entry.avatar_url), name);
-    const value = metric === 'average_finish' || metric === 'average_race_finish' ? entry.value.toFixed(2)
+    const value = metric === 'average_finish' && this.#scope ? `#${entry.value.toLocaleString()}`
+      : metric === 'average_finish' || metric === 'average_race_finish' ? entry.value.toFixed(2)
       : metric === 'win_rate' ? `${entry.value.toFixed(1)}%`
       : entry.value.toLocaleString();
     row.append(h('span', `#${entry.position}`, 'hof-position'), action, h('span', value, 'hof-value'));
@@ -108,7 +146,12 @@ export class HallOfFame {
 
   #render(data: HallOfFameData) {
     this.#grid.replaceChildren();
-    for (const [metric, label] of categories) {
+    for (const [metric, defaultLabel] of categories) {
+      const label = this.#scope && metric === 'average_finish'
+        ? this.#active ? 'Current season rank' : 'Final season rank'
+        : this.#scope && metric === 'grandmaster_seasons'
+          ? this.#active ? 'Current Grandmasters' : 'Grandmasters'
+          : defaultLabel;
       const board = h('section', undefined, 'hof-board');
       const heading = h('h3', label);
       heading.id = `hof-${metric}`;
@@ -124,7 +167,9 @@ export class HallOfFame {
         list.tabIndex = 0;
         list.append(...others.map(entry => this.#row(entry, metric, false)));
       } else if (!first) {
-        list.append(h('p', metric === 'win_rate' ? 'Requires 20 rated matches.' : 'No records yet.', 'hof-status'));
+        const empty = metric === 'win_rate' ? 'Requires 20 rated matches.'
+          : metric === 'titles' && this.#active ? 'Awarded at season end.' : 'No records yet.';
+        list.append(h('p', empty, 'hof-status'));
       }
       board.append(list);
       this.#grid.append(board);

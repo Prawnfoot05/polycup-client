@@ -635,6 +635,7 @@ export class CupHub {
       this.#leaderboard?.open(view === 'tracks' ? 'tracks' : 'players');
     }
     if (view === 'hall-of-fame') this.#hallOfFame?.open();
+    else this.#hallOfFame?.close();
     this.#viewTabs
       .querySelector<HTMLButtonElement>('[aria-selected=true]')
       ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -817,6 +818,7 @@ export class CupHub {
       return;
     }
     this.#seasonCountdown.start(this.#account.account?.ranked);
+    if (this.options.rankedActivity) this.options.rankedActivity.hidden = false;
     if (!this.#dialog.open) this.#dialog.showModal();
     if (this.options.rankedActivity) this.#community?.start();
     if (this.options.rankedActivity) this.#selectView(this.#view);
@@ -870,6 +872,7 @@ export class CupHub {
   close() {
     this.#seasonRewards.close();
     this.#seasonCountdown.stop();
+    this.#hallOfFame?.close();
     this.#community?.stop();
     this.#account.closeSocial();
     if (this.options.rankedActivity) {

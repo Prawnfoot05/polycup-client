@@ -147,6 +147,20 @@ export function installRankedPanel(
     panel.hidden = !visible;
     if (inHub && changed) proto.ui.setMainMenuOpen(visible);
   };
+  // The native Cup can reach countdown before the async admission call returns.
+  // Adopt it immediately so a late poll or loading reply cannot take ownership.
+  function syncNativeEntry() {
+    if (!active) return false;
+    if (entered === active) return true;
+    const state = proto.controller.nativeState;
+    if (!proto.controller.connection || state?.id !== active ||
+        !['warmup', 'countdown', 'racing', 'complete'].includes(state.phase)) return false;
+    entered = joined = active;
+    loading.hide();
+    proto.controller.finishWaitingRace();
+    practiceControl('complete');
+    return true;
+  }
   panel.replaceChildren();
   const title = document.createElement('b');
   title.textContent = inHub ? 'Ranked' : 'PolyCup · Local ranked prototype';
@@ -492,6 +506,7 @@ export function installRankedPanel(
     }
   }
   function render(q: any) {
+    syncNativeEntry();
     void refreshProfile();
     raceHosting = q.race_hosting !== false;
     find.disabled = busy || !raceHosting;
@@ -501,7 +516,9 @@ export function installRankedPanel(
     if(q.state!=='matched'||q.match?.status!=='drafting'||!q.match.track_vote)trackVote.hide();
     // A cancelled loading attempt no longer owns a connection or loading UI.
     // Abort it before an outstanding admission/join response can revive it.
-    if (active && !entered && !finish.isOpen &&
+    const awaitingResult = q.state === 'idle' && !!active &&
+      (joined === active || entered === active || proto.rankedMatch?.id === active);
+    if (active && !entered && !finish.isOpen && !awaitingResult &&
         (q.state !== 'matched' || q.match?.id !== active)) {
       revision++;
       proto.resetRankedConnection?.();
@@ -600,7 +617,11 @@ export function installRankedPanel(
     if (q.state === 'idle') {
       if (!connecting) {
         loading.hide();
-        if (previous?.state === 'matched' && previous.match?.status !== 'reserved' && !practiceControl('state').active && !proto.controller.connection) showMenu(true);
+        if (awaitingResult) {
+          // The queue can become idle before the result request sees settlement.
+          // Keep the match scoped so the next poll can still retrieve it.
+          if (!proto.controller.connection) pendingFinish();
+        } else if (previous?.state === 'matched' && previous.match?.status !== 'reserved' && !practiceControl('state').active && !proto.controller.connection) showMenu(true);
       }
       status.textContent = raceHosting || updates ? '' : 'Pilot racing is paused';
       status.title = '';
@@ -707,13 +728,13 @@ export function installRankedPanel(
     }
   }
   async function refreshLoading() {
-    if (loadingBusy || !active || entered === active) return;
+    if (loadingBusy || !active || syncNativeEntry() || finish.isOpen) return;
     loadingBusy = true;
     try {
       const expected = active;
       const expectedRevision = revision;
       const a = await request('admission', { match: expected });
-      if (active !== expected || revision !== expectedRevision || entered === expected ||
+      if (active !== expected || revision !== expectedRevision || syncNativeEntry() || finish.isOpen ||
           proto.queueState?.state !== 'matched' || proto.queueState.match?.id !== expected) return;
       if (!['drafting', 'racing'].includes(a.status)) {
         loading.hide();
@@ -745,20 +766,11 @@ export function installRankedPanel(
         const account = proto.bindings?.get(racer.id);
         if (account) garageNames.set(account, { native: racer.id, name: racer.nickname });
       }
-    if (
-      active &&
-      entered !== active &&
-      s?.id === active &&
-      ['warmup', 'countdown', 'racing', 'complete'].includes(s.phase)
-    ) {
-      entered = active;
-      loading.hide();
-      proto.controller.finishWaitingRace();
-    }
+    syncNativeEntry();
     if (active && s?.id === active && s.phase === 'complete' && !resultOpen) pendingFinish();
   }, 100);
   async function connect() {
-    if (connecting || joined === active || !active) return;
+    if (connecting || joined === active || !active || syncNativeEntry()) return;
     connecting = true;
     const expected = active;
     const expectedRevision = revision;
@@ -780,10 +792,8 @@ export function installRankedPanel(
       practiceControl('complete');
     } catch (e: any) {
       if(active!==expected || revision!==expectedRevision)return;
+      if (syncNativeEntry()) return;
       message.textContent = e.message;
-      loading.hide();
-      practiceControl('resume');
-      if (!practiceControl('state').active) showMenu(true);
     } finally {
       if (revision === expectedRevision) connecting = false;
     }
@@ -945,16 +955,11 @@ export function installRankedPanel(
     if (!r || r.match_id !== expectedActive) return;
     const own = r.players.find((p: any) => p.player_id === player);
     if (!own && !unrated) return;
-    resultOpen = true;
     connectionNotice.hidden = true;
     dismissedPendingResults.delete(r.match_id);
     showMenu(false);
     loading.hide();
     dialog.close();
-    const newlySettled = proto.settledResult?.match_id !== r.match_id;
-    proto.settledResult = r;
-    if (newlySettled) window.dispatchEvent(new Event('polycup-ranked-result'));
-    if (live && own && !unrated) void playerLooks.refreshProgression(player, true);
     garageRows();
     const rows: FinishRow[] = r.players.map((p: any) => {
       const name = document.createElement('span');
@@ -1054,11 +1059,22 @@ export function installRankedPanel(
       ],
     };
     finish.show(finalView);
+    resultOpen = true;
+    const newlySettled = proto.settledResult?.match_id !== r.match_id;
+    proto.settledResult = r;
+    if (newlySettled) window.dispatchEvent(new Event('polycup-ranked-result'));
+    if (live && own && !unrated) void playerLooks.refreshProgression(player, true);
     updates?.render();
   }
   find.onclick = () => void action('join');
   cancel.onclick = () => void action('cancel');
   proto.returnFromHostFailure = (error: string) => {
+    if (active && (entered === active || joined === active)) {
+      pendingFinish(error);
+      nextIdlePoll = 0;
+      void tick();
+      return;
+    }
     revision++;
     active = joined = entered = '';
     connecting = false;
